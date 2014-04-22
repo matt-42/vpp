@@ -1,0 +1,10 @@
+
+File extention :
+
+*.hh : headers.
+*.hpp : template implementations.
+*.cc : implementations.
+
+Naming :
+
+Every identifiers folows : foo_bar.
