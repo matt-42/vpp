@@ -1,6 +1,8 @@
 #ifndef VPP_IMAGENd_HH__
 # define VPP_IMAGENd_HH__
 
+# include <vpp/boxNd.hh>
+# include <memory>
 namespace vpp
 {
 
@@ -9,44 +11,53 @@ namespace vpp
   {
   public:
 
-    // Allocate the image.
-    imageNd(int dims[], int border = 0);
+    // Constructors.
+    imageNd(int* dims, int border = 0);
 
-    imageNd(const domainNd<N>& domain_, int border = 0);
+    imageNd(const boxNd<N>& domain_, int border = 0);
 
-    // Destructor.
-    ~imageNd();
 
     // Move constructor.
     imageNd(imageNd<V, N>&& other) = default;
 
+    // Destructor.
+    ~imageNd();
+
     // Assigment.
     imageNd<V, N>& operator=(imageNd<V, N>& other) = default;
 
-    // Accessor
-    V& operator()(const vintX<N>& p);
-    const V& operator()(const vintX<N>& p) const;
+    // Access to values.
+    V& operator()(const vint<N>& p);
+    const V& operator()(const vint<N>& p) const;
 
-    int coords_to_index() const;
+    int coords_to_index(const vint<N>& p) const;
 
-    // Buffer.
-    V* data();
-    const V* data() const;
+    // Access to raw buffer.
+    V* data() { return data_; }
+    const V* data() const { return data_; }
+    V* begin() { return begin_; }
+    const V* begin() const { return begin_; }
+
+    // Domain
+    const boxNd<N>& domain() { return domain_; }
 
   private:
 
     void allocate(int dims[N], int border);
-    V* buffer_, begin_;
-    domainNd<N> domain_;
+    V* data_;
+    V* data_end_;
+    V* begin_;
+    boxNd<N> domain_;
     int border_;
   };
 
-  template <typename V, N>
-  using shared_imageNd = shared_ptr<imageNd<V, N> >&;
+  template <typename V, unsigned N>
+  using shared_imageNd = std::shared_ptr<imageNd<V, N> >&;
 
   template <typename V, unsigned N>
-  imageNd<V, N> clone(imageNd& img);
+  imageNd<V, N> clone(imageNd<V, N>& img);
 
 };
 
+# include <vpp/imageNd.hpp>
 #endif
