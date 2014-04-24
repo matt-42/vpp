@@ -39,9 +39,9 @@ namespace vpp
     const V* begin() const { return begin_; }
 
     // Domain
-    const boxNd<N>& domain() { return domain_; }
+    const boxNd<N>& domain() const { return domain_; }
 
-  private:
+  protected:
 
     void allocate(int dims[N], int border);
     V* data_;

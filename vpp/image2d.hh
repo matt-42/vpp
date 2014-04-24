@@ -1,6 +1,11 @@
 #ifndef VPP_IMAGE2d_HH__
 # define VPP_IMAGE2d_HH__
 
+# include <memory>
+# include <vpp/imageNd.hh>
+# include <vpp/boxNd.hh>
+
+
 namespace vpp
 {
 
@@ -10,30 +15,20 @@ namespace vpp
   public:
     typedef imageNd<V, 2> super;
 
-    // Allocate the image.
-    image2d(int nrows, int ncols)
-      : super(nrows, ncols)
-    {
-    }
+    using super::super;
 
-    // Move constructor.
-    image2d(image2d<V, 2>&& other);
+    image2d(int nrows, int ncols, int border = 0)
+      : super(make_box2d(nrows, ncols), border)
+    {}
 
-    // Accessor
-    V& operator()(const vintX<2>& p);
-    const V& operator()(const vintX<2>& p) const;
-
-    // Buffer.
-    V* data();
-    const V* data() const;
+    int nrows() const { return super::domain().size(0); }
+    int ncols() const { return super::domain().size(1); }
 
   };
 
-  template <typename V, 2>
-  using shared_image2d = shared_ptr<image2d<V, 2> >&;
+  template <typename V>
+  using shared_image2d = std::shared_ptr<image2d<V> >;
 
-  template <typename V, unsigned 2>
-  image2d<V, 2> clone(image2d& img);
 };
 
 #endif

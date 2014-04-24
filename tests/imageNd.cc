@@ -28,7 +28,6 @@ int main()
       img(vint2(r, c)) = r * c;
     }
 
-
   for (int r = 0; r < img.domain().size(0) - 1; r++)
     for (int c = 0; c < img.domain().size(1) - 1; c++)
     {
