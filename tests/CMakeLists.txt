@@ -17,3 +17,6 @@ add_test(boxNd_iterator boxNd_iterator)
 
 add_executable(parallel_for parallel_for.cc)
 add_test(parallel_for parallel_for)
+
+add_executable(neighborhood neighborhood.cc)
+add_test(neighborhood neighborhood)
