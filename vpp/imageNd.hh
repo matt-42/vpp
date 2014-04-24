@@ -24,9 +24,10 @@ namespace vpp
 
     imageNd(const boxNd<N>& domain_, int border = 0);
 
+    imageNd(int* dims, int border, V* data, int pitch);
 
     // Move constructor.
-    imageNd(imageNd<V, N>&& other) = default;
+    imageNd(imageNd<V, N>&& other);
 
     // Destructor.
     ~imageNd();
@@ -43,12 +44,17 @@ namespace vpp
 
     int coords_to_index(const vint<N>& p) const;
 
+    int coords_to_offset(const vint<N>& p) const;
+
+    bool has(coord_type& p) const { return domain_.has(p); }
     // Access to raw buffer.
     V* data() { return data_; }
     const V* data() const { return data_; }
 
     iterator begin() { return iterator(*domain_.begin(), *this); }
     iterator end() { return iterator(*domain_.end(), *this); }
+
+    int pitch() const { return pitch_; }
 
     // Domain
     const boxNd<N>& domain() const { return domain_; }
@@ -61,6 +67,8 @@ namespace vpp
     V* begin_;
     boxNd<N> domain_;
     int border_;
+    int pitch_;
+    bool own_data_;
   };
 
   template <typename V, unsigned N>

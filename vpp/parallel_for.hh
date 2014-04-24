@@ -54,7 +54,7 @@ namespace vpp
   void
   parallel_for_runner<box2d, openmp>::operator<<(F fun)
   {
-#pragma omp parallel for schedule(static, 2)
+#pragma omp parallel for schedule(static, 4)
     for (int r = domain_.p1()[0]; r <= domain_.p2()[0]; r++)
       for (int c = domain_.p1()[1]; c <= domain_.p2()[1]; c++)
         fun(vint2(r, c));

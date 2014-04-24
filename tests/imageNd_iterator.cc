@@ -29,5 +29,5 @@ int main()
     assert(p.coord() == ref[i]);
     i++;
   }
-}
 
+}
