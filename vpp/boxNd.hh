@@ -64,12 +64,12 @@ namespace vpp
 
   inline box2d make_box2d(int nr, int nc)
   {
-    return box2d(vint2(0,0), vint2(nr - 1, nc - 1));
+    return box2d(vint2(0, 0), vint2(nr - 1, nc - 1));
   }
 
   inline box3d make_box3d(int ns, int nr, int nc)
   {
-    return box3d(vint3(0,0), vint3(ns - 1, nr - 1, nc - 1));
+    return box3d(vint3(0, 0, 0), vint3(ns - 1, nr - 1, nc - 1));
   }
 
 
