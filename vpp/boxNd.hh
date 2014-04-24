@@ -2,6 +2,7 @@
 # define VPP_Boxnd_HH__
 
 # include <vpp/vector.hh>
+# include <vpp/boxNd_iterator.hh>
 
 namespace vpp
 {
@@ -26,6 +27,18 @@ namespace vpp
         if (p[i] < p1_[i] || p[i] > p2_[i])
           return false;
       return true;
+    }
+
+    boxNd_iterator<N, C> begin() const
+    {
+      return boxNd_iterator<N, C>(p1_, *this);
+    }
+
+    boxNd_iterator<N, C> end() const
+    {
+      coord_type e = p1_;
+      e[0] = p2_[0] + 1;
+      return boxNd_iterator<N, C>(e, *this);
     }
 
     const coord_type& p1() const { return p1_; }

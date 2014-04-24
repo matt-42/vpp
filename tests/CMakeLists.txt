@@ -11,3 +11,6 @@ add_test(image2d image2d)
 
 add_executable(image3d image3d.cc)
 add_test(image3d image3d)
+
+add_executable(boxNd_iterator boxNd_iterator.cc)
+add_test(boxNd_iterator boxNd_iterator)
