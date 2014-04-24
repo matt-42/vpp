@@ -82,6 +82,21 @@ namespace vpp
     return begin_[coords_to_index(p)];
   }
 
+
+  template <typename V, unsigned N>
+  V*
+  imageNd<V, N>::address_of(const vint<N>& p)
+  {
+    return begin_ + coords_to_index(p);
+  }
+
+  template <typename V, unsigned N>
+  const V*
+  imageNd<V, N>::address_of(const vint<N>& p) const
+  {
+    return begin_ + coords_to_index(p);
+  }
+
   template <typename V, unsigned N>
   imageNd<V, N> clone(imageNd<V, N>& img)
   {

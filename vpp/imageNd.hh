@@ -1,8 +1,10 @@
 #ifndef VPP_IMAGENd_HH__
 # define VPP_IMAGENd_HH__
 
-# include <vpp/boxNd.hh>
 # include <memory>
+# include <vpp/boxNd.hh>
+# include <vpp/imageNd_iterator.hh>
+
 namespace vpp
 {
 
@@ -10,6 +12,12 @@ namespace vpp
   class imageNd
   {
   public:
+
+    typedef V value_type;
+    typedef vint<N> coord_type;
+    typedef boxNd<N> domain_type;
+    typedef imageNd_iterator<V, N> iterator;
+    enum { dimension = N };
 
     // Constructors.
     imageNd(int* dims, int border = 0);
@@ -30,13 +38,17 @@ namespace vpp
     V& operator()(const vint<N>& p);
     const V& operator()(const vint<N>& p) const;
 
+    V* address_of(const vint<N>& p);
+    const V* address_of(const vint<N>& p) const;
+
     int coords_to_index(const vint<N>& p) const;
 
     // Access to raw buffer.
     V* data() { return data_; }
     const V* data() const { return data_; }
-    V* begin() { return begin_; }
-    const V* begin() const { return begin_; }
+
+    iterator begin() { return iterator(*domain_.begin(), *this); }
+    iterator end() { return iterator(*domain_.end(), *this); }
 
     // Domain
     const boxNd<N>& domain() const { return domain_; }

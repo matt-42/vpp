@@ -13,27 +13,29 @@ namespace vpp
   public:
     typedef vector<C, N> coord_type;
 
-    boxNd_iterator(const coord_type cur, const boxNd<N, C>& box);
+    inline boxNd_iterator(const coord_type cur, const boxNd<N, C>& box);
 
-    boxNd_iterator<N, C>& next();
-    boxNd_iterator<N, C>& operator++() { return next(); }
+    inline boxNd_iterator<N, C>& next();
+    inline boxNd_iterator<N, C>& operator++() { return next(); }
 
-    operator coord_type() const;
-    coord_type operator*() const;
+    inline operator coord_type() const;
+    inline const coord_type& operator*() const;
 
   private:
     const boxNd<N, C>& box_;
     coord_type cur_;
+    //int line_end_;
+    // C& last_c_;
   };
 
   template <unsigned N, typename C>
-  bool operator==(const boxNd_iterator<N, C>& a, const boxNd_iterator<N, C>& b)
+  inline bool operator==(const boxNd_iterator<N, C>& a, const boxNd_iterator<N, C>& b)
   {
     return *a == *b;
   }
 
   template <unsigned N, typename C>
-  bool operator!=(const boxNd_iterator<N, C>& a, const boxNd_iterator<N, C>& b)
+  inline bool operator!=(const boxNd_iterator<N, C>& a, const boxNd_iterator<N, C>& b)
   {
     return *a != *b;
   }

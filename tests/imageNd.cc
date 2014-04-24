@@ -12,8 +12,6 @@ int main()
   assert(img.domain().size(0) == dims[0]);
   assert(img.domain().size(1) == dims[1]);
 
-  assert(img.data() == img.begin());
-
   assert(img.coords_to_index(vpp::vint2::Ones()) == dims[1] + 1);
 
   for (int r = 0; r < img.domain().size(0); r++)

@@ -12,16 +12,17 @@ namespace vpp
   {
   public:
     typedef vector<C, N> coord_type;
+    typedef boxNd_iterator<N, C> iterator;
 
-    boxNd() : p1_(), p2_() {}
+    inline boxNd() : p1_(), p2_() {}
 
-    boxNd(coord_type p1, coord_type p2)
+    inline boxNd(coord_type p1, coord_type p2)
       : p1_(p1),
         p2_(p2)
     {
     }
 
-    bool has(const coord_type& p) const
+    inline bool has(const coord_type& p) const
     {
       for (unsigned i = 0; i < N; i++)
         if (p[i] < p1_[i] || p[i] > p2_[i])
@@ -29,25 +30,25 @@ namespace vpp
       return true;
     }
 
-    boxNd_iterator<N, C> begin() const
+    inline boxNd_iterator<N, C> begin() const
     {
       return boxNd_iterator<N, C>(p1_, *this);
     }
 
-    boxNd_iterator<N, C> end() const
+    inline boxNd_iterator<N, C> end() const
     {
       coord_type e = p1_;
       e[0] = p2_[0] + 1;
       return boxNd_iterator<N, C>(e, *this);
     }
 
-    const coord_type& p1() const { return p1_; }
-    const coord_type& p2() const { return p2_; }
+    inline const coord_type& p1() const { return p1_; }
+    inline const coord_type& p2() const { return p2_; }
 
-    coord_type& p1() { return p1_; }
-    coord_type& p2() { return p2_; }
+    inline coord_type& p1() { return p1_; }
+    inline coord_type& p2() { return p2_; }
 
-    int size(int d) const {
+    inline int size(int d) const {
       assert(d >= 0);
       assert(d < N);
       return p2_[d] - p1_[d] + 1;
