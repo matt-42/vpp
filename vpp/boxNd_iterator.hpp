@@ -24,6 +24,7 @@ namespace vpp
         cur_[n] = box_.p1()[n];
         cur_[n - 1]++;
       }
+
     }
 
     return *this;

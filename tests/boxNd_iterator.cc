@@ -8,7 +8,7 @@ int main()
   using vpp::vint2;
 
 
-  box2d b(vint2(10,5), vint2(11,7));
+  box2d b(vint2(10,5), vint2(12,7));
 
   auto it = b.begin();
 
@@ -24,6 +24,12 @@ int main()
   it.next();
   assert(*it == vint2(11, 7));
   it.next();
+  assert(*it == vint2(12, 5));
+  it.next();
+  assert(*it == vint2(12, 6));
+  it.next();
+  assert(*it == vint2(12, 7));
+  it.next();
   assert(it == b.end());
 
   vint2 ref[] = {
@@ -32,7 +38,10 @@ int main()
     vint2(10, 7),
     vint2(11, 5),
     vint2(11, 6),
-    vint2(11, 7)
+    vint2(11, 7),
+    vint2(12, 5),
+    vint2(12, 6),
+    vint2(12, 7)
   };
 
   int i = 0;

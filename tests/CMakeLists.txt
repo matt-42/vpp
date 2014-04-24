@@ -14,3 +14,6 @@ add_test(image3d image3d)
 
 add_executable(boxNd_iterator boxNd_iterator.cc)
 add_test(boxNd_iterator boxNd_iterator)
+
+add_executable(parallel_for parallel_for.cc)
+add_test(parallel_for parallel_for)
