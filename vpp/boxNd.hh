@@ -86,6 +86,28 @@ namespace vpp
     return box3d(vint3(0, 0, 0), vint3(ns - 1, nr - 1, nc - 1));
   }
 
+  class border
+  {
+  public:
+    inline border(int n) : size_(n) {}
+    int size() const { return size_; }
+  private:
+    int size_;
+  };
+
+  template <unsigned N, typename C>
+  boxNd<N, C> operator-(const boxNd<N, C>& b, const border& border)
+  {
+    boxNd<N, C> res = b;
+
+    for (int n = 0; n < N; n++)
+    {
+      res.p1()[n] += border.size();
+      res.p2()[n] -= border.size();
+    }
+
+    return res;
+  }
 
 };
 
