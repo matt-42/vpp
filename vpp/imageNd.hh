@@ -20,11 +20,16 @@ namespace vpp
     enum { dimension = N };
 
     // Constructors.
+    imageNd();
+
     imageNd(int* dims, int border = 0);
 
     imageNd(const boxNd<N>& domain_, int border = 0);
 
-    imageNd(int* dims, int border, V* data, int pitch);
+    imageNd(int* dims, int border, V* data, int pitch, bool own_data = false);
+
+    // Copy constructor. Share the data.
+    imageNd(imageNd<V, N>& other);
 
     // Move constructor.
     imageNd(imageNd<V, N>&& other);
@@ -33,7 +38,8 @@ namespace vpp
     ~imageNd();
 
     // Assigment.
-    imageNd<V, N>& operator=(imageNd<V, N>& other) = default;
+    imageNd<V, N>& operator=(imageNd<V, N>& other);
+    imageNd<V, N>& operator=(imageNd<V, N>&& other);
 
     // Access to values.
     V& operator()(const vint<N>& p);
@@ -47,6 +53,7 @@ namespace vpp
     int coords_to_offset(const vint<N>& p) const;
 
     bool has(coord_type& p) const { return domain_.has(p); }
+    bool has(const V* p) const { return p >= data_ and p < data_end_; }
     // Access to raw buffer.
     V* data() { return data_; }
     const V* data() const { return data_; }
@@ -58,6 +65,10 @@ namespace vpp
 
     // Domain
     const boxNd<N>& domain() const { return domain_; }
+
+    // Cast to imageNd.
+    imageNd<V, N>& up_cast() { return *static_cast<imageNd<V, N>*>(this); }
+    const imageNd<V, N>& up_cast() const { return *static_cast<const imageNd<V, N>*>(this); }
 
   protected:
 

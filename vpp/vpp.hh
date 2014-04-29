@@ -6,6 +6,8 @@
 # include <vpp/image2d.hh>
 # include <vpp/image3d.hh>
 
+# include <vpp/imageNd_iterator.hh>
+
 # include <vpp/vector.hh>
 # include <vpp/neighborhood.hh>
 # include <vpp/boxNd.hh>

@@ -7,30 +7,67 @@ namespace vpp
 {
 
   template <typename V, unsigned N>
+  imageNd<V, N>::imageNd()
+  {
+  }
+
+  template <typename V, unsigned N>
   imageNd<V, N>::imageNd(int* dims, int border)
   {
     allocate(dims, border);
   }
 
   template <typename V, unsigned N>
-  imageNd<V, N>::imageNd(int* dims, int border, V* data, int pitch)
+  imageNd<V, N>::imageNd(int* dims, int border, V* data, int pitch, bool own_data)
   {
     data_ = data;
     begin_ = data_;
     pitch_ = pitch;
-    own_data_ = false;
+    own_data_ = own_data;
     domain_.p1() = vint<N>::Zero();
     for (unsigned i = 0; i < N; i++)
       domain_.p2()[i] = dims[i] - 1;
 
     border_ = border;
 
-    data_end_ = (char*) data_ + pitch_ * sizeof(V);
+    int size = pitch_;
+    for (int n = 0; n < N - 1; n++)
+      size *= domain_.size(n);
+
+    data_end_ = (V*)((char*) data_ + size);
 
   }
 
   template <typename V, unsigned N>
   imageNd<V, N>::imageNd(imageNd<V, N>&& other)
+  {
+    *this = other;
+  }
+
+
+  template <typename V, unsigned N>
+  imageNd<V, N>& imageNd<V, N>::operator=(imageNd<V, N>& other)
+  {
+    data_ = other.data_;
+    data_end_ = other.data_end_;
+    begin_ = other.begin_;
+    domain_ = other.domain_;
+    border_ = other.border_;
+    pitch_ = other.pitch_;
+    own_data_ = false;
+    return *this;
+  }
+
+  template <typename V, unsigned N>
+  imageNd<V, N>::imageNd(imageNd<V, N>& other)
+  {
+    *this = other;
+    own_data_ = false;
+  }
+
+
+  template <typename V, unsigned N>
+  imageNd<V, N>& imageNd<V, N>::operator=(imageNd<V, N>&& other)
   {
     data_ = other.data_;
     data_end_ = other.data_end_;
@@ -39,6 +76,10 @@ namespace vpp
     border_ = other.border_;
     pitch_ = other.pitch_;
     own_data_ = other.own_data_;
+
+    other.data_ = 0;
+
+    return *this;
   }
 
   template <typename V, unsigned N>
@@ -56,7 +97,10 @@ namespace vpp
   imageNd<V, N>::~imageNd()
   {
     if (data_ and own_data_)
+    {
+      std::cout << "!!!!!!!!!!!!!!!!!!! !!!!!!!!!!!!!!!! Free " << data_ << std::endl;
       delete[] data_;
+    }
     data_ = 0;
     begin_ = 0;
   }
@@ -132,14 +176,14 @@ namespace vpp
   V*
   imageNd<V, N>::address_of(const vint<N>& p)
   {
-    return (V*)((char*)begin_ + coords_to_offset(p));
+    return (V*)((char*)(begin_) + coords_to_offset(p));
   }
 
   template <typename V, unsigned N>
   const V*
   imageNd<V, N>::address_of(const vint<N>& p) const
   {
-    return (V*)((char*)begin_ + coords_to_offset(p));
+    return (V*)((char*)(begin_) + coords_to_offset(p));
   }
 
   template <typename V, unsigned N>

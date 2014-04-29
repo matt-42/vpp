@@ -2,8 +2,9 @@ cmake_minimum_required (VERSION 2.6)
 
 find_package(OpenCV REQUIRED)
 
-add_definitions(-std=c++11)
-add_definitions(-O3 -march=native -DNDEBUG -fopenmp)
+add_definitions(-std=c++11 -g)
+add_definitions(-Ofast -march=native -fopenmp)
+add_definitions(-DNDEBUG)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories(/usr/include/eigen3)

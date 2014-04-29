@@ -18,7 +18,8 @@ namespace vpp
 
     inline pixel(V* val, const C& c) : val_(val), coord_(c) {}
 
-    inline pixel& operator=(V v) { *val_ = v; return *this; }
+    template <typename U>
+    inline pixel& operator=(U& u) { (*val_) = u; return *this; }
     inline const V& operator*() { return *val_; }
     inline const V* addr() const { return val_; }
 
@@ -44,7 +45,7 @@ namespace vpp
     typedef typename I::domain_type::iterator bi_type;
     typedef imageNd_iterator<V, N> self;
 
-    inline imageNd_iterator(const coord_type cur, I& image)
+    inline imageNd_iterator(const coord_type& cur, I image)
       : box_it_(cur, image.domain()),
         cur_(image.address_of(cur), *box_it_)
     {}

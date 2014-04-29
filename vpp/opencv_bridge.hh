@@ -28,12 +28,39 @@ namespace vpp
   OPENCV_TYPEOF_(float, float, 32S);
   OPENCV_TYPEOF_(int, int, 32S);
 
+  // template <typename V>
+  // image2d<V> from_opencv(cv::Mat m)
+  // {
+  //   int dims[] = { m.rows, m.cols };
+  //   m.addref();
+  //   return image2d<V>(dims, 0, (V*) m.data, m.step, true);
+  // }
+
   template <typename V>
-  image2d<V> from_opencv(cv::Mat m)
+  image2d<V> from_opencv(cv::Mat&& m)
   {
     int dims[] = { m.rows, m.cols };
-    return image2d<V>(dims, 0, (V*) m.data, m.step);
+    image2d<V> res(dims, 0, (V*) m.data, m.step, false); // fixme : memory leak.
+    m.addref();
+    m.refcount = 0;
+    m.data = 0;
+    return res;
   }
+
+
+  // template <typename V>
+  // image2d<V> from_opencv(cv::Mat& m)
+  // {
+  //   int dims[] = { m.rows, m.cols };
+  //   image2d<V> res(dims, 0, (V*) m.data, m.step, true);
+  //   m.addref();
+  //   m.addref();
+  //   m.addref();
+  //   m.addref();
+  //   m.refcount = 0;
+  //   m.data = 0;
+  //   return res;
+  // }
 
   template <typename V>
   cv::Mat to_opencv(image2d<V>& m)

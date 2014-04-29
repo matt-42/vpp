@@ -17,6 +17,8 @@ namespace vpp
 
     using super::super;
 
+    image2d() : super() {}
+
     image2d(int nrows, int ncols, int border = 0)
       : super(make_box2d(nrows, ncols), border)
     {}
