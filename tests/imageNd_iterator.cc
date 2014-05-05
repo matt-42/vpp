@@ -23,11 +23,9 @@ int main()
   };
 
   int i = 0;
-  for (auto p : img)
+  for (auto& p : img)
   {
-    assert(p.addr() == &img(ref[i]));
-    assert(p.coord() == ref[i]);
+    assert(&p == &img(ref[i]));
     i++;
   }
-
 }
