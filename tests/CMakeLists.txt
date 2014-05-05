@@ -1,4 +1,6 @@
 
+find_package(OpenCV REQUIRED)
+
 enable_testing()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
@@ -29,3 +31,8 @@ add_test(sandbox sandbox)
 
 add_executable(window window.cc)
 add_test(window window)
+
+add_executable(opencv_bridge opencv_bridge.cc)
+add_test(opencv_bridge opencv_bridge)
+
+target_link_libraries(opencv_bridge ${OpenCV_LIBS})

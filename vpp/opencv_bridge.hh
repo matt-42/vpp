@@ -1,6 +1,9 @@
 #ifndef VPP_OPENCV_BRIDGE_HH__
 # define VPP_OPENCV_BRIDGE_HH__
 
+# include <opencv2/opencv.hpp>
+# include <vpp/image2d.hh>
+
 namespace vpp
 {
 
@@ -41,9 +44,8 @@ namespace vpp
   {
     int dims[] = { m.rows, m.cols };
     image2d<V> res(dims, 0, (V*) m.data, m.step, false); // fixme : memory leak.
+    res.set_external_refcount(m.refcount);
     m.addref();
-    m.refcount = 0;
-    m.data = 0;
     return res;
   }
 

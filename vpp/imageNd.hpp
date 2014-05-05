@@ -20,21 +20,23 @@ namespace vpp
   template <typename V, unsigned N>
   imageNd<V, N>::imageNd(int* dims, int border, V* data, int pitch, bool own_data)
   {
-    data_ = data;
-    begin_ = data_;
-    pitch_ = pitch;
-    own_data_ = own_data;
-    domain_.p1() = vint<N>::Zero();
+    ptr_ = std::shared_ptr<imageNd_data<V, N>>(new imageNd_data<V, N>(),
+                               delete_imageNd_data<imageNd_data<V, N>>);
+    ptr_->data_ = data;
+    ptr_->begin_ = ptr_->data_;
+    ptr_->pitch_ = pitch;
+    ptr_->own_data_ = own_data;
+    ptr_->domain_.p1() = vint<N>::Zero();
     for (unsigned i = 0; i < N; i++)
-      domain_.p2()[i] = dims[i] - 1;
+      ptr_->domain_.p2()[i] = dims[i] - 1;
 
-    border_ = border;
+    ptr_->border_ = border;
 
-    int size = pitch_;
+    int size = ptr_->pitch_;
     for (int n = 0; n < N - 1; n++)
-      size *= domain_.size(n);
+      size *= ptr_->domain_.size(n);
 
-    data_end_ = (V*)((char*) data_ + size);
+    ptr_->data_end_ = (V*)((char*) ptr_->data_ + size);
 
   }
 
@@ -48,13 +50,7 @@ namespace vpp
   template <typename V, unsigned N>
   imageNd<V, N>& imageNd<V, N>::operator=(const imageNd<V, N>& other)
   {
-    data_ = other.data_;
-    data_end_ = other.data_end_;
-    begin_ = other.begin_;
-    domain_ = other.domain_;
-    border_ = other.border_;
-    pitch_ = other.pitch_;
-    own_data_ = false;
+    ptr_ = other.ptr_;
     return *this;
   }
 
@@ -62,23 +58,14 @@ namespace vpp
   imageNd<V, N>::imageNd(const imageNd<V, N>& other)
   {
     *this = other;
-    own_data_ = false;
   }
 
 
   template <typename V, unsigned N>
   imageNd<V, N>& imageNd<V, N>::operator=(const imageNd<V, N>&& other)
   {
-    data_ = other.data_;
-    data_end_ = other.data_end_;
-    begin_ = other.begin_;
-    domain_ = other.domain_;
-    border_ = other.border_;
-    pitch_ = other.pitch_;
-    own_data_ = other.own_data_;
-
-    other.data_ = 0;
-
+    ptr_ = other.ptr_;
+    //other.ptr_.reset();
     return *this;
   }
 
@@ -96,32 +83,29 @@ namespace vpp
   template <typename V, unsigned N>
   imageNd<V, N>::~imageNd()
   {
-    if (data_ and own_data_)
-    {
-      delete[] data_;
-    }
-    data_ = 0;
-    begin_ = 0;
+    // The shared_ptr this_->ptr_ will destroy the data if needed.
   }
 
   template <typename V, unsigned N>
   void imageNd<V, N>::allocate(int* dims, int border)
   {
-    own_data_ = true;
-    border_ = border;
-    pitch_ = (dims[N - 1] + border * 2) * sizeof(V);
+    ptr_ = std::make_shared<imageNd_data<V, N>>();
+    auto& d = *ptr_;
+    d.own_data_ = true;
+    d.border_ = border;
+    d.pitch_ = (dims[N - 1] + border * 2) * sizeof(V);
     int size = 1;
     for (int i = 0; i < N; i++)
       size *= (dims[i] + border * 2);
-    data_ = new V[size];
-    data_end_ = &(data_[size]);
+    d.data_ = new V[size];
+    d.data_end_ = &(d.data_[size]);
 
     vint<N> b = vint<N>::Ones();
-    begin_ = (V*)((char*)data_ + (pitch_ + sizeof(V)) * border);
+    d.begin_ = (V*)((char*)d.data_ + (d.pitch_ + sizeof(V)) * border);
 
-    domain_.p1() = vint<N>::Zero();
+    d.domain_.p1() = vint<N>::Zero();
     for (unsigned i = 0; i < N; i++)
-      domain_.p2()[i] = dims[i] - 1;
+      d.domain_.p2()[i] = dims[i] - 1;
   }
 
   template <typename V, unsigned N>
@@ -131,7 +115,7 @@ namespace vpp
     int ds = 1;
     for (int i = N - 2; i >= 0; i--)
     {
-      ds *= domain_.size(i + 1);
+      ds *= ptr_->domain_.size(i + 1);
       idx += ds * p[i];
     }
     return idx;
@@ -144,19 +128,19 @@ namespace vpp
     int ds = 1;
     for (int i = N - 3; i >= 0; i--)
     {
-      ds *= domain_.size(i + 1);
+      ds *= ptr_->domain_.size(i + 1);
       row_idx += ds * p[i];
     }
-    return row_idx * pitch_ + p[N - 1] * sizeof(V);
+    return row_idx * ptr_->pitch_ + p[N - 1] * sizeof(V);
   }
 
   template <typename V, unsigned N>
   V&
   imageNd<V, N>::operator()(const vint<N>& p)
   {
-    assert(domain_.has(p));
-    V* addr = (V*)((char*)begin_ + coords_to_offset(p));
-    assert(addr < data_end_);
+    assert(ptr_->domain_.has(p));
+    V* addr = (V*)((char*)ptr_->begin_ + coords_to_offset(p));
+    assert(addr < ptr_->data_end_);
     return *addr;
   }
 
@@ -164,9 +148,9 @@ namespace vpp
   const V&
   imageNd<V, N>::operator()(const vint<N>& p) const
   {
-    assert(domain_.has(p));
-    const V* addr = (V*)((char*)begin_ + coords_to_offset(p));
-    assert(addr < data_end_);
+    assert(ptr_->domain_.has(p));
+    const V* addr = (V*)((char*)ptr_->begin_ + coords_to_offset(p));
+    assert(addr < ptr_->data_end_);
     return *addr;
   }
 
@@ -175,14 +159,14 @@ namespace vpp
   V*
   imageNd<V, N>::address_of(const vint<N>& p)
   {
-    return (V*)((char*)(begin_) + coords_to_offset(p));
+    return (V*)((char*)(ptr_->begin_) + coords_to_offset(p));
   }
 
   template <typename V, unsigned N>
   const V*
   imageNd<V, N>::address_of(const vint<N>& p) const
   {
-    return (V*)((char*)(begin_) + coords_to_offset(p));
+    return (V*)((char*)(ptr_->begin_) + coords_to_offset(p));
   }
 
   template <typename V, unsigned N>
