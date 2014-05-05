@@ -41,7 +41,6 @@ int main()
       p = p.coord()[0] + p.coord()[1];
   double ii_time = get_time_in_seconds() - time;
 
-
   time = get_time_in_seconds();
   for (int k = 0; k < K; k++)
     for (auto p : img.domain())
