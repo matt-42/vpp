@@ -16,12 +16,15 @@ namespace vpp
   {
   public:
 
+    inline pixel() {}
     inline pixel(V* val, const C& c) : val_(val), coord_(c) {}
 
     template <typename U>
-    inline pixel& operator=(U& u) { (*val_) = u; return *this; }
-    inline const V& operator*() { return *val_; }
+    inline pixel& operator=(const U& u) { (*val_) = u; return *this; }
+    inline const V& operator*() const { return *val_; }
+    inline V& operator*() { return *val_; }
     inline const V* addr() const { return val_; }
+    inline V* addr() { return val_; }
 
     inline const C& coord() const { return coord_; }
 
@@ -45,25 +48,38 @@ namespace vpp
     typedef typename I::domain_type::iterator bi_type;
     typedef imageNd_iterator<V, N> self;
 
+    inline imageNd_iterator()
+    {}
+
+    inline imageNd_iterator(const imageNd_iterator<V, N>& o)
+    {
+      *this = o;
+    }
+
+    inline imageNd_iterator<V, N>& operator=(const imageNd_iterator<V, N>& o)
+    {
+      box_it_ = o.box_it_; cur_ = o.cur_;
+    }
+
     inline imageNd_iterator(const coord_type& cur, I image)
       : box_it_(cur, image.domain()),
         cur_(image.address_of(cur), *box_it_)
     {}
 
-    inline self& next()
+    inline void next()
     {
       box_it_.next();
       cur_.val_++;
       cur_.coord_ = *box_it_;
     }
 
-    inline self& operator++() { return next(); }
+    inline self& operator++() { next(); }
 
-    inline const pixel_type& operator*() const { return cur_; }
-    inline const pixel_type* operator->() const { return &cur_; }
+    inline const value_type& operator*() const { return *cur_; }
+    inline const value_type* operator->() const { return cur_.addr(); }
 
-    inline pixel_type& operator*() { return cur_; }
-    inline pixel_type* operator->() { return &cur_; }
+    inline value_type& operator*() { return *cur_; }
+    inline value_type* operator->() { return cur_.addr(); }
 
   private:
     bi_type box_it_;
@@ -73,13 +89,73 @@ namespace vpp
   template <typename V, unsigned N>
   inline bool operator==(const imageNd_iterator<V, N>& a, const imageNd_iterator<V, N>& b)
   {
-    return a->addr() == b->addr();
+    return &*a == &*b;
   }
 
   template <typename V, unsigned N>
   inline bool operator!=(const imageNd_iterator<V, N>& a, const imageNd_iterator<V, N>& b)
   {
-    return a->addr() != b->addr();
+    return !(a == b);
+  }
+
+
+
+  template <typename V, unsigned N>
+  class imageNd_row_iterator
+  {
+  public:
+    typedef imageNd<V, N> I;
+    typedef typename I::coord_type coord_type;
+    typedef typename I::value_type value_type;
+    typedef pixel<value_type, coord_type> pixel_type;
+
+    typedef typename I::domain_type::row_iterator bi_type;
+    typedef imageNd_row_iterator<V, N> self;
+
+    inline imageNd_row_iterator()
+    {}
+
+    inline imageNd_row_iterator(const imageNd_row_iterator<V, N>& o)
+    {
+      *this = o;
+    }
+
+    inline imageNd_row_iterator<V, N>& operator=(const imageNd_row_iterator<V, N>& o)
+    {
+      cur_ = o.cur_;
+    }
+
+    inline imageNd_row_iterator(const coord_type& cur, I& image)
+      : cur_(image.address_of(cur))
+    {}
+
+    inline void next()
+    {
+      cur_++;
+    }
+
+    inline self& operator++() { next(); }
+
+    inline const value_type& operator*() const { return *cur_; }
+    inline const value_type* operator->() const { return cur_; }
+
+    inline value_type& operator*() { return *cur_; }
+    inline value_type* operator->() { return cur_; }
+
+  private:
+    V* cur_;
+  };
+
+  template <typename V, unsigned N>
+  inline bool operator==(const imageNd_row_iterator<V, N>& a, const imageNd_row_iterator<V, N>& b)
+  {
+    return &*a == &*b;
+  }
+
+  template <typename V, unsigned N>
+  inline bool operator!=(const imageNd_row_iterator<V, N>& a, const imageNd_row_iterator<V, N>& b)
+  {
+    return !(a == b);
   }
 
 
