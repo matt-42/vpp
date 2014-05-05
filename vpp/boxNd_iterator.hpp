@@ -7,7 +7,7 @@ namespace vpp
   template <unsigned N, typename C>
   boxNd_iterator<N, C>::boxNd_iterator(const coord_type cur, const boxNd<N, C>& box)
     : cur_(cur),
-      box_(box)
+      box_(&box)
   {}
 
   template <unsigned N, typename C>
@@ -15,14 +15,14 @@ namespace vpp
   boxNd_iterator<N, C>::next()
   {
     cur_[N - 1]++;
-    if (cur_[N - 1] == (box_.p2()[N - 1] + 1))
+    if (cur_[N - 1] == (box_->p2()[N - 1] + 1))
     {
       int n = N;
-      //while (--n > 0 and !box_.has(cur_))
-      //for (int n = N - 1; n > 0 and cur_[n] == (box_.p2()[n] + 1); n--)
-      while (--n > 0 and cur_[n] == (box_.p2()[n] + 1))
+      //while (--n > 0 and !box_->has(cur_))
+      //for (int n = N - 1; n > 0 and cur_[n] == (box_->p2()[n] + 1); n--)
+      while (--n > 0 and cur_[n] == (box_->p2()[n] + 1))
       {
-        cur_[n] = box_.p1()[n];
+        cur_[n] = box_->p1()[n];
         cur_[n - 1]++;
       }
     }
