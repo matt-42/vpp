@@ -13,6 +13,7 @@ namespace vpp
   public:
     typedef vector<C, N> coord_type;
     typedef boxNd_iterator<N, C> iterator;
+    typedef boxNd_row_iterator<N, C> row_iterator;
 
     inline boxNd() : p1_(), p2_() {}
 
