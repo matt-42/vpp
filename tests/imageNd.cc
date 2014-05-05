@@ -32,4 +32,13 @@ int main()
       assert(img(vint2(r, c)) == r * c);
     }
 
+
+  // Test with border.
+
+  imageNd<int, 2> img2(dims, 1);
+
+  assert(img2.pitch() == sizeof(int) * (dims[1] + 2));
+  assert((char*)(&img2(vint2(0,0))) == ((char*)img2.data() + img2.pitch() + sizeof(int)));
+
+  //assert(img.data() == )
 }
