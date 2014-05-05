@@ -23,3 +23,9 @@ add_test(parallel_for parallel_for)
 
 add_executable(neighborhood neighborhood.cc)
 add_test(neighborhood neighborhood)
+
+add_executable(sandbox sandbox.cc)
+add_test(sandbox sandbox)
+
+add_executable(window window.cc)
+add_test(window window)
