@@ -39,14 +39,14 @@ namespace vpp
   }
 
   template <typename V, unsigned N>
-  imageNd<V, N>::imageNd(imageNd<V, N>&& other)
+  imageNd<V, N>::imageNd(const imageNd<V, N>&& other)
   {
     *this = other;
   }
 
 
   template <typename V, unsigned N>
-  imageNd<V, N>& imageNd<V, N>::operator=(imageNd<V, N>& other)
+  imageNd<V, N>& imageNd<V, N>::operator=(const imageNd<V, N>& other)
   {
     data_ = other.data_;
     data_end_ = other.data_end_;
@@ -59,7 +59,7 @@ namespace vpp
   }
 
   template <typename V, unsigned N>
-  imageNd<V, N>::imageNd(imageNd<V, N>& other)
+  imageNd<V, N>::imageNd(const imageNd<V, N>& other)
   {
     *this = other;
     own_data_ = false;
@@ -67,7 +67,7 @@ namespace vpp
 
 
   template <typename V, unsigned N>
-  imageNd<V, N>& imageNd<V, N>::operator=(imageNd<V, N>&& other)
+  imageNd<V, N>& imageNd<V, N>::operator=(const imageNd<V, N>&& other)
   {
     data_ = other.data_;
     data_end_ = other.data_end_;
@@ -98,7 +98,6 @@ namespace vpp
   {
     if (data_ and own_data_)
     {
-      std::cout << "!!!!!!!!!!!!!!!!!!! !!!!!!!!!!!!!!!! Free " << data_ << std::endl;
       delete[] data_;
     }
     data_ = 0;
@@ -110,7 +109,7 @@ namespace vpp
   {
     own_data_ = true;
     border_ = border;
-    pitch_ = dims[N - 1] * sizeof(V);
+    pitch_ = (dims[N - 1] + border * 2) * sizeof(V);
     int size = 1;
     for (int i = 0; i < N; i++)
       size *= (dims[i] + border * 2);
@@ -118,7 +117,7 @@ namespace vpp
     data_end_ = &(data_[size]);
 
     vint<N> b = vint<N>::Ones();
-    begin_ = &(data_[border * coords_to_index(b)]);
+    begin_ = (V*)((char*)data_ + (pitch_ + sizeof(V)) * border);
 
     domain_.p1() = vint<N>::Zero();
     for (unsigned i = 0; i < N; i++)
@@ -184,6 +183,13 @@ namespace vpp
   imageNd<V, N>::address_of(const vint<N>& p) const
   {
     return (V*)((char*)(begin_) + coords_to_offset(p));
+  }
+
+  template <typename V, unsigned N>
+  int
+  imageNd<V, N>::offset_of(const vint<N>& p) const
+  {
+    return coords_to_offset(p);
   }
 
   template <typename V, unsigned N>

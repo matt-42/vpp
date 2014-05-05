@@ -17,6 +17,7 @@ namespace vpp
     typedef vint<N> coord_type;
     typedef boxNd<N> domain_type;
     typedef imageNd_iterator<V, N> iterator;
+    typedef imageNd_row_iterator<V, N> row_iterator;
     enum { dimension = N };
 
     // Constructors.
@@ -29,17 +30,17 @@ namespace vpp
     imageNd(int* dims, int border, V* data, int pitch, bool own_data = false);
 
     // Copy constructor. Share the data.
-    imageNd(imageNd<V, N>& other);
+    imageNd(const imageNd<V, N>& other);
 
     // Move constructor.
-    imageNd(imageNd<V, N>&& other);
+    imageNd(const imageNd<V, N>&& other);
 
     // Destructor.
     ~imageNd();
 
     // Assigment.
-    imageNd<V, N>& operator=(imageNd<V, N>& other);
-    imageNd<V, N>& operator=(imageNd<V, N>&& other);
+    imageNd<V, N>& operator=(const imageNd<V, N>& other);
+    imageNd<V, N>& operator=(const imageNd<V, N>&& other);
 
     // Access to values.
     V& operator()(const vint<N>& p);
@@ -47,6 +48,8 @@ namespace vpp
 
     V* address_of(const vint<N>& p);
     const V* address_of(const vint<N>& p) const;
+
+    int offset_of(const vint<N>& p) const;
 
     int coords_to_index(const vint<N>& p) const;
 
