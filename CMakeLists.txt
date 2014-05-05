@@ -4,5 +4,5 @@ project (vpp)
 
 include_directories(/usr/include/eigen3)
 
-add_definitions(-std=c++11 -g)
+add_definitions(-std=c++1y -g)
 add_subdirectory(tests)
