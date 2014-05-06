@@ -103,6 +103,13 @@ namespace vpp
     std::vector<int> offsets_;
   };
 
+
+  template <typename I>
+  window<I> make_window(const I& img, const std::initializer_list<typename I::coord_type>& cds)
+  {
+    return window<I>(img, cds);
+  }
+
 };
 
 #endif

@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
   I A = clone_with_border(from_opencv<vuchar3>(cv::imread(argv[1])), 1);
   I B(A.domain(), 1);
 
-  window<I> nbh = window<I>(A, { {0, -1}, {0, 0}, {0, 1} });
+  auto nbh = make_window(A, { {0, -1}, {0, 0}, {0, 1} });
 
   // Parallel Loop over pixels of in and out.
   pixel_wise(A, B) << [&] (auto& a, auto& b) {
