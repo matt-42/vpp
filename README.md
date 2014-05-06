@@ -189,6 +189,24 @@ pixel_wise(in, out) << [] (auto& in, auto& out) {
 
 ```
 
+### Interoperatiliby with OpenCV images
+
+The header ```#include <vpp/opencv_bridge.hh>``` (not included by
+default) provides conversions to and from OpenCV image types. It
+allows to run video++ code on OpenCV images and to run OpenCV code on
+video++ images, without cloning the pixel buffer.  Ownership of the buffer
+will switch to OpenCV or video++ depending of the order of the
+destructor calls.
+
+```c++
+// Load JPG image in a vpp image using OpenCV imread.
+image2d<vuchar3> img = from_opencv<vuchar3>(cv::imread(argv[1]));
+
+// Write a vpp image using OpenCV imwrite.
+cv::imwrite("in.jpg", to_opencv(img));
+```
+
+
 ## Contributing
 
 Contrubutions are welcome. Do not hesitate to fill issues, send pull
