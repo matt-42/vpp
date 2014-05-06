@@ -35,4 +35,7 @@ add_test(window window)
 add_executable(opencv_bridge opencv_bridge.cc)
 add_test(opencv_bridge opencv_bridge)
 
+add_executable(fill fill.cc)
+add_test(fill fill)
+
 target_link_libraries(opencv_bridge ${OpenCV_LIBS})

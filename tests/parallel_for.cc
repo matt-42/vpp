@@ -19,11 +19,12 @@ int main()
   for (auto p : img2.domain())
     assert(img2(p) == 42);
 
-  // One images
+  // pixel wise
   vpp::pixel_wise(img2) << [&] (auto& p) { p = 43; };
 
   for (auto p : img2.domain()) { assert(img2(p) == 43); }
 
+  // row wise
   vpp::row_wise(img2) << [&] (auto& p) { p = 44; };
   for (auto p : img2.domain()) {
     if (p[1] == 0) assert(img2(p) == 44);
@@ -31,7 +32,7 @@ int main()
       assert(img2(p) == 43);
   }
 
-  // One domains.
+  // One domain.
   box2d domain = vpp::make_box2d(10, 10);
   auto it = domain.begin();
   vpp::pixel_wise(domain) << [&] (auto& p) {
@@ -39,6 +40,7 @@ int main()
     it.next();
   };
 
+  // col_wise
   vpp::col_wise(img2) << [&] (auto& p) { p = 45; };
   for (auto p : img2.domain()) {
     if (p[0] == 0) assert(img2(p) == 45);
