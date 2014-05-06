@@ -169,24 +169,21 @@ uses a fast pointer arithmetic to iterate on the neighborhood.
 
 // A parallel implementation of a box_filter using video++.
 
-image2d<int> in(1000, 1000);
-image2d<int> out(in.domain());
+image2d<int> A(1000, 1000);
+image2d<int> B(in.domain());
 
-// Define the neighborhood as 2d coordinates. Internally translate
-// 2d coordinates into 1D pointer offsets.
-auto nbh = make_window(in, { {0, -1}, {0, 0}, {0, 1}, });
+auto nbh = make_window(A, { {0, -1}, {0, 0}, {0, 1} });
 
 // Parallel Loop over pixels of in and out.
-pixel_wise(in, out) << [] (auto& in, auto& out) {
-  int sum = 0;
+pixel_wise(A, B) << [&] (auto& a, auto& b) {
+  vint3 sum = vint3::Zero();
 
   // Loop over in's neighboords wrt nbh to compute a sum.
-  for (auto& n : nbh(in)) sum += n;
+  for (vuchar3& n : nbh(a)) sum += n.cast<int>();
 
   // Write the sum to the output image.
-  out = sum;
+  b = (sum / 3).cast<unsigned char>();
 };
-
 ```
 
 ### Interoperatiliby with OpenCV images
