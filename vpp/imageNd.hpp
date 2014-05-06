@@ -2,6 +2,7 @@
 # define VPP_IMAGENd_HPP__
 
 # include <vpp/imageNd.hh>
+# include <vpp/copy.hh>
 
 namespace vpp
 {
@@ -180,6 +181,15 @@ namespace vpp
   imageNd<V, N> clone(imageNd<V, N>& img)
   {
     imageNd<V, N> n(img.domain(), img.border());
+    copy(img, n);
+    return n;
+  }
+
+
+  template <typename V, unsigned N>
+  imageNd<V, N> clone_with_border(imageNd<V, N>& img, int border)
+  {
+    imageNd<V, N> n(img.domain(), border);
     copy(img, n);
     return n;
   }

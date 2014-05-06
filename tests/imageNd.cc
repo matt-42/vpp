@@ -41,4 +41,21 @@ int main()
   assert((char*)(&img2(vint2(0,0))) == ((char*)img2.data() + img2.pitch() + sizeof(int)));
 
   //assert(img.data() == )
+
+  int i = 0;
+  for (auto& p : img) p = i++;
+
+  auto img_clone = clone(img);
+  auto img_clone_border = clone_with_border(img, 3);
+
+  assert(img.domain() == img_clone.domain());
+  assert(img.domain() == img_clone_border.domain());
+
+  assert(img.domain() == img_clone_border.domain());
+
+  for (auto p : img.domain())
+  {
+    assert(img(p) == img_clone(p));
+    assert(img(p) == img_clone_border(p));
+  }
 }

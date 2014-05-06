@@ -92,6 +92,7 @@ namespace vpp
     iterator end() { return iterator(*ptr_->domain_.end(), *this); }
 
     int pitch() const { return ptr_->pitch_; }
+    int border() const { return ptr_->border_; }
 
     // Domain
     const boxNd<N>& domain() const { return ptr_->domain_; }
@@ -113,6 +114,9 @@ namespace vpp
 
   template <typename V, unsigned N>
   imageNd<V, N> clone(imageNd<V, N>& img);
+
+  template <typename V, unsigned N>
+  imageNd<V, N> clone_with_border(imageNd<V, N>& img);
 
 };
 
