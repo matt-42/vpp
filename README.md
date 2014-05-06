@@ -53,7 +53,7 @@ gcc -I __path_to_vpp__ main.cc -fopenmp -lgomp
 ### Image Containers
 
 ```image2d<T>``` is a 2d image container with value of type
-T. Assigning A to B shares the A's data with B. To deep clone an image, use ```clone```.
+T. Assigning A to B shares the A's data with B. ```clone``` clones images.
 An image buffer are automatically freed when no container references it anymore.
 
 ```c++
