@@ -7,8 +7,8 @@ Video++ is a video and image processing library that takes advantage of the C++1
 ```c++
 // A fast parallel implementation of a box_filter using Video++.
 
-image2d<int> A(1000, 1000);
-image2d<int> B(A.domain());
+image2d<int> A(1000, 1000, 1); // A 1000x1000 image with a border of 1 pixel.
+image2d<int> B(A.domain(), 1);
 
 auto nbh = make_window(A, { {0, -1}, {0, 0}, {0, 1}, });
 pixel_wise(A, B) << [&] (auto& a, auto& b) {
