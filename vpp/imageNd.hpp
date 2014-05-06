@@ -177,19 +177,19 @@ namespace vpp
     return coords_to_offset(p);
   }
 
-  template <typename V, unsigned N>
-  imageNd<V, N> clone(imageNd<V, N>& img)
+  template <typename I>
+  I clone(I img)
   {
-    imageNd<V, N> n(img.domain(), img.border());
+    I n(img.domain(), img.border());
     copy(img, n);
     return n;
   }
 
 
-  template <typename V, unsigned N>
-  imageNd<V, N> clone_with_border(imageNd<V, N>& img, int border)
+  template <typename I>
+  I clone_with_border(I img, int border)
   {
-    imageNd<V, N> n(img.domain(), border);
+    I n(img.domain(), border);
     copy(img, n);
     return n;
   }
