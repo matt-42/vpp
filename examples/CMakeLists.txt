@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 
 find_package(OpenCV REQUIRED)
 
-add_definitions(-std=c++11 -g)
+add_definitions(-std=c++1y -g)
 add_definitions(-Ofast -march=native -fopenmp)
 add_definitions(-DNDEBUG)
 
