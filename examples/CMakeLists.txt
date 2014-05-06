@@ -9,7 +9,5 @@ add_definitions(-DNDEBUG)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories(/usr/include/eigen3)
 
-add_executable(parallel_gaussian_blur parallel_gaussian_blur.cc)
-add_test(parallel_gaussian_blur parallel_gaussian_blur)
-
-target_link_libraries(parallel_gaussian_blur ${OpenCV_LIBS} gomp)
+add_executable(box_filter box_filter.cc)
+target_link_libraries(box_filter ${OpenCV_LIBS} gomp)
