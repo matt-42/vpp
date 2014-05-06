@@ -4,6 +4,7 @@
 #include <vpp/vpp.hh>
 #include <vpp/opencv_bridge.hh>
 
+#define N 10
 
 inline double get_time_in_seconds()
 {
@@ -28,22 +29,16 @@ int main(int argc, char* argv[])
   if (!(w % 2)) w += 1;
 
   int hw = w / 2;
-  cv::Mat m = cv::imread(argv[1]);
-  //image2d<vuchar3> img_(1000,1000);
-  image2d<vuchar3> img_;
-  //img = image2d<vuchar3>(1000,1000);
-  //img = from_opencv<vuchar3>(m);
-  img_ = from_opencv<vuchar3>(cv::imread(argv[1]));
-  image2d<vuchar4> img(img_.domain());
-  //image2d<vuchar3> img = from_opencv<vuchar3>(m);
+  image2d<vuchar3> img_ = from_opencv<vuchar3>(cv::imread(argv[1]));
+  image2d<vuchar4> img(img_.domain(), hw / 2);
   image2d<vuchar3> out_(img.domain());
-  image2d<vuchar4> out(img.domain());
+  image2d<vuchar4> out(img.domain(), hw / 2);
 
 
   for (auto p : img.domain()) img(p).segment(0,3) = img_(p);
 
   //Cache warm up.
-  for (int k = 0; k < 10; k++)
+  for (int k = 0; k < N; k++)
     for (auto p : img.domain())
     {
       vint4 res = vint4::Zero();
@@ -58,8 +53,8 @@ int main(int argc, char* argv[])
   std::cout << out.data() << std::endl;
 
   time = get_time_in_seconds();
-
   // Openmp VPP parallel version.
+  for (int k = 0; k < N; k++)
   parallel_for_openmp(img.domain()) << [&] (vint2 p)
   {
     vint4 res = vint4::Zero();
@@ -68,96 +63,32 @@ int main(int argc, char* argv[])
   };
   std::cout << "multi thread vpp: "<< 1000*(get_time_in_seconds() - time) << "ms" << std::endl;
 
-  // neighborhood nbh(img);
-
-  // parallel_for_openmp(img, out) << [&] (pixel in, pixel out)
-  // {
-  //   vint4 res = vint4::Zero();
-  //   for(auto n : nbh(in, nbh)) res += n->cast<int>();
-  //   out = (res / (w * w)).cast<unsigned char>();
-  // };
-
-  // [&] (pixel in)
-  // {
-  //   // Shift registers.
-  //   a<-1,-1>() = a<-1,0>();
-  //   a< 0,-1>() = a< 0,0>();
-  //   a< 1,-1>() = a< 1,0>();
-
-  //   a<-1, 0>() = a<-1,1>();
-  //   a< 0, 0>() = a< 0,1>();
-  //   a< 1, 0>() = a< 1,1>();
-
-  //   // Load right registers:
-  //   a<-1, 1>() = load((char*)in.addr() - pitch);
-  //   a< 0, 0>() = load(in.addr());
-  //   a< 1, 1>() = load((char*)in.addr() + pitch);
-  // };
-
-  // parallel_for(box1d(0, img.ncols())) << [&] (int r)
-  // {
-  //   simd_tile2d tile;
-  //   vuchar4 v;
-  //   simd_iterator it;
-  //   simd_iterator end;
-  //   simd_iterator out_it;
-
-  //   while (it != end)
-  //   {
-  //     out_it = zero();
-
-  //     out_it += tile(-1, 0);
-  //     out_it += tile(0, 0);
-  //     out_it += tile(1, 0);
-
-  //     out_it += tile(-1, -1);
-  //     out_it += tile(0, -1);
-  //     out_it += tile(1, -1);
-
-  //     out_it += tile(-1, 1);
-  //     out_it += tile(0, 1);
-  //     out_it += tile(1, 1);
-
-  //     tile.shift();
-  //     out_it++;
-  //   }
-  // }
-
-  // parallel_for_openmp(img, out) << [&] (pixel in, pixel out)
-  // {
-  //   a.next(in);
-  //   V res = V::Zero();
-  //   for(auto n : nbh(in, nbh)) res += n->cast<int>();
-  //   out = (res / (w * w)).cast<unsigned char>();
-  // };
-
+  fill(out, vuchar4(0,0,0,0));
   time = get_time_in_seconds();
-
   for (unsigned i = 0; i < 10; i++)
-  parallel_for_pixel_openmp(img, out) << [&] (pixel<vuchar4, vint2>& in,
-                                              pixel<vuchar4, vint2>& out_it)
+  pixel_wise(img, out) << [&] (auto& in,
+                               auto& out_it)
   {
     vint4 res = vint4::Zero();
     for (int r = -hw; r <= hw; r++)
     for (int c = -hw; c <= hw; c++)
     {
-      vuchar4* n = ((vuchar4*)((((char*)(in.addr())) + r * img.pitch() + c * sizeof(vuchar4))));
+      vuchar4* n = ((vuchar4*)((((char*)(&in)) + r * img.pitch() + c * sizeof(vuchar4))));
       if (img.has(n))
         res += n->cast<int>();
     }
-
     out_it = (res / (w * w)).cast<unsigned char>();
   };
 
-  for (auto p : img.domain()) out_(p) = out(p).segment(0,3);
-  cv::imwrite("out.jpg", to_opencv(out_));
-
   std::cout << "multi thread pixel vpp: "<< 1000*(get_time_in_seconds() - time) << "ms" << std::endl;
+
+  for (auto p : img.domain()) out_(p) = out(p).segment(0,3);
+  cv::imwrite("pixel_wise_out.jpg", to_opencv(out_));
 
   time = get_time_in_seconds();
 
   // Single thread version.
-  for (unsigned i = 0; i < 10; i++)
+  for (unsigned i = 0; i < N; i++)
   for (auto p : img.domain())
   {
     vint4 res = vint4::Zero();
@@ -171,7 +102,7 @@ int main(int argc, char* argv[])
 
   // Openmp only version without boundchecking.
   time = get_time_in_seconds();
-  for (unsigned K = 0; K < 10; K++)
+  for (unsigned K = 0; K < N; K++)
 #pragma omp parallel for
   for (int r = hw; r < img.nrows() - hw; r++)
   {
