@@ -1,5 +1,5 @@
-#ifndef VPP_NEIGHBORHOOD_HH__
-# define VPP_NEIGHBORHOOD_HH__
+#ifndef VPP_FILL_HH__
+# define VPP_FILL_HH__
 
 # include <vpp/boxNd.hh>
 # include <vpp/vector.hh>
@@ -8,10 +8,10 @@
 namespace vpp
 {
 
-  template <typename V>
-  void fill(imageNd<V>& img, V value)
+  template <typename V, unsigned N>
+  void fill(imageNd<V, N>& img, V value)
   {
-    pixel_wise(img) << [=] (auto pix) { pix = value; };
+    pixel_wise(img) << [=] (auto& pix) { pix = value; };
   }
 
 };
