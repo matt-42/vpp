@@ -200,7 +200,7 @@ destructor calls.
 
 ```c++
 // Load JPG image in a vpp image using OpenCV imread.
-image2d<vuchar3> img = from_opencv<vuchar3>(cv::imread(argv[1]));
+image2d<vuchar3> img = from_opencv<vuchar3>(cv::imread("image.jpg"));
 
 // Write a vpp image using OpenCV imwrite.
 cv::imwrite("in.jpg", to_opencv(img));
