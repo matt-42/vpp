@@ -73,6 +73,9 @@ namespace vpp
     V& operator()(const vint<N>& p);
     const V& operator()(const vint<N>& p) const;
 
+    V& operator()(int r, int c) { return operator()(vint2(r, c)); }
+    const V& operator() (int r, int c) const { return operator()(vint2(r, c)); }
+
     V* address_of(const vint<N>& p);
     const V* address_of(const vint<N>& p) const;
 
