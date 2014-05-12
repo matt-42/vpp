@@ -24,7 +24,7 @@ pixel_wise(A, B) << [&] (auto& a, auto& b) {
 
 Supported compiler : **GCC 4.9**
 
-**Since Video++ rely on C++14 features, only compilers supporting this standard are able to
+**Since Video++ relies on C++14 features, only compilers supporting this standard are able to
 compile the library.**
 
 ## Getting Started
@@ -157,11 +157,11 @@ row_wise(A, A.domain()) << [=] (int& row_start, vint2 coord) {
 
 #### Col Wise Parallel Kernels
 
-Similar to ```row_wise```, ```col_wise``` allow to paralelize col wise
+Similar to ```row_wise```, ```col_wise``` allows to parallelize col wise
 kernels.
 
 
-### Accessing the neighbors pixels
+### Accessing Neighborhood
 
 Video++ provide a fast access to pixel neighboors. By precomputing the
 offset of a neighborhood expressed in 2D coordinates, it suppresses the
@@ -190,7 +190,7 @@ pixel_wise(A, B) << [&] (auto& a, auto& b) {
 };
 ```
 
-### Interoperatiliby with OpenCV images
+### Interoperability with OpenCV images
 
 The header ```#include <vpp/opencv_bridge.hh>``` (not included by
 default) provides conversions to and from OpenCV image types. It
