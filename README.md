@@ -145,7 +145,7 @@ image2d<int> A(100, 100);
 std::vector<int> sums(A.nrows(), 0);
 int ncols = A.ncols();
 
-row_wise(A, A.domain()) << [=] (int& row_start, vin2 coord) {
+row_wise(A, A.domain()) << [=] (int& row_start, vint2 coord) {
   int sum = 0;
   int* cur = &row_start; // Iterator.
   int* end = &row_start + ncols; // End of row.
