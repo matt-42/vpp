@@ -6,8 +6,8 @@
 namespace vpp
 {
 
-  template <typename V, unsigned N>
-  void copy(imageNd<V, N>& src, imageNd<V, N>& dst)
+  template <typename I, typename J>
+  void copy(I& src, J& dst)
   {
     pixel_wise(src, dst) << [=] (auto& in, auto& out) { out = in; };
   }
