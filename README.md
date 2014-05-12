@@ -210,5 +210,5 @@ cv::imwrite("in.jpg", to_opencv(img));
 
 ## Contributing
 
-Contrubutions are welcome. Do not hesitate to fill issues, send pull
+Contributions are welcome. Do not hesitate to fill issues, send pull
 requests, or discuss by email at matthieu.garrigues@gmail.com.
