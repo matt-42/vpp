@@ -27,6 +27,30 @@ Supported compiler : **GCC 4.9**
 **Since Video++ relies on C++14 features, only compilers supporting this standard are able to
 compile the library.**
 
+## Higher Perfomances with Less Code
+
+Video++ generates code running up to one order of magnitude faster than naive implementations.
+
+Naive example, 1.79ms:
+```c++
+image2d<int> img(1000,1000);
+for (int r = 0; r < img.nrows(); r++)
+for (int c = 0; c < img.ncols(); c++)
+{
+  img(r, c) = r + c;
+}
+```
+
+Video++ example, 0.108ms, x16.6 speedup on a 4-cores processor:
+```c++
+image2d<int> img(1000,1000);
+vpp::pixel_wise(img, img.domain()) << [] (auto& p, auto& c)
+{
+  p = c[0] + c[1];
+};
+```
+
+
 ## Getting Started
 
 Video++ is a header-only library, To start coding, include the vpp.hh header to a C++ source file:
