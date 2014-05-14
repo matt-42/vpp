@@ -123,6 +123,7 @@ namespace vpp
     inline imageNd_row_iterator<V, N>& operator=(const imageNd_row_iterator<V, N>& o)
     {
       cur_ = o.cur_;
+      return *this;
     }
 
     inline imageNd_row_iterator(const coord_type& cur, I& image)
@@ -134,7 +135,7 @@ namespace vpp
       cur_++;
     }
 
-    inline self& operator++() { next(); }
+    inline self& operator++() { next(); return *this; }
 
     inline const value_type& operator*() const { return *cur_; }
     inline const value_type* operator->() const { return cur_; }
