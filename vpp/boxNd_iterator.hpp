@@ -18,8 +18,6 @@ namespace vpp
     if (cur_[N - 1] == (box_->p2()[N - 1] + 1))
     {
       int n = N;
-      //while (--n > 0 and !box_->has(cur_))
-      //for (int n = N - 1; n > 0 and cur_[n] == (box_->p2()[n] + 1); n--)
       while (--n > 0 and cur_[n] == (box_->p2()[n] + 1))
       {
         cur_[n] = box_->p1()[n];
@@ -46,7 +44,5 @@ namespace vpp
 
 
 };
-
-# include <vpp/boxNd_iterator.hh>
 
 #endif

@@ -2,6 +2,7 @@
 # define VPP_IMAGENd_HPP__
 
 # include <vpp/imageNd.hh>
+# include <vpp/boxNd.hh>
 # include <vpp/copy.hh>
 
 namespace vpp
@@ -13,13 +14,41 @@ namespace vpp
   }
 
   template <typename V, unsigned N>
-  imageNd<V, N>::imageNd(std::vector<int> dims, int border)
+  imageNd<V, N>::imageNd(const std::initializer_list<int>& dims, vpp::border b)
   {
-    allocate(dims, border);
+    allocate(dims, b);
   }
 
   template <typename V, unsigned N>
-  imageNd<V, N>::imageNd(std::vector<int> dims, int border, V* data, int pitch, bool own_data)
+  imageNd<V, N>::imageNd(const std::vector<int>& dims, vpp::border b)
+  {
+    allocate(dims, b);
+  }
+
+
+  template <typename V, unsigned N>
+  imageNd<V, N>::imageNd(int ncols, vpp::border b)
+    : imageNd({ncols}, b)
+  {
+    static_assert(N == 1, "ImageNd constructor: bad dimension.");
+  }
+
+  template <typename V, unsigned N>
+  imageNd<V, N>::imageNd(int nrows, int ncols, vpp::border b)
+    : imageNd({nrows, ncols}, b)
+  {
+    static_assert(N == 2, "ImageNd constructor: bad dimension.");
+  }
+
+  template <typename V, unsigned N>
+  imageNd<V, N>::imageNd(int nslices, int nrows, int ncols, vpp::border b)
+    : imageNd({nslices, nrows, ncols}, b)
+  {
+    static_assert(N == 3, "ImageNd constructor: bad dimension.");
+  }
+
+  template <typename V, unsigned N>
+  imageNd<V, N>::imageNd(std::vector<int> dims, vpp::border b, V* data, int pitch, bool own_data)
   {
     ptr_ = std::shared_ptr<imageNd_data<V, N>>(new imageNd_data<V, N>(),
                                delete_imageNd_data<imageNd_data<V, N>>);
@@ -31,7 +60,7 @@ namespace vpp
     for (unsigned i = 0; i < N; i++)
       ptr_->domain_.p2()[i] = dims[i] - 1;
 
-    ptr_->border_ = border;
+    ptr_->border_ = b.size();
 
     int size = ptr_->pitch_;
     for (int n = 0; n < N - 1; n++)
@@ -69,14 +98,14 @@ namespace vpp
   }
 
   template <typename V, unsigned N>
-  imageNd<V, N>::imageNd(const boxNd<N>& domain, int border)
+  imageNd<V, N>::imageNd(const boxNd<N>& domain, vpp::border b)
   {
     std::vector<int> dims(N);
 
     for (int i = 0; i < int(N); i++)
       dims[i] = domain.size(i);
 
-    allocate(dims, border);
+    allocate(dims, b);
   }
 
   template <typename V, unsigned N>
@@ -86,16 +115,16 @@ namespace vpp
   }
 
   template <typename V, unsigned N>
-  void imageNd<V, N>::allocate(const std::vector<int>& dims, int border)
+  void imageNd<V, N>::allocate(const std::vector<int>& dims, vpp::border b)
   {
     ptr_ = std::make_shared<imageNd_data<V, N>>();
     auto& d = *ptr_;
     d.own_data_ = true;
-    d.border_ = border;
-    d.pitch_ = (dims[N - 1] + border * 2) * sizeof(V);
+    d.border_ = b.size();
+    d.pitch_ = (dims[N - 1] + b.size() * 2) * sizeof(V);
     int size = 1;
     for (int i = 0; i < N; i++)
-      size *= (dims[i] + border * 2);
+      size *= (dims[i] + b.size() * 2);
     d.data_ = new V[size];
     d.data_end_ = d.data_ + size;
 
@@ -103,8 +132,8 @@ namespace vpp
     for (unsigned i = 0; i < N; i++)
       d.domain_.p2()[i] = dims[i] - 1;
 
-    vint<N> b = vint<N>::Ones() * border;
-    d.begin_ = (V*)((char*)d.data_ + coords_to_offset(b));
+    vint<N> p = vint<N>::Ones() * b.size();
+    d.begin_ = (V*)((char*)d.data_ + coords_to_offset(p));
   }
 
   template <typename V, unsigned N>
@@ -185,9 +214,9 @@ namespace vpp
 
 
   template <typename I>
-  I clone_with_border(I img, int border)
+  I clone_with_border(I img, vpp::border b)
   {
-    I n(img.domain(), border);
+    I n(img.domain(), b);
     copy(img, n);
     return n;
   }

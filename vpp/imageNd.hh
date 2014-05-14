@@ -11,8 +11,6 @@ namespace vpp
   template <typename P>
   void delete_imageNd_data(P* ptr)
   {
-    std::cout << "delete" << std::endl;
-    std::cout << ptr->external_refcount_ << std::endl;
     if (ptr->external_refcount_ && *(ptr->external_refcount_) > 1)
     {
       (*(ptr->external_refcount_))--;
@@ -50,11 +48,16 @@ namespace vpp
     // Constructors.
     imageNd();
 
-    imageNd(std::vector<int> dims, int border = 0);
+    imageNd(const std::initializer_list<int>& dims, border b = 0);
+    imageNd(const std::vector<int>& dims, border b = 0);
 
-    imageNd(const boxNd<N>& domain, int border = 0);
+    imageNd(int ncols, border b = 0); // 1D.
+    imageNd(int nrows, int ncols, border b = 0); // 2D.
+    imageNd(int nslices, int nrows, int ncols, border b = 0); // 3D.
 
-    imageNd(std::vector<int> dims, int border, V* data, int pitch, bool own_data = false);
+    imageNd(const boxNd<N>& domain, border b = 0);
+
+    imageNd(std::vector<int> dims, border b, V* data, int pitch, bool own_data = false);
 
     // Copy constructor. Share the data.
     imageNd(const imageNd<V, N>& other);
@@ -124,7 +127,7 @@ namespace vpp
     const imageNd<V, N>& up_cast() const { return *static_cast<const imageNd<V, N>*>(this); }
 
   protected:
-    void allocate(const std::vector<int>& dims, int border);
+    void allocate(const std::vector<int>& dims, vpp::border b);
 
     std::shared_ptr<imageNd_data<V, N> > ptr_;
   };
@@ -141,4 +144,5 @@ namespace vpp
 };
 
 # include <vpp/imageNd.hpp>
+
 #endif

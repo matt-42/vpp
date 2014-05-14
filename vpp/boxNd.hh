@@ -91,7 +91,7 @@ namespace vpp
   {
   public:
     inline border(int n) : size_(n) {}
-    int size() const { return size_; }
+    inline int size() const { return size_; }
   private:
     int size_;
   };

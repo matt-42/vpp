@@ -7,6 +7,8 @@ int main()
   using vpp::vint2;
   using vpp::vint3;
 
+  imageNd<int, 2> img_test({2,3});
+
 
   std::vector<int> dims = {100, 200};
 
