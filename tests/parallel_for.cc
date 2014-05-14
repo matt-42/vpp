@@ -9,7 +9,7 @@ int main()
   using vpp::vint2;
   using vpp::box2d;
 
-  image2d<int> img2(50, 300);
+  image2d<int> img2({50, 300});
 
   parallel_for_openmp(img2.domain()) << [&] (vint2 p)
   {

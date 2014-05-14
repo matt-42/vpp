@@ -50,11 +50,11 @@ namespace vpp
     // Constructors.
     imageNd();
 
-    imageNd(int* dims, int border = 0);
+    imageNd(std::vector<int> dims, int border = 0);
 
     imageNd(const boxNd<N>& domain, int border = 0);
 
-    imageNd(int* dims, int border, V* data, int pitch, bool own_data = false);
+    imageNd(std::vector<int> dims, int border, V* data, int pitch, bool own_data = false);
 
     // Copy constructor. Share the data.
     imageNd(const imageNd<V, N>& other);
@@ -124,7 +124,7 @@ namespace vpp
     const imageNd<V, N>& up_cast() const { return *static_cast<const imageNd<V, N>*>(this); }
 
   protected:
-    void allocate(int dims[N], int border);
+    void allocate(const std::vector<int>& dims, int border);
 
     std::shared_ptr<imageNd_data<V, N> > ptr_;
   };

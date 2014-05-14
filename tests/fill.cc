@@ -7,8 +7,7 @@ int main()
   using vpp::imageNd;
   using vpp::fill;
 
-  int dims[] = {100, 200};
-  imageNd<int, 2> img(dims);
+  imageNd<int, 2> img({100, 200});
 
   fill(img, 42);
 

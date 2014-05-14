@@ -13,13 +13,13 @@ namespace vpp
   }
 
   template <typename V, unsigned N>
-  imageNd<V, N>::imageNd(int* dims, int border)
+  imageNd<V, N>::imageNd(std::vector<int> dims, int border)
   {
     allocate(dims, border);
   }
 
   template <typename V, unsigned N>
-  imageNd<V, N>::imageNd(int* dims, int border, V* data, int pitch, bool own_data)
+  imageNd<V, N>::imageNd(std::vector<int> dims, int border, V* data, int pitch, bool own_data)
   {
     ptr_ = std::shared_ptr<imageNd_data<V, N>>(new imageNd_data<V, N>(),
                                delete_imageNd_data<imageNd_data<V, N>>);
@@ -71,7 +71,7 @@ namespace vpp
   template <typename V, unsigned N>
   imageNd<V, N>::imageNd(const boxNd<N>& domain, int border)
   {
-    int dims[N];
+    std::vector<int> dims(N);
 
     for (int i = 0; i < int(N); i++)
       dims[i] = domain.size(i);
@@ -86,7 +86,7 @@ namespace vpp
   }
 
   template <typename V, unsigned N>
-  void imageNd<V, N>::allocate(int* dims, int border)
+  void imageNd<V, N>::allocate(const std::vector<int>& dims, int border)
   {
     ptr_ = std::make_shared<imageNd_data<V, N>>();
     auto& d = *ptr_;

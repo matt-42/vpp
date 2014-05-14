@@ -8,7 +8,7 @@ int main()
   using vpp::make_box3d;
 
   image3d<int> img1(make_box3d(100, 200, 300));
-  image3d<int> img2(100, 200, 300);
+  image3d<int> img2({100, 200, 300});
 
   assert(img1.domain() == img2.domain());
 

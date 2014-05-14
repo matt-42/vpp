@@ -8,7 +8,7 @@ int main()
   using vpp::make_box2d;
 
   image2d<int> img1(make_box2d(100, 200));
-  image2d<int> img2(100, 200);
+  image2d<int> img2({100, 200});
 
   assert(img1.domain() == img2.domain());
 

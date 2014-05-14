@@ -42,27 +42,11 @@ namespace vpp
   template <typename V>
   image2d<V> from_opencv(cv::Mat&& m)
   {
-    int dims[] = { m.rows, m.cols };
-    image2d<V> res(dims, 0, (V*) m.data, m.step, false); // fixme : memory leak.
+    image2d<V> res({ m.rows, m.cols }, 0, (V*) m.data, m.step, false); // fixme : memory leak.
     res.set_external_refcount(m.refcount);
     m.addref();
     return res;
   }
-
-
-  // template <typename V>
-  // image2d<V> from_opencv(cv::Mat& m)
-  // {
-  //   int dims[] = { m.rows, m.cols };
-  //   image2d<V> res(dims, 0, (V*) m.data, m.step, true);
-  //   m.addref();
-  //   m.addref();
-  //   m.addref();
-  //   m.addref();
-  //   m.refcount = 0;
-  //   m.data = 0;
-  //   return res;
-  // }
 
   template <typename V>
   cv::Mat to_opencv(image2d<V>& m)

@@ -8,7 +8,7 @@ int main()
   using vpp::vint2;
   using vpp::window;
 
-  image2d<int> img1(3, 3);
+  image2d<int> img1({3, 3});
 
   window<image2d<int>> nbh(img1, {
       {-1, -1}, {-1, 0}, {-1, 1},

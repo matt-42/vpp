@@ -8,7 +8,7 @@ int main()
   using vpp::vint3;
 
 
-  int dims[] = {100, 200};
+  std::vector<int> dims = {100, 200};
 
 
   imageNd<int, 2> img(dims);
@@ -48,7 +48,7 @@ int main()
   assert((char*)(&img2(vint2(99,199))) == ((char*)&img2(0,0) + 99 * img2.pitch() + 199 * sizeof(int)));
   assert((char*)img2.data_end() == ((char*)(img2.data()) + 102 * img2.pitch()));
 
-  int dim3[] = {100, 200, 300};
+  std::vector<int> dim3 = {100, 200, 300};
   imageNd<int, 3> img3(dim3, 1);
   assert(img3.pitch() == sizeof(int) * (dim3[2] + 2));
   assert((char*)(&img3(vint3(0,0,0))) == ((char*)img3.data() + 1 * dim3[1] * img3.pitch() + img3.pitch() + sizeof(int) ));

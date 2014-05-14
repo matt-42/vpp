@@ -8,7 +8,7 @@ int main()
   using vpp::vint2;
 
 
-  image2d<int> img(3, 3);
+  image2d<int> img({3, 3});
 
   vint2 ref[] = {
     vint2(0, 0),
