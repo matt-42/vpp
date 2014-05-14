@@ -38,7 +38,6 @@ namespace vpp
       size *= ptr_->domain_.size(n);
 
     ptr_->data_end_ = (V*)((char*) ptr_->data_ + size);
-
   }
 
   template <typename V, unsigned N>
@@ -66,7 +65,6 @@ namespace vpp
   imageNd<V, N>& imageNd<V, N>::operator=(const imageNd<V, N>&& other)
   {
     ptr_ = other.ptr_;
-    //other.ptr_.reset();
     return *this;
   }
 
@@ -75,7 +73,7 @@ namespace vpp
   {
     int dims[N];
 
-    for (int i = 0; i < N; i++)
+    for (int i = 0; i < int(N); i++)
       dims[i] = domain.size(i);
 
     allocate(dims, border);
@@ -99,14 +97,14 @@ namespace vpp
     for (int i = 0; i < N; i++)
       size *= (dims[i] + border * 2);
     d.data_ = new V[size];
-    d.data_end_ = &(d.data_[size]);
-
-    vint<N> b = vint<N>::Ones();
-    d.begin_ = (V*)((char*)d.data_ + (d.pitch_ + sizeof(V)) * border);
+    d.data_end_ = d.data_ + size;
 
     d.domain_.p1() = vint<N>::Zero();
     for (unsigned i = 0; i < N; i++)
       d.domain_.p2()[i] = dims[i] - 1;
+
+    vint<N> b = vint<N>::Ones() * border;
+    d.begin_ = (V*)((char*)d.data_ + coords_to_offset(b));
   }
 
   template <typename V, unsigned N>

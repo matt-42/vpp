@@ -65,6 +65,10 @@ namespace vpp
     // Destructor.
     ~imageNd();
 
+    int nslices() const { static_assert(N >= 3, "nslices require dimension >= 3."); return domain().size(N-3); }
+    int nrows() const { static_assert(N >= 2, "nrows require dimension >= 2."); return domain().size(N-2); }
+    int ncols() const { static_assert(N >= 1, "ncols require dimension >= 1."); return domain().size(N-1); }
+
     // Assigment.
     imageNd<V, N>& operator=(const imageNd<V, N>& other);
     imageNd<V, N>& operator=(const imageNd<V, N>&& other);
@@ -73,8 +77,20 @@ namespace vpp
     V& operator()(const vint<N>& p);
     const V& operator()(const vint<N>& p) const;
 
-    V& operator()(int r, int c) { return operator()(vint2(r, c)); }
-    const V& operator() (int r, int c) const { return operator()(vint2(r, c)); }
+    template <typename... Tail>
+    const V& operator()(int c, Tail... cs) const
+    {
+      static_assert(1 + sizeof...(cs) == N, "Wrong dimension of coordinates passed to imageNd::operator().");
+      return operator()(coord_type(c, cs...));
+    }
+
+    template <typename... Tail>
+    V& operator()(int c, Tail... cs)
+    {
+      static_assert(1 + sizeof...(cs) == N, "Wrong dimension of coordinates passed to imageNd::operator().");
+      return operator()(coord_type(c, cs...));
+    }
+
 
     V* address_of(const vint<N>& p);
     const V* address_of(const vint<N>& p) const;
@@ -90,6 +106,7 @@ namespace vpp
     // Access to raw buffer.
     V* data() { return ptr_->data_; }
     const V* data() const { return ptr_->data_; }
+    const V* data_end() const { return ptr_->data_end_; }
 
     iterator begin() { return iterator(*ptr_->domain_.begin(), *this); }
     iterator end() { return iterator(*ptr_->domain_.end(), *this); }
@@ -115,8 +132,8 @@ namespace vpp
   template <typename V, unsigned N>
   using shared_imageNd = std::shared_ptr<imageNd<V, N> >&;
 
-  template <typename V, unsigned N>
-  imageNd<V, N> clone(imageNd<V, N>& img);
+  template <typename I>
+  I clone(I img);
 
   template <typename V, unsigned N>
   imageNd<V, N> clone_with_border(imageNd<V, N>& img);
