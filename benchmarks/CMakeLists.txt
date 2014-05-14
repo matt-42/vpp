@@ -9,5 +9,7 @@ add_executable(boxNd_iterator boxNd_iterator.cc)
 add_executable(iteration_on_domains iteration_on_domains.cc)
 add_executable(image_iterator image_iterator.cc)
 add_executable(parallel_for parallel_for.cc)
+add_executable(image_iterations image_iterations.cc)
 
 target_link_libraries(parallel_for gomp)
+target_link_libraries(image_iterations gomp)
