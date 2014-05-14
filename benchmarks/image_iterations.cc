@@ -66,11 +66,9 @@ void raw_openmp_simd(image2d<int> img)
   for (int r = 0; r < nr; r++)
   {
     int* cur = &img(vint2(r, 0));
-    int* end = cur + img.ncols();
     int nc = img.ncols();
-    int c = 0;
 
-#pragma parallel for simd
+#pragma omp simd
     for (int i = 0; i < nc; i++)
     {
       cur[i] = r;
@@ -95,7 +93,7 @@ int main()
 
   image2d<int> img(1000,1000);
 
-  int K = 4000;
+  int K = 400;
   double time;
 
 
@@ -129,7 +127,7 @@ int main()
   for (int k = 0; k < K; k++)
     raw_openmp_simd(img);
   double raw_openmp_simd_time = get_time_in_seconds() - time;
-  check(img);
+  // check(img);
 
   fill(img, 0);
   time = get_time_in_seconds();
@@ -142,7 +140,7 @@ int main()
   std::cout << "raw_naive_time: " << 1000. * raw_naive_time / K << std::endl;
   std::cout << "raw_sequential_time: " << 1000. * raw_sequential_time / K << std::endl;
   std::cout << "raw_openmp_time: " << 1000. * raw_openmp_time / K << std::endl;
-  std::cout << "raw_openmp_simd_time: " << 1000. * raw_openmp_time / K << std::endl;
+  std::cout << "raw_openmp_simd_time: " << 1000. * raw_openmp_simd_time / K << std::endl;
   std::cout << "vpp_pixel_wise: " << 1000. * pixel_wise_time / K << std::endl;
   //std::cout << "domain iteration overhead: " << 100. * id_time / ref_time - 100. << "%" << std::endl;
 
