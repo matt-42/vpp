@@ -41,7 +41,7 @@ for (int c = 0; c < img.ncols(); c++)
 }
 ```
 
-Video++ example, 0.108ms, x16.6 speedup on a 4-cores processor:
+Video++ example, 0.108ms, **x16.6 speedup on a 4-cores processor**:
 ```c++
 image2d<int> img(1000,1000);
 vpp::pixel_wise(img, img.domain()) << [] (auto& p, auto& c)
