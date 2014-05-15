@@ -119,6 +119,7 @@ namespace vpp
 
     // Domain
     inline const boxNd<N>& domain() const { return ptr_->domain_; }
+    inline boxNd<N> domain_with_border() const { return ptr_->domain_ + vpp::border(ptr_->border_); }
 
     inline void set_external_refcount (int* refcount) { ptr_->external_refcount_ = refcount; }
 

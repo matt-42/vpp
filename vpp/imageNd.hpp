@@ -166,7 +166,7 @@ namespace vpp
   V&
   imageNd<V, N>::operator()(const vint<N>& p)
   {
-    assert(ptr_->domain_.has(p));
+    assert(domain_with_border().has(p));
     V* addr = (V*)((char*)ptr_->begin_ + coords_to_offset(p));
     assert(addr < ptr_->data_end_);
     return *addr;
@@ -176,7 +176,7 @@ namespace vpp
   const V&
   imageNd<V, N>::operator()(const vint<N>& p) const
   {
-    assert(ptr_->domain_.has(p));
+    assert(domain_with_border().has(p));
     const V* addr = (V*)((char*)ptr_->begin_ + coords_to_offset(p));
     assert(addr < ptr_->data_end_);
     return *addr;
