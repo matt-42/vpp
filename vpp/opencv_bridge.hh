@@ -42,7 +42,7 @@ namespace vpp
   template <typename V>
   image2d<V> from_opencv(cv::Mat&& m)
   {
-    image2d<V> res({ m.rows, m.cols }, 0, (V*) m.data, m.step, false); // fixme : memory leak.
+    image2d<V> res({ m.rows, m.cols }, 0, (V*) m.data, m.step, false);
     res.set_external_refcount(m.refcount);
     m.addref();
     return res;

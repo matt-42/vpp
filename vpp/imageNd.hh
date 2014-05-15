@@ -68,63 +68,59 @@ namespace vpp
     // Destructor.
     ~imageNd();
 
-    int nslices() const { static_assert(N >= 3, "nslices require dimension >= 3."); return domain().size(N-3); }
-    int nrows() const { static_assert(N >= 2, "nrows require dimension >= 2."); return domain().size(N-2); }
-    int ncols() const { static_assert(N >= 1, "ncols require dimension >= 1."); return domain().size(N-1); }
+    inline int nslices() const { static_assert(N >= 3, "nslices require dimension >= 3."); return domain().size(N-3); }
+    inline int nrows() const { static_assert(N >= 2, "nrows require dimension >= 2."); return domain().size(N-2); }
+    inline int ncols() const { static_assert(N >= 1, "ncols require dimension >= 1."); return domain().size(N-1); }
 
     // Assigment.
     imageNd<V, N>& operator=(const imageNd<V, N>& other);
     imageNd<V, N>& operator=(const imageNd<V, N>&& other);
 
     // Access to values.
-    V& operator()(const vint<N>& p);
-    const V& operator()(const vint<N>& p) const;
+    inline V& operator()(const vint<N>& p);
+    inline const V& operator()(const vint<N>& p) const;
 
     template <typename... Tail>
-    const V& operator()(int c, Tail... cs) const
+    inline const V& operator()(int c, Tail... cs) const
     {
       static_assert(1 + sizeof...(cs) == N, "Wrong dimension of coordinates passed to imageNd::operator().");
       return operator()(coord_type(c, cs...));
     }
 
     template <typename... Tail>
-    V& operator()(int c, Tail... cs)
+    inline V& operator()(int c, Tail... cs)
     {
       static_assert(1 + sizeof...(cs) == N, "Wrong dimension of coordinates passed to imageNd::operator().");
       return operator()(coord_type(c, cs...));
     }
 
 
-    V* address_of(const vint<N>& p);
-    const V* address_of(const vint<N>& p) const;
+    inline V* address_of(const vint<N>& p);
+    inline const V* address_of(const vint<N>& p) const;
 
-    int offset_of(const vint<N>& p) const;
+    inline int offset_of(const vint<N>& p) const;
 
-    int coords_to_index(const vint<N>& p) const;
+    inline int coords_to_index(const vint<N>& p) const;
 
-    int coords_to_offset(const vint<N>& p) const;
+    inline int coords_to_offset(const vint<N>& p) const;
 
-    bool has(coord_type& p) const { return ptr_->domain_.has(p); }
-    bool has(const V* p) const { return p >= ptr_->data_ and p < ptr_->data_end_; }
+    inline bool has(coord_type& p) const { return ptr_->domain_.has(p); }
+    inline bool has(const V* p) const { return p >= ptr_->data_ and p < ptr_->data_end_; }
     // Access to raw buffer.
-    V* data() { return ptr_->data_; }
-    const V* data() const { return ptr_->data_; }
-    const V* data_end() const { return ptr_->data_end_; }
+    inline V* data() { return ptr_->data_; }
+    inline const V* data() const { return ptr_->data_; }
+    inline const V* data_end() const { return ptr_->data_end_; }
 
-    iterator begin() { return iterator(*ptr_->domain_.begin(), *this); }
-    iterator end() { return iterator(*ptr_->domain_.end(), *this); }
+    inline iterator begin() { return iterator(*ptr_->domain_.begin(), *this); }
+    inline iterator end() { return iterator(*ptr_->domain_.end(), *this); }
 
-    int pitch() const { return ptr_->pitch_; }
-    int border() const { return ptr_->border_; }
+    inline int pitch() const { return ptr_->pitch_; }
+    inline int border() const { return ptr_->border_; }
 
     // Domain
-    const boxNd<N>& domain() const { return ptr_->domain_; }
+    inline const boxNd<N>& domain() const { return ptr_->domain_; }
 
-    void set_external_refcount (int* refcount) { ptr_->external_refcount_ = refcount; }
-
-    // Cast to imageNd.
-    imageNd<V, N>& up_cast() { return *static_cast<imageNd<V, N>*>(this); }
-    const imageNd<V, N>& up_cast() const { return *static_cast<const imageNd<V, N>*>(this); }
+    inline void set_external_refcount (int* refcount) { ptr_->external_refcount_ = refcount; }
 
   protected:
     void allocate(const std::vector<int>& dims, vpp::border b);
