@@ -9,6 +9,8 @@ add_executable(boxNd_iterator boxNd_iterator.cc)
 add_executable(iteration_on_domains iteration_on_domains.cc)
 add_executable(image_iterations image_iterations.cc)
 add_executable(image_add image_add.cc)
+add_executable(box_filter box_filter.cc)
 
 target_link_libraries(image_iterations gomp)
 target_link_libraries(image_add gomp)
+target_link_libraries(box_filter gomp)

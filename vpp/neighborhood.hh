@@ -7,73 +7,73 @@
 namespace vpp
 {
 
-  template <unsigned N, typename C>
-  class box_neighborhood_iterator
-  {
-  public:
-    typedef vector<C, N> coord_type;
+  // template <unsigned N, typename C>
+  // class box_neighborhood_iterator
+  // {
+  // public:
+  //   typedef vector<C, N> coord_type;
 
-    box_neighborhood_iterator(const coord_type& p, const coord_type& cur, const boxNd<N, C>& box)
-      : p_(p),
-        box_it_(cur, box)
-    {}
+  //   box_neighborhood_iterator(const coord_type& p, const coord_type& cur, const boxNd<N, C>& box)
+  //     : p_(p),
+  //       box_it_(cur, box)
+  //   {}
 
-    box_neighborhood_iterator& operator++() { box_it_.next(); return *this; }
+  //   box_neighborhood_iterator& operator++() { box_it_.next(); return *this; }
 
-    operator coord_type() const { return p_ + *box_it_; }
-    coord_type operator*() const { return p_ + *box_it_; }
+  //   operator coord_type() const { return p_ + *box_it_; }
+  //   coord_type operator*() const { return p_ + *box_it_; }
 
-    const boxNd_iterator<N, C>& box_it() const { return box_it_; }
+  //   const boxNd_iterator<N, C>& box_it() const { return box_it_; }
 
-  private:
-    const coord_type& p_;
-    boxNd_iterator<N, C> box_it_;
-  };
+  // private:
+  //   const coord_type& p_;
+  //   boxNd_iterator<N, C> box_it_;
+  // };
 
-  template <unsigned N, typename C>
-  bool operator==(const box_neighborhood_iterator<N, C>& a, const box_neighborhood_iterator<N, C>& b)
-  {
-    return a.box_it() == b.box_it();
-  }
+  // template <unsigned N, typename C>
+  // bool operator==(const box_neighborhood_iterator<N, C>& a, const box_neighborhood_iterator<N, C>& b)
+  // {
+  //   return a.box_it() == b.box_it();
+  // }
 
-  template <unsigned N, typename C>
-  bool operator!=(const box_neighborhood_iterator<N, C>& a, const box_neighborhood_iterator<N, C>& b)
-  {
-    return !(a == b);
-  }
+  // template <unsigned N, typename C>
+  // bool operator!=(const box_neighborhood_iterator<N, C>& a, const box_neighborhood_iterator<N, C>& b)
+  // {
+  //   return !(a == b);
+  // }
 
-  template <unsigned N, typename C>
-  class box_neighborhood
-  {
-  public:
-    typedef vector<C, N> coord_type;
+  // template <unsigned N, typename C>
+  // class box_neighborhood
+  // {
+  // public:
+  //   typedef vector<C, N> coord_type;
 
-    box_neighborhood(coord_type p, int width)
-      : p_(p)
-    {
-      coord_type p1, p2;
-      for (unsigned i = 0; i < N; i++)
-      {
-        p1[i] = -width / 2;
-        p2[i] = width / 2;
-      }
-      box_.p1() = p1;
-      box_.p2() = p2;
-    }
+  //   box_neighborhood(coord_type p, int width)
+  //     : p_(p)
+  //   {
+  //     coord_type p1, p2;
+  //     for (unsigned i = 0; i < N; i++)
+  //     {
+  //       p1[i] = -width / 2;
+  //       p2[i] = width / 2;
+  //     }
+  //     box_.p1() = p1;
+  //     box_.p2() = p2;
+  //   }
 
-    box_neighborhood_iterator<N, C> begin() { return box_neighborhood_iterator<N, C>(p_, box_.p1(), box_); }
-    box_neighborhood_iterator<N, C> end() { return box_neighborhood_iterator<N, C>(p_, *box_.end(), box_); }
+  //   box_neighborhood_iterator<N, C> begin() { return box_neighborhood_iterator<N, C>(p_, box_.p1(), box_); }
+  //   box_neighborhood_iterator<N, C> end() { return box_neighborhood_iterator<N, C>(p_, *box_.end(), box_); }
 
-  private:
-    coord_type p_;
-    boxNd<N, C> box_;
-  };
+  // private:
+  //   coord_type p_;
+  //   boxNd<N, C> box_;
+  // };
 
-  template <typename C>
-  box_neighborhood<C::RowsAtCompileTime, typename C::Scalar> box_nbh(C p, int width)
-  {
-    return box_neighborhood<C::RowsAtCompileTime, typename C::Scalar>(p, width);
-  }
+  // template <typename V>
+  // box_neighborhood<V> box_nbh_2d(image2d<V>& p, int nrows, int ncols)
+  // {
+  //   return box_neighborhood<C::RowsAtCompileTime, typename C::Scalar>(p, width);
+  // }
 
   // box_neighborhood<2, int> box_nbh(const vint2& p, int width)
   // {

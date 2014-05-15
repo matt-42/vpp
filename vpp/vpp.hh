@@ -13,6 +13,7 @@
 # include <vpp/neighborhood.hh>
 # include <vpp/boxNd.hh>
 # include <vpp/window.hh>
+# include <vpp/box_nbh2d.hh>
 # include <vpp/parallel_for.hh>
 
 # include <vpp/fill.hh>
