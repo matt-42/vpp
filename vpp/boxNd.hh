@@ -110,6 +110,21 @@ namespace vpp
     return res;
   }
 
+
+  template <unsigned N, typename C>
+  boxNd<N, C> operator+(const boxNd<N, C>& b, const border& border)
+  {
+    boxNd<N, C> res = b;
+
+    for (int n = 0; n < N; n++)
+    {
+      res.p1()[n] -= border.size();
+      res.p2()[n] += border.size();
+    }
+
+    return res;
+  }
+
 };
 
 #endif
