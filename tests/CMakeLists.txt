@@ -23,8 +23,8 @@ add_test(imageNd_iterator imageNd_iterator)
 add_executable(parallel_for parallel_for.cc)
 add_test(parallel_for parallel_for)
 
-add_executable(neighborhood neighborhood.cc)
-add_test(neighborhood neighborhood)
+add_executable(box_nbh2d box_nbh2d.cc)
+add_test(box_nbh2d box_nbh2d)
 
 add_executable(sandbox sandbox.cc)
 add_test(sandbox sandbox)
