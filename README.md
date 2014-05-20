@@ -17,7 +17,7 @@ pixel_wise(A, B) << [&] (auto& a, auto& b) {
   int sum = vint3::Zero();
 
   // Loop over in's neighboords wrt nbh to compute a sum.
-  nbh(a) << [&] (int& n) sum += n;
+  nbh(a) < [&] (int& n) sum += n;
 
   // Write the sum to the output image.
   b = (sum / 3);
@@ -141,12 +141,14 @@ pixel_wise(A, B, C) < // Mono-thread.
 
 If there is no dependencies between the computations of two pixels,
 the parallel version can speedup the execution of kernel on multi-core
-architectures:
+architectures. Note: this code must be compiled with ```-fopenmp -lgomp```
+to enable the multi-threading optimizations.
 
 ```c++
 pixel_wise(A, B, C) << // Multi-thread.
   [] (int& a, int& b, int& c) { a = b + c; };;
 ```
+
 
 The ```row_wise``` routine execute kernel working on an entire row of
 the image domain. The kernel takes as argument the first pixel of the
@@ -172,20 +174,16 @@ row_wise(A, A.domain()) << [&] (int& row_start, vint2 coord) {
 ```
 
 Finally, like ```row_wise``` for rows, ```col_wise``` allows to
-procees colums.
+process columns.
 
 
-### Accessing Neighborhood
+### Accessing Rectangular Neighborhood
 
-Video++ provide a fast access to pixel neighboors. By precomputing the
-offset of a neighborhood expressed in 2D coordinates, it suppresses the
-need of 2d coordinate arithmetic inside the kernel loop. Instead, it
-uses a fast pointer arithmetic to iterate on the neighborhood.
-
+Video++ provide a fast access to rectangular pixel neighboors when the
+size of the neighborhood is known at compile time:
 
 ```c++
-
-// A parallel implementation of a box_filter using video++.
+// A parallel implementation of a box_filter using Video++.
 
 image2d<int> A(1000, 1000);
 image2d<int> B(A.domain());
@@ -197,11 +195,25 @@ pixel_wise(A, B) << [&] (int& a, int& b) {
   int sum = int;
 
   // Loop over neighbors wrt nbh to compute a sum.
-  for (vuchar3& n : nbh(a)) sum += n;
+  nbh(a) < [&] (int& n) sum += n;
 
   // Write the sum to the output image.
   b = (sum / 3);
 };
+```
+
+### Accessing arbitrary shaped windows
+
+Video++ also provide access to arbitrary shaped windows. By
+precomputing the offset of a neighborhood expressed in 2D coordinates,
+it suppresses the need of 2d coordinate arithmetic inside the kernel
+loop. Instead, it uses a fast pointer arithmetic to iterate on the
+neighborhood.
+
+The syntax is exactly like ```box_nbh```, except its creation:
+
+```
+auto win = make_window(image, {{0, -3}, {4, 1}, {1, 3} });
 ```
 
 ### Interoperability with OpenCV images
@@ -210,7 +222,7 @@ The header ```#include <vpp/opencv_bridge.hh>``` (not included by
 default) provides conversions to and from OpenCV image types. It
 allows to run video++ code on OpenCV images and to run OpenCV code on
 video++ images, without cloning the pixel buffer.  Ownership of the buffer
-will switch to OpenCV or video++ depending of the order of the
+will switch to OpenCV or Video++ depending of the order of the
 destructor calls.
 
 ```c++
