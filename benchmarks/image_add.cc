@@ -106,9 +106,15 @@ int bench(int size, T& results)
   // std::cout << "vpp_pixel_wise: " << 1000. * pixel_wise_time / K << std::endl;
   //std::cout << "domain iteration overhead: " << 100. * id_time / ref_time - 100. << "%" << std::endl;
 
-  results.naive.push_back(1000 * raw_naive_time / K);
-  results.pixel_wise.push_back(1000 * pixel_wise_time / K);
-  results.raw.push_back(1000 * raw_openmp_simd_time / K);
+  double freq = 3.7 * 1000 * 1000 * 1000;
+
+  results.naive.push_back(freq * raw_naive_time / (K * size));
+  results.pixel_wise.push_back(freq * pixel_wise_time / (K * size));
+  results.raw.push_back(freq * raw_openmp_simd_time / (K * size));
+
+  // results.naive.push_back(1000 * raw_naive_time / K);
+  // results.pixel_wise.push_back(1000 * pixel_wise_time / K);
+  // results.raw.push_back(1000 * raw_openmp_simd_time / K);
 }
 
 int main()
