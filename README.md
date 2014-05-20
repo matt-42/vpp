@@ -16,7 +16,7 @@ auto nbh = box_nbh<int, 3, 3>(A);
 pixel_wise(A, B) << [&] (auto& a, auto& b) {
   int sum = vint3::Zero();
 
-  // Loop over in's neighboords wrt nbh to compute a sum.
+  // Sum the pixel of the window.
   nbh(a) < [&] (int& n) sum += n;
 
   // Write the sum to the output image.
