@@ -41,6 +41,19 @@ void raw_openmp_simd(image2d<int> A, image2d<int> B)
     int* endA = curA + A.nrows();
 
     int nc = A.ncols();
+    int sum = 0;
+
+    // Is actually slower. The compiler must do a great job optimizing the
+    // second loop...
+    // for (int d = -2; d <= 1; d++)
+    //   sum += curB[d];
+    // curA[0] = sum / 5;
+    // for (int i = 1; i < nc; i++)
+    // {
+    //   sum += curB[i + 2] - curB[i-3];
+    //   curA[i] = sum / 5;
+    // }
+
     for (int i = 0; i < nc; i++)
     {
       int sum = 0;
@@ -100,7 +113,7 @@ int bench(int size, T& results, int debug = 0)
   double pixel_wise_time = get_time_in_seconds() - time;
   check(A, B);
 
-  double freq = 2.5 * 1000 * 1000 * 1000;
+  double freq = 3.7 * 1000 * 1000 * 1000;
   if (debug)
   {
     std::cout << "time per iteration (ms) : " << std::endl;
