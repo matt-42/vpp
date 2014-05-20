@@ -1,24 +1,26 @@
 Video++
 =============
 
-Video++ is a video and image processing library that takes advantage of the C++11 and C++14 standard to ease the writing of fast parallel real-time video and image processing.
+Video++ is a video and image processing library that takes advantage
+of the C++11 and C++14 standard to ease the writing of fast parallel
+real-time video and image processing.
 
 
 ```c++
-// A fast parallel implementation of a box_filter using Video++.
+// A fast parallel implementation of a 3x3 box_filter using Video++.
 
 image2d<int> A(1000, 1000, 1); // A 1000x1000 image with a border of 1 pixel.
 image2d<int> B(A.domain(), 1);
 
-auto nbh = make_window(A, { {0, -1}, {0, 0}, {0, 1}, });
+auto nbh = box_nbh<int, 3, 3>(A);
 pixel_wise(A, B) << [&] (auto& a, auto& b) {
-  vint3 sum = vint3::Zero();
+  int sum = vint3::Zero();
 
   // Loop over in's neighboords wrt nbh to compute a sum.
-  for (vuchar3& n : nbh(a)) sum += n.cast<int>();
+  nbh(a) << [&] (int& n) sum += n;
 
   // Write the sum to the output image.
-  b = (sum / 3).cast<unsigned char>();
+  b = (sum / 3);
 };
 ```
 
@@ -27,9 +29,10 @@ Supported compiler : **GCC 4.9**
 **Since Video++ relies on C++14 features, only compilers supporting this standard are able to
 compile the library.**
 
-## Higher Perfomances with Less Code
+## Higher perfomances with a simpler code
 
-Video++ generates code running up to one order of magnitude faster than naive implementations.
+Video++ generates code running up to one order of magnitude faster
+than naive implementations.
 
 Naive example, 1.79ms:
 ```c++
@@ -124,43 +127,30 @@ is ```v{T}{N}``` such as
 
 For exemple, the type ```image2d<vuchar4>``` can handle an image of RGBA 8-bit.
 
-### Sequential and Single-Thread Kernels
+### Sequential and parallel Kernels
+
+The ```pixel_wise```, ```row_wise```, and ```col_wise``` constructs
+allow to run kernel on pixel, rows, and columns.
+
+The following snippet uses pixel_wise to add two images:
 
 ```c++
-// Iterate on the 2d coordinates of the image domain.
-image2d<int> img(100, 100);
-for (vint2& p : img.domain())
-  img(p) = 42; // write 42 to the pixel with 2d coordinate p;
-
-// Iterate on the img's pixel buffer (faster than the previous iteration).
-image2d<int> img(100, 100);
-for (int& pix : img)
-  pix = 42; // Set the pixel value to 42.
-
+pixel_wise(A, B, C) < // Mono-thread.
+  [] (int& a, int& b, int& c) { a = b + c; };;
 ```
 
-### Parallel Multi-Thread Kernels
-
-
-#### Pixel Wise Parallel Kernels
-
-The ```pixel_wise``` construct allows to spread the execution of a
-kernel to all the available cpu cores. Since pixel_wise execute the
-kernel in parallel, there should not be any dependencies between the
-computation of two pixels.
+If there is no dependencies between the computations of two pixels,
+the parallel version can speedup the execution of kernel on multi-core
+architectures:
 
 ```c++
-image2d<int> A(100, 100);
-image2d<int> B(100, 100);
-image2d<int> C(100, 100);
-
-pixel_wise(A, B, C) << [] (int& a, int& b, int& c) {
-  a = b + c;
-};
-
+pixel_wise(A, B, C) << // Multi-thread.
+  [] (int& a, int& b, int& c) { a = b + c; };;
 ```
 
-#### Row Wise Parallel Kernels
+The ```row_wise``` routine execute kernel working on an entire row of
+the image domain. The kernel takes as argument the first pixel of the
+row it should compute.
 
 ```c++
 // Compute the sum of each row of A into the sums, such as
@@ -169,20 +159,20 @@ image2d<int> A(100, 100);
 std::vector<int> sums(A.nrows(), 0);
 int ncols = A.ncols();
 
-row_wise(A, A.domain()) << [=] (int& row_start, vint2 coord) {
+row_wise(A, A.domain()) << [&] (int& row_start, vint2 coord) {
   int sum = 0;
   int* cur = &row_start; // Iterator.
   int* end = &row_start + ncols; // End of row.
+
   while (cur != end) counter += *(cur++); // Loop over the row.
+
   sums[coord[0]] = sum; // Write the result.
 };
 
 ```
 
-#### Col Wise Parallel Kernels
-
-Similar to ```row_wise```, ```col_wise``` allows to parallelize col wise
-kernels.
+Finally, like ```row_wise``` for rows, ```col_wise``` allows to
+procees colums.
 
 
 ### Accessing Neighborhood
@@ -200,17 +190,17 @@ uses a fast pointer arithmetic to iterate on the neighborhood.
 image2d<int> A(1000, 1000);
 image2d<int> B(A.domain());
 
-auto nbh = make_window(A, { {0, -1}, {0, 0}, {0, 1} });
+auto nbh = box_nbh2d<int, 3, 3>(A);
 
 // Parallel Loop over pixels of in and out.
-pixel_wise(A, B) << [&] (auto& a, auto& b) {
-  vint3 sum = vint3::Zero();
+pixel_wise(A, B) << [&] (int& a, int& b) {
+  int sum = int;
 
   // Loop over neighbors wrt nbh to compute a sum.
-  for (vuchar3& n : nbh(a)) sum += n.cast<int>();
+  for (vuchar3& n : nbh(a)) sum += n;
 
   // Write the sum to the output image.
-  b = (sum / 3).cast<unsigned char>();
+  b = (sum / 3);
 };
 ```
 
