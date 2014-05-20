@@ -6,78 +6,24 @@
 namespace vpp
 {
 
-  template <typename I>
-  class window_iterator
+  template <typename V>
+  struct window_runner
   {
-  public:
-    typedef typename I::value_type V;
-    inline window_iterator(V* p, const std::vector<int>& offsets, int i)
+    inline window_runner(const std::vector<int>& offsets, V& pix)
       : offsets_(offsets),
-        p_(p),
-        cur_((V*)(((char*)p) + offsets_[i])),
-        i_(i)
+        pix_((char*)&pix)
     {
     }
 
-    inline window_iterator<I>& operator++()
+    template <typename F>
+    inline void operator<(F f)
     {
-      i_++;
-      cur_ = (V*)((char*)(p_) + offsets_[i_]);
+      for (auto off : offsets_)
+        f(*(V*)(pix_ + off));
     }
 
-    inline V& operator*() { return *cur_; }
-    inline const V& operator*() const { return *cur_; }
-
-    inline int i() const { return i_; }
-
-  private:
     const std::vector<int>& offsets_;
-    V* p_;
-    V* cur_;
-    int i_;
-  };
-
-  template <typename I>
-  bool operator==(const window_iterator<I>& a, const window_iterator<I>& b)
-  {
-    return a.i() == b.i();
-  }
-
-  template <typename I>
-  bool operator!=(const window_iterator<I>& a, const window_iterator<I>& b)
-  {
-    return !(a == b);
-  }
-
-  template <typename I>
-  class window_range
-  {
-  public:
-    typedef typename I::coord_type coord_type;
-    typedef typename I::value_type value_type;
-    typedef typename I::iterator I_iterator;
-
-    typedef window_iterator<I> iterator;
-
-    inline window_range(value_type* p, const std::vector<int>& offsets)
-      : p_(p),
-        offsets_(offsets)
-    {
-    }
-
-    inline iterator begin()
-    {
-      return window_iterator<I>(p_, offsets_, 0);
-    }
-
-    inline iterator end()
-    {
-      return window_iterator<I>(p_, offsets_, offsets_.size() - 1);
-    }
-
-  private:
-    value_type* p_;
-    const std::vector<int>& offsets_;
+    char* pix_;
   };
 
   template <typename I>
@@ -89,14 +35,13 @@ namespace vpp
     typedef typename I::iterator I_iterator;
     window(const I& img, const std::vector<coord_type>& cds)
     {
-      for (auto p : cds) 
+      for (auto p : cds)
         offsets_.push_back(img.offset_of(p));
-      offsets_.push_back(0);
     }
 
-    inline window_range<I> operator()(value_type& p) const
+    inline window_runner<value_type> operator()(value_type& p) const
     {
-      return window_range<I>(&p, offsets_);
+      return window_runner<value_type>(offsets_, p);
     }
 
   private:
@@ -112,7 +57,3 @@ namespace vpp
 };
 
 #endif
-
-
-
-
