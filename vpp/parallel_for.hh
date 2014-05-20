@@ -112,14 +112,14 @@ namespace vpp
     parallel_for_pixel_wise_runner(std::tuple<Params...> t) : ranges_(t) {}
 
     template <typename F>
-    void operator<<(F fun)
+    void run(F fun, bool parallel)
     {
       auto p1 = get_p1(std::get<0>(ranges_));
       auto p2 = get_p2(std::get<0>(ranges_));
 
       int start = p1[0];
       int end = p2[0];
-#pragma omp parallel for schedule(static, 10)
+#pragma omp parallel for num_threads (parallel ? omp_get_num_procs() : 0)
       for (int r = start; r <= end; r++)
       {
         auto cur_ = internals::tuple_transform(ranges_, [&] (auto& range) {
@@ -137,6 +137,19 @@ namespace vpp
           internals::tuple_map(cur_, [] (auto& it) { it.next(); });
         }
       }
+
+    }
+
+    template <typename F>
+    void operator<<(F fun)
+    {
+      run(fun, true);
+    }
+
+    template <typename F>
+    void operator<(F fun)
+    {
+      run(fun, false);
     }
 
   private:
@@ -161,14 +174,14 @@ namespace vpp
     parallel_for_row_wise_runner(std::tuple<Params...> t) : ranges_(t) {}
 
     template <typename F>
-    void operator<<(F fun)
+    void run(F fun, bool parallel)
     {
       auto p1 = get_p1(std::get<0>(ranges_));
       auto p2 = get_p2(std::get<0>(ranges_));
 
       int start = p1[0];
       int end = p2[0];
-#pragma omp parallel for schedule(static, 10)
+#pragma omp parallel for num_threads (parallel ? omp_get_num_procs() : 0)
       for (int r = start; r <= end; r++)
       {
         auto cur_ = internals::tuple_transform(ranges_, [&] (auto& range) {
@@ -179,6 +192,20 @@ namespace vpp
         internals::apply_args_star(cur_, fun);
       }
     }
+
+
+    template <typename F>
+    void operator<<(F fun)
+    {
+      run(fun, true);
+    }
+
+    template <typename F>
+    void operator<(F fun)
+    {
+      run(fun, false);
+    }
+
 
   private:
     std::tuple<Params...> ranges_;
@@ -202,14 +229,14 @@ namespace vpp
     parallel_for_col_wise_runner(std::tuple<Params...> t) : ranges_(t) {}
 
     template <typename F>
-    void operator<<(F fun)
+    void run(F fun, bool parallel)
     {
       auto p1 = get_p1(std::get<0>(ranges_));
       auto p2 = get_p2(std::get<0>(ranges_));
 
       int start = p1[1];
       int end = p2[1];
-#pragma omp parallel for schedule(static, 10)
+#pragma omp parallel for num_threads (parallel ? omp_get_num_procs() : 0)
       for (int c = start; c <= end; c++)
       {
         auto cur_ = internals::tuple_transform(ranges_, [&] (auto& range) {
@@ -219,6 +246,18 @@ namespace vpp
 
         internals::apply_args_star(cur_, fun);
       }
+    }
+
+    template <typename F>
+    void operator<<(F fun)
+    {
+      run(fun, true);
+    }
+
+    template <typename F>
+    void operator<(F fun)
+    {
+      run(fun, false);
     }
 
   private:
