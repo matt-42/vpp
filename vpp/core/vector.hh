@@ -15,7 +15,9 @@ namespace vpp
   typedef v##T2<1> v##T2##1;                    \
   typedef v##T2<2> v##T2##2;                    \
   typedef v##T2<3> v##T2##3;                    \
-  typedef v##T2<4> v##T2##4;
+  typedef v##T2<4> v##T2##4; \
+  typedef v##T2<8> v##T2##8; \
+  typedef v##T2<16> v##T2##16;
 
   VPP_ALIAS_DECL(char, char);
   VPP_ALIAS_DECL(short, short);

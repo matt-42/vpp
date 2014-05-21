@@ -117,7 +117,7 @@ namespace vpp
   template <typename V, unsigned N>
   void imageNd<V, N>::allocate(const std::vector<int>& dims, vpp::border b)
   {
-    typedef vint4 align_type;
+    typedef vint16 align_type;
     const int align_size = sizeof(align_type);
 
     ptr_ = std::make_shared<imageNd_data<V, N>>();
@@ -140,9 +140,15 @@ namespace vpp
     for (int i = 0; i < N - 1; i++)
       size *= (dims[i] + b.size() * 2);
     size *= d.pitch_;
-    d.data_ = (V*)(new align_type[(size + 1) / align_size]);
-    d.data_end_ = d.data_ + size / sizeof(V);
+    d.data_ = (V*)(new align_type[1 + (size) / align_size]);
 
+    if (long(d.data_) % align_size)
+    {
+      d.data_ = (V*)(((char*)d.data_) + align_size - long(d.data_) % align_size);
+    }
+
+    d.data_end_ = d.data_ + size / sizeof(V);
+    assert(!(long(d.data_) % align_size));
     d.domain_.p1() = vint<N>::Zero();
     for (unsigned i = 0; i < N; i++)
       d.domain_.p2()[i] = dims[i] - 1;
