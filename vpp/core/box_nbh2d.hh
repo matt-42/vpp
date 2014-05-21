@@ -1,9 +1,9 @@
 #ifndef VPP_BOX_NBH2D_HH__
 # define VPP_BOX_NBH2D_HH__
 
-# include <vpp/boxNd.hh>
-# include <vpp/vector.hh>
-# include <vpp/image2d.hh>
+# include <vpp/core/boxNd.hh>
+# include <vpp/core/vector.hh>
+# include <vpp/core/image2d.hh>
 
 namespace vpp
 {

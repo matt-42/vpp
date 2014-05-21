@@ -83,6 +83,6 @@ namespace vpp
 
 };
 
-# include <vpp/boxNd_iterator.hpp>
+# include <vpp/core/boxNd_iterator.hpp>
 
 #endif

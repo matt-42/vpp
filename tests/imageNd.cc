@@ -1,5 +1,5 @@
 #include <iostream>
-#include <vpp/imageNd.hh>
+#include <vpp/vpp.hh>
 
 int main()
 {
@@ -19,12 +19,11 @@ int main()
   assert(img.domain().size(0) == dims[0]);
   assert(img.domain().size(1) == dims[1]);
 
-  assert(img.coords_to_index(vpp::vint2::Ones()) == dims[1] + 1);
 
   for (int r = 0; r < img.domain().size(0); r++)
     for (int c = 0; c < img.domain().size(1); c++)
     {
-      assert(img.coords_to_index(vint2(r, c)) == (r * dims[1] + c));
+      assert(img.coords_to_offset(vint2(r, c)) == img.pitch() * r + c * sizeof(int));
     }
 
   for (int r = 0; r < img.domain().size(0); r++)
@@ -45,15 +44,13 @@ int main()
 
 
   imageNd<int, 2> img2(dims, 1);
-  assert(img2.pitch() == sizeof(int) * (dims[1] + 2));
-  assert((char*)(&img2(vint2(0,0))) == ((char*)img2.data() + img2.pitch() + sizeof(int)));
+  assert(!(long(&img2(0,0)) % 16));
+  assert(!(img2.pitch() % 16));
   assert((char*)(&img2(vint2(99,199))) == ((char*)&img2(0,0) + 99 * img2.pitch() + 199 * sizeof(int)));
-  assert((char*)img2.data_end() == ((char*)(img2.data()) + 102 * img2.pitch()));
 
   std::vector<int> dim3 = {100, 200, 300};
   imageNd<int, 3> img3(dim3, 1);
-  assert(img3.pitch() == sizeof(int) * (dim3[2] + 2));
-  assert((char*)(&img3(vint3(0,0,0))) == ((char*)img3.data() + 1 * dim3[1] * img3.pitch() + img3.pitch() + sizeof(int) ));
+  //assert((char*)(&img3(vint3(0,0,0))) == ((char*)img3.data() + 1 * dim3[1] * img3.pitch() + img3.pitch() + sizeof(int) ));
 
   //assert(img.data() == )
 

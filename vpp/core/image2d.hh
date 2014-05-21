@@ -1,7 +1,7 @@
 #ifndef VPP_IMAGE2D_HH__
 # define VPP_IMAGE2D_HH__
 
-# include <vpp/imageNd.hh>
+# include <vpp/core/imageNd.hh>
 
 namespace vpp
 {

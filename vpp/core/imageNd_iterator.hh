@@ -132,7 +132,7 @@ namespace vpp
 
     inline void next()
     {
-      cur_++;
+      cur_ += 1;
     }
 
     inline self& operator++() { next(); return *this; }

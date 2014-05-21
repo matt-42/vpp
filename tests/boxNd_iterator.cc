@@ -1,5 +1,5 @@
 #include <iostream>
-#include <vpp/boxNd.hh>
+#include <vpp/core/boxNd.hh>
 
 int main()
 {

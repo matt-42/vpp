@@ -1,6 +1,5 @@
 #include <iostream>
-#include <vpp/parallel_for.hh>
-#include <vpp/image2d.hh>
+#include <vpp/vpp.hh>
 
 int main()
 {

@@ -1,10 +1,10 @@
 #ifndef VPP_PARALLEL_FOR_HH_
 # define VPP_PARALLEL_FOR_HH_
 
-# include <vpp/imageNd.hh>
-# include <vpp/image2d.hh>
-# include <vpp/boxNd.hh>
-# include <vpp/tuple_utils.hh>
+# include <vpp/core/imageNd.hh>
+# include <vpp/core/image2d.hh>
+# include <vpp/core/boxNd.hh>
+# include <vpp/core/tuple_utils.hh>
 
 namespace vpp
 {
@@ -76,28 +76,24 @@ namespace vpp
 
 
   template <typename V, unsigned N>
-  typename imageNd<V, N>::coord_type get_p1(imageNd<V, N>& img)
-  {
-    return img.domain().p1();
-  }
+  typename imageNd<V, N>::coord_type get_p1(imageNd<V, N>& img) { return img.domain().p1(); }
+  template <typename V, unsigned N>
+  typename imageNd<V, N>::coord_type get_p1(const imageNd<V, N>& img) { return img.domain().p1(); }
 
   template <typename C, unsigned N, typename... PS>
-  typename boxNd<N, C>::coord_type get_p1(boxNd<N, C>& box)
-  {
-    return box.p1();
-  }
+  typename boxNd<N, C>::coord_type get_p1(boxNd<N, C>& box) { return box.p1(); }
+  template <typename C, unsigned N, typename... PS>
+  typename boxNd<N, C>::coord_type get_p1(const boxNd<N, C>& box) { return box.p1(); }
 
   template <typename V, unsigned N>
-  typename imageNd<V, N>::coord_type get_p2(imageNd<V, N>& img)
-  {
-    return img.domain().p2();
-  }
+  typename imageNd<V, N>::coord_type get_p2(imageNd<V, N>& img) { return img.domain().p2(); }
+  template <typename V, unsigned N>
+  typename imageNd<V, N>::coord_type get_p2(const imageNd<V, N>& img) { return img.domain().p2(); }
 
   template <typename C, unsigned N, typename... PS>
-  typename boxNd<N, C>::coord_type get_p2(boxNd<N, C>& box)
-  {
-    return box.p2();
-  }
+  typename boxNd<N, C>::coord_type get_p2(boxNd<N, C>& box) { return box.p2(); }
+  template <typename C, unsigned N, typename... PS>
+  typename boxNd<N, C>::coord_type get_p2(const boxNd<N, C>& box) { return box.p2(); }
 
 
 
@@ -108,8 +104,9 @@ namespace vpp
   class parallel_for_pixel_wise_runner<openmp, Params...>
   {
   public:
+    typedef parallel_for_pixel_wise_runner<openmp, Params...> self;
 
-    parallel_for_pixel_wise_runner(std::tuple<Params...> t) : ranges_(t) {}
+    parallel_for_pixel_wise_runner(std::tuple<Params...> t) : ranges_(t), step_(1) {}
 
     template <typename F>
     void run(F fun, bool parallel)
@@ -119,7 +116,8 @@ namespace vpp
 
       int start = p1[0];
       int end = p2[0];
-#pragma omp parallel for num_threads (parallel ? omp_get_num_procs() : 0)
+
+#pragma omp parallel for num_threads (parallel ? omp_get_num_procs() : 1)
       for (int r = start; r <= end; r++)
       {
         auto cur_ = internals::tuple_transform(ranges_, [&] (auto& range) {
@@ -134,10 +132,16 @@ namespace vpp
         while (cur0_ != end0_)
         {
           internals::apply_args_star(cur_, fun);
-          internals::tuple_map(cur_, [] (auto& it) { it.next(); });
+          internals::tuple_map(cur_, [this] (auto& it) { it.next(); });
         }
       }
 
+    }
+
+    self& step(int step)
+    {
+      step_ = step;
+      return *this;
     }
 
     template <typename F>
@@ -154,6 +158,7 @@ namespace vpp
 
   private:
     std::tuple<Params...> ranges_;
+    int step_;
   };
 
   template <typename... PS>

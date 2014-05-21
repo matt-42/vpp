@@ -1,8 +1,8 @@
 #ifndef VPP_NEIGHBORHOOD_HH__
 # define VPP_NEIGHBORHOOD_HH__
 
-# include <vpp/boxNd.hh>
-# include <vpp/vector.hh>
+# include <vpp/core/boxNd.hh>
+# include <vpp/core/vector.hh>
 
 namespace vpp
 {

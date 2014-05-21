@@ -1,6 +1,6 @@
 #include <iostream>
-#include <vpp/image2d.hh>
-#include <vpp/fill.hh>
+#include <vpp/core/image2d.hh>
+#include <vpp/core/fill.hh>
 
 int main()
 {

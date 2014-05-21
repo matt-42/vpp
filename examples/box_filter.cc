@@ -2,7 +2,7 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include <vpp/vpp.hh>
-#include <vpp/opencv_bridge.hh>
+#include <vpp/utils/opencv_bridge.hh>
 
 
 int main(int argc, char* argv[])
@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
     vint3 sum = vint3::Zero();
 
     // Loop over in's neighboords wrt nbh to compute a sum.
-    for (vuchar3& n : nbh(a)) sum += n.cast<int>();
+    nbh(a) < [&] (vuchar3& n) { sum += n.cast<int>(); };
 
     // Write the sum to the output image.
     b = (sum / 3).cast<unsigned char>();

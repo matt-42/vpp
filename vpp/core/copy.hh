@@ -1,7 +1,7 @@
 #ifndef VPP_COPY_HH__
 # define VPP_COPY_HH__
 
-# include <vpp/parallel_for.hh>
+# include <vpp/core/parallel_for.hh>
 
 namespace vpp
 {

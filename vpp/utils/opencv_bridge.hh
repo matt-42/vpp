@@ -2,7 +2,7 @@
 # define VPP_OPENCV_BRIDGE_HH__
 
 # include <opencv2/opencv.hpp>
-# include <vpp/image2d.hh>
+# include <vpp/core/image2d.hh>
 
 namespace vpp
 {

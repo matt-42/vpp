@@ -1,7 +1,7 @@
 #ifndef VPP_WINDOW_HPP__
 # define VPP_WINDOW_HPP__
 
-# include <vpp/imageNd.hh>
+# include <vpp/core/imageNd.hh>
 
 namespace vpp
 {

@@ -2,8 +2,8 @@
 # define VPP_IMAGENd_HH__
 
 # include <memory>
-# include <vpp/boxNd.hh>
-# include <vpp/imageNd_iterator.hh>
+# include <vpp/core/boxNd.hh>
+# include <vpp/core/imageNd_iterator.hh>
 
 namespace vpp
 {
@@ -100,7 +100,7 @@ namespace vpp
 
     inline int offset_of(const vint<N>& p) const;
 
-    inline int coords_to_index(const vint<N>& p) const;
+    // inline int coords_to_index(const vint<N>& p) const;
 
     inline int coords_to_offset(const vint<N>& p) const;
 
@@ -140,6 +140,6 @@ namespace vpp
 
 };
 
-# include <vpp/imageNd.hpp>
+# include <vpp/core/imageNd.hpp>
 
 #endif

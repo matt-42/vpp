@@ -1,5 +1,5 @@
 #include <iostream>
-#include <vpp/image3d.hh>
+#include <vpp/vpp.hh>
 
 int main()
 {

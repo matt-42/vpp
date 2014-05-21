@@ -1,6 +1,6 @@
 #include <iostream>
-#include <vpp/imageNd.hh>
-#include <vpp/opencv_bridge.hh>
+#include <vpp/vpp.hh>
+#include <vpp/utils/opencv_bridge.hh>
 
 int main()
 {

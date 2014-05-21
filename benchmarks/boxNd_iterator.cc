@@ -1,6 +1,5 @@
 #include <iostream>
-#include <vpp/boxNd.hh>
-#include <vpp/image2d.hh>
+#include <vpp/vpp.hh>
 
 #include "get_time.hh"
 

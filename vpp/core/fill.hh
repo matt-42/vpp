@@ -1,9 +1,9 @@
 #ifndef VPP_FILL_HH__
 # define VPP_FILL_HH__
 
-# include <vpp/boxNd.hh>
-# include <vpp/vector.hh>
-# include <vpp/parallel_for.hh>
+# include <vpp/core/boxNd.hh>
+# include <vpp/core/vector.hh>
+# include <vpp/core/parallel_for.hh>
 
 namespace vpp
 {

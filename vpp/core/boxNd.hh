@@ -1,8 +1,8 @@
 #ifndef VPP_Boxnd_HH__
 # define VPP_Boxnd_HH__
 
-# include <vpp/vector.hh>
-# include <vpp/boxNd_iterator.hh>
+# include <vpp/core/vector.hh>
+# include <vpp/core/boxNd_iterator.hh>
 
 namespace vpp
 {

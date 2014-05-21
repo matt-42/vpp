@@ -11,3 +11,7 @@ include_directories(/usr/include/eigen3)
 
 add_executable(box_filter box_filter.cc)
 target_link_libraries(box_filter ${OpenCV_LIBS} gomp)
+
+
+add_executable(fast_detector fast_detector.cc)
+target_link_libraries(fast_detector ${OpenCV_LIBS} gomp)

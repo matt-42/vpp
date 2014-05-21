@@ -2,20 +2,20 @@
 # define VPP_VPP_HH_
 
 
-# include <vpp/imageNd.hh>
-# include <vpp/image2d.hh>
-# include <vpp/image3d.hh>
+# include <vpp/core/imageNd.hh>
+# include <vpp/core/image2d.hh>
+# include <vpp/core/image3d.hh>
 
-# include <vpp/imageNd_iterator.hh>
-# include <vpp/boxNd_iterator.hh>
+# include <vpp/core/imageNd_iterator.hh>
+# include <vpp/core/boxNd_iterator.hh>
 
-# include <vpp/vector.hh>
-# include <vpp/neighborhood.hh>
-# include <vpp/boxNd.hh>
-# include <vpp/window.hh>
-# include <vpp/box_nbh2d.hh>
-# include <vpp/parallel_for.hh>
+# include <vpp/core/vector.hh>
+# include <vpp/core/neighborhood.hh>
+# include <vpp/core/boxNd.hh>
+# include <vpp/core/window.hh>
+# include <vpp/core/box_nbh2d.hh>
+# include <vpp/core/parallel_for.hh>
 
-# include <vpp/fill.hh>
+# include <vpp/core/fill.hh>
 
 #endif
