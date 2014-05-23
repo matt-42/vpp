@@ -6,7 +6,7 @@
 #include <vpp/vpp.hh>
 #include <vpp/utils/opencv_bridge.hh>
 #include <vpp/algorithms/FAST_detector/FAST.hh>
-#include <vpp/algorithms/FAST_detector/FAST2.HH>
+#include <vpp/algorithms/FAST_detector/FAST2.hh>
 
 #include "get_time.hh"
 

@@ -36,7 +36,7 @@ namespace vpp
       int nr = A.nrows();
       int pitch = A.pitch();
 
-#pragma omp parallel for// schedule(dynamic)
+#pragma omp parallel for
       for (int r = 0; r < nr; r++)
       {
         V* a_row = &A(r, 0);
@@ -55,70 +55,36 @@ namespace vpp
 #pragma omp simd aligned(a_row1, a_row2, a_row3, a_row4, a_row5, a_row6, a_row7, b_row:4 * sizeof(int))
         for (int c = 0; c < nc; c++)
         {
-          {
-            V v = a_row4[c];
+          V v = a_row4[c];
 
-            auto f = [&] (V a) -> int { return (a > v + th) ? 2 : (a < v - th); };
+          auto f = [&] (V a) -> int { return (a > v + th) ? 2 : (a < v - th); };
 
-            uint x  =
-              f(a_row1[c - 1]) +
-              (f(a_row1[c]) << 2) +
-              (f(a_row1[c + 1]) << 4) +
+          uint x  =
+            f(a_row1[c - 1]) +
+            (f(a_row1[c]) << 2) +
+            (f(a_row1[c + 1]) << 4) +
 
-              (f(a_row2[c + 2]) << 6) +
+            (f(a_row2[c + 2]) << 6) +
 
-              (f(a_row3[c + 3]) << 8) +
-              (f(a_row4[c + 3]) << 10) +
-              (f(a_row5[c + 3]) << 12) +
+            (f(a_row3[c + 3]) << 8) +
+            (f(a_row4[c + 3]) << 10) +
+            (f(a_row5[c + 3]) << 12) +
 
-              (f(a_row6[c + 2]) << 14) +
+            (f(a_row6[c + 2]) << 14) +
 
-              (f(a_row7[c + 1]) << 16) +
-              (f(a_row7[c]) << 18) +
-              (f(a_row7[c - 1]) << 20) +
+            (f(a_row7[c + 1]) << 16) +
+            (f(a_row7[c]) << 18) +
+            (f(a_row7[c - 1]) << 20) +
 
-              (f(a_row6[c - 2]) << 22) +
+            (f(a_row6[c - 2]) << 22) +
 
-              (f(a_row5[c - 3]) << 24) +
-              (f(a_row4[c - 3]) << 26) +
-              (f(a_row3[c - 3]) << 28) +
+            (f(a_row5[c - 3]) << 24) +
+            (f(a_row4[c - 3]) << 26) +
+            (f(a_row3[c - 3]) << 28) +
 
-              (f(a_row2[c - 2]) << 30);
+            (f(a_row2[c - 2]) << 30);
 
-            b_row[c] = fast9_check_code(x);
-          }
-          // {
-          //   V v = a_row5[c];
-
-          //   auto f = [&] (V a) -> int { return (a > v + th) ? 2 : (a < v - th); };
-
-          //   uint x  =
-          //     f(a_row2[c - 1]) +
-          //     (f(a_row2[c]) << 2) +
-          //     (f(a_row2[c + 1]) << 4) +
-
-          //     (f(a_row3[c + 2]) << 6) +
-
-          //     (f(a_row4[c + 3]) << 8) +
-          //     (f(a_row5[c + 3]) << 10) +
-          //     (f(a_row6[c + 3]) << 12) +
-
-          //     (f(a_row7[c + 2]) << 14) +
-
-          //     (f(a_row8[c + 1]) << 16) +
-          //     (f(a_row8[c]) << 18) +
-          //     (f(a_row8[c - 1]) << 20) +
-
-          //     (f(a_row7[c - 2]) << 22) +
-
-          //     (f(a_row6[c - 3]) << 24) +
-          //     (f(a_row5[c - 3]) << 26) +
-          //     (f(a_row4[c - 3]) << 28) +
-
-          //     (f(a_row3[c - 2]) << 30);
-
-          //   b_row2[c] = fast9_check_code(x);
-          // }
+          b_row[c] = fast9_check_code(x);
         }
       }
     }
