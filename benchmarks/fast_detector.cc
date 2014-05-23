@@ -6,6 +6,7 @@
 #include <vpp/vpp.hh>
 #include <vpp/utils/opencv_bridge.hh>
 #include <vpp/algorithms/FAST_detector/FAST.hh>
+#include <vpp/algorithms/FAST_detector/FAST2.HH>
 
 #include "get_time.hh"
 
@@ -27,17 +28,34 @@ int main(int argc, char* argv[])
 
   image2d<unsigned char> Agl(A.domain(), 3);
   image2d<unsigned char> Bgl(A.domain());
+  image2d<int> tmp(A.domain());
 
   pixel_wise(Agl, A) << [] (unsigned char& gl, vuchar3& c)
   {
     gl = (c[0] + c[1] + c[2]) / 3;
   };
 
+  int th = atoi(argv[2]);
   auto time = get_time_in_seconds();
+  std::vector<vint2> keypoints_vpp;
   for (unsigned i = 0; i < K; i++)
-    fast_detector<9>(Agl, Bgl, atoi(argv[2]));
+  {
+    keypoints_vpp.clear();
+    fast_detector9(Agl, tmp, th);
+    keypoints_to_vector(tmp, keypoints_vpp);
+  }
+  //fast_detector<9>(Agl, Bgl, th);
   double vpp_ms_per_iter = 1000 * (get_time_in_seconds() - time) / K;
 
+  int vpp_n_keypoints = 0;
+  // for (int r = 0; r < Bgl.nrows(); r++)
+  // for (int c = 0; c < Bgl.ncols(); c++)
+  //   vpp_n_keypoints += Bgl(r, c);
+
+  pixel_wise(tmp) < [&] (auto& b)
+  {
+    vpp_n_keypoints += b;
+  };
 
   // Opencv: void FAST(InputArray _img, std::vector<KeyPoint>& keypoints, int threshold, bool nonmax_suppression)
   time = get_time_in_seconds();
@@ -47,9 +65,16 @@ int main(int argc, char* argv[])
   for (unsigned i = 0; i < K; i++)
   {
     keypoints.clear();
-    FAST(cv_Agl, keypoints, 10, false);
+    FAST(cv_Agl, keypoints, th, false);
   }
+
+  std::cout << keypoints.size() << std::endl;
+
   double opencv_ms_per_iter = 1000 * (get_time_in_seconds() - time) / K;
+
+  std::cout << "vpp: " << vpp_n_keypoints << " keypoints" << std::endl;
+  std::cout << "vpp: " << keypoints_vpp.size() << " keypoints" << std::endl;
+  std::cout << "openmp: " << keypoints.size() << " keypoints" << std::endl;
 
   std::cout << "Time per iterations: " << std::endl
             << "OpenCV: " << opencv_ms_per_iter << "ms" << std::endl
@@ -60,6 +85,27 @@ int main(int argc, char* argv[])
     gl = gl * 255;
   };
 
+  image2d<vuchar3> out(A.domain());
+  pixel_wise(out, Bgl, A) << [] (vuchar3& o, unsigned char& k, vuchar3& in)
+  {
+    if (!k)
+      o = in;
+    else
+      o = vuchar3(0,0, 255);
+  };
+
+  for (int i = 0; i < keypoints.size(); i++)
+  {
+    //std::cout << "dupp"<< std::endl;
+    //Point pt = 
+    if (out(keypoints[i].pt.y, keypoints[i].pt.x) == vuchar3(0,0,255))
+      A(keypoints[i].pt.y, keypoints[i].pt.x) = vuchar3(0,255,0);
+    else
+      A(keypoints[i].pt.y, keypoints[i].pt.x) = vuchar3(0,0, 255);
+  }
+
   cv::imwrite("b.pgm", to_opencv(Bgl));
+  cv::imwrite("out.ppm", to_opencv(out));
+  cv::imwrite("A.ppm", to_opencv(A));
 
 }
