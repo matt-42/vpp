@@ -1,315 +1,299 @@
-#ifndef VPP_FAST_DETECTOR_HH_
-# define VPP_FAST_DETECTOR_HH_
+#ifndef VPP_FAST3_DETECTOR_HH_
+# define VPP_FAST3_DETECTOR_HH_
 
+# include <thread>
 # include <vpp/vpp.hh>
 
 namespace vpp
 {
-  struct fast_windows
+
+  namespace FAST_internals
   {
-    template <typename I>
-    static window<I> circle(const I& img)
+    inline bool fast9_check_code(uint code32)
     {
-      return make_window(img, {
-          { -3,-1}, {-3, 0}, {-3, 1}, {-2, 2}, { -1, 3},
-          { 0, 3}, { 1, 3}, { 2, 2}, {  3, 1},
-          { 3, 0}, { 3,-1}, { 2,-2}, {  1,-3},
-          { 0,-3}, {-1,-3}, {-2,-2}
-        });
+      uint64_t code48 = code32;
+      code48 |= code48 << 32;
+      code48 &= code48 << 2;
+      code48 &= code48 << 2;
+      code48 &= code48 << 2;
+      code48 &= code48 << 2;
+      code48 &= code48 << 2;
+      code48 &= code48 << 2;
+      code48 &= code48 << 2;
+      return (code48 & (code48 << 2));
     }
 
-    template <typename I>
-    static window<I> circle4(const I& img)
+    inline bool fast9_check_code_4(uint8_t code8)
     {
-      return make_window(img, {
-          {-3, 0},
-          { 0, 3},
-          { 3, 0},
-          { 0,-3}
-        });
+      uint16_t code16 = code8;
+      code16 |= code16 << 8;
+      return (code16 & (code16 << 2));
     }
 
-  };
+    template <typename V>
+    V* shift_row(V* p, int diff)
+    {
+      return (V*)(((char*)p) + diff);
+    }
 
-#pragma omp declare simd
-  template <typename V, typename W>
-  inline void fast_saliency(V& a, V& b, const W& circle4, int th)
-  {
-      int i = 0;
-      typedef decltype(a - b) T;
-      // Fast test on circle4
-      i = 0;
-      char values[16];
-      int n_inf = 0;
-      int n_sup = 0;
-      circle4(a) < [&] (V& n)
-      {
-        if (n < a - th) n_inf++;
-        if (n > a + th) n_sup++;
+    template <typename V>
+    inline
+    int fast_score(V* row1,
+                   V* row2,
+                   V* row3,
+                   V* row4,
+                   V* row5,
+                   V* row6,
+                   V* row7,
+                   int c,
+                   int th)
+    {
+      V v = row4[c];
+      int sum_inf = 0;
+      int sum_sup = 0;
+
+      auto f = [&] (V a) -> int {
+        int diff = v - a;
+        if (diff < -th) sum_inf -= diff;
+        else if (diff > th) sum_sup += diff;
       };
-      if (n_inf < 3 && n_sup < 3) { b = 0; return; }
+
+      f(row1[c - 1]);
+      f(row1[c]);
+      f(row1[c + 1]);
+
+      f(row2[c + 2]);
+
+      f(row3[c + 3]);
+      f(row4[c + 3]);
+      f(row5[c + 3]);
+
+      f(row6[c + 2]);
+
+      f(row7[c + 1]);
+      f(row7[c]);
+      f(row7[c - 1]);
+
+      f(row6[c - 2]);
+
+      f(row5[c - 3]);
+      f(row4[c - 3]);
+      f(row3[c - 3]);
+
+      f(row2[c - 2]);
+
+      return std::max(sum_sup, sum_inf);
+    }
+
+    template <int fullcheck, typename V, typename U>
+    void fast_detector9(image2d<V>& A, image2d<U>& B, int th, bool with_scores = false)
+    {
+      int nc = A.ncols();
+      int nr = A.nrows();
+      int pitch = A.pitch();
+
+#pragma omp parallel for
+      for (int r = 0; r < nr; r++)
+      {
+        V* a_row = &A(r, 0);
+        V* a_row1 = shift_row(a_row, -3*pitch);
+        V* a_row2 = shift_row(a_row, -2*pitch);
+        V* a_row3 = shift_row(a_row, -1*pitch);
+        V* a_row4 = a_row;
+        V* a_row5 = shift_row(a_row, 1*pitch);
+        V* a_row6 = shift_row(a_row, 2*pitch);
+        V* a_row7 = shift_row(a_row, 3*pitch);
+
+        auto* b_row = &B(r, 0);
+
+        #pragma omp simd aligned(a_row1, a_row2, a_row3, a_row4, a_row5, a_row6, a_row7, b_row:16 * sizeof(int))
+        for (int c = 0; c < nc; c++) if (b_row[c] || fullcheck)
+        {
+          V v = a_row4[c];
+
+          auto f = [&] (V a) -> int { return ((a > v + th) << 1) + (a < v - th); };
+
+          uint x  =
+            f(a_row1[c - 1]) +
+            (f(a_row1[c]) << 2) +
+            (f(a_row1[c + 1]) << 4) +
+
+            (f(a_row2[c + 2]) << 6) +
+
+            (f(a_row3[c + 3]) << 8) +
+            (f(a_row4[c + 3]) << 10) +
+            (f(a_row5[c + 3]) << 12) +
+
+            (f(a_row6[c + 2]) << 14) +
+
+            (f(a_row7[c + 1]) << 16) +
+            (f(a_row7[c]) << 18) +
+            (f(a_row7[c - 1]) << 20) +
+
+            (f(a_row6[c - 2]) << 22) +
+
+            (f(a_row5[c - 3]) << 24) +
+            (f(a_row4[c - 3]) << 26) +
+            (f(a_row3[c - 3]) << 28) +
+
+            (f(a_row2[c - 2]) << 30);
+          b_row[c] = fast9_check_code(x);
+        }
+      }
+    }
+
+
+    template <typename V, typename U>
+    void fast_detector9_scores(image2d<V>& A, image2d<U>& B, int th)
+    {
+      int nc = A.ncols();
+      int nr = A.nrows();
+      int pitch = A.pitch();
+
+#pragma omp parallel for
+      for (int r = 0; r < nr; r++)
+      {
+        V* a_row = &A(r, 0);
+        V* a_row1 = shift_row(a_row, -3*pitch);
+        V* a_row2 = shift_row(a_row, -2*pitch);
+        V* a_row3 = shift_row(a_row, -1*pitch);
+        V* a_row4 = a_row;
+        V* a_row5 = shift_row(a_row, 1*pitch);
+        V* a_row6 = shift_row(a_row, 2*pitch);
+        V* a_row7 = shift_row(a_row, 3*pitch);
+
+        auto* b_row = &B(r, 0);
+
+        #pragma omp simd aligned(a_row1, a_row2, a_row3, a_row4, a_row5, a_row6, a_row7, b_row:16 * sizeof(int))
+        for (int c = 0; c < nc; c++) if (b_row[c])
+        {
+          b_row[c] = fast_score(a_row1,
+                                a_row2,
+                                a_row3,
+                                a_row4,
+                                a_row5,
+                                a_row6,
+                                a_row7,
+                                c, th);
+        }
+      }
+    }
+
+    template <typename V, typename U>
+    void fast_detector9_check4(image2d<V>& A, image2d<U>& B, int th)
+    {
+      int nc = A.ncols();
+      int nr = A.nrows();
+      int pitch = A.pitch();
+
+#pragma omp parallel for
+      for (int r = 0; r < nr; r++)
+      {
+        V* a_row = &A(r, 0);
+        V* a_row1 = shift_row(a_row, -3*pitch);
+        V* a_row4 = a_row;
+        V* a_row7 = shift_row(a_row, 3*pitch);
+
+        auto* b_row = &B(r, 0);
+
+#pragma omp simd aligned(a_row1, a_row4, a_row7, b_row:16 * sizeof(int))
+        for (int c = 0; c < nc; c++)
+        {
+          V v = a_row4[c];
+
+          auto f = [&] (V a) -> int { return ((a > v + th) << 1) | (a < v - th); };
+
+          uint8_t x  =
+            (f(a_row1[c])) |
+            (f(a_row4[c - 3]) << 2) |
+            (f(a_row7[c]) << 4) |
+            (f(a_row4[c + 3]) << 6);
+
+          b_row[c] = fast9_check_code_4(x);
+        }
+      }
+    }
+
+    template <typename V>
+    void fast_detector9_local_maxima(image2d<V>& A)
+    {
+      int nc = A.ncols();
+      int nr = A.nrows();
+      int pitch = A.pitch();
+
+#pragma omp parallel for
+      for (int r = 0; r < nr; r++)
+      {
+        V* a_row = &A(r, 0);
+        V* a_row1 = shift_row(a_row, -1*pitch);
+        V* a_row2 = a_row;
+        V* a_row3 = shift_row(a_row, 1*pitch);
+
+        #pragma omp simd aligned(a_row1, a_row2, a_row3:16 * sizeof(int))
+        for (int c = 0; c < nc; c++)
+          if (a_row2[c])
+          {
+            V max = 0;
+            max = std::max(max, a_row1[c-1]);
+            max = std::max(max, a_row1[c]);
+            max = std::max(max, a_row1[c+1]);
+
+            max = std::max(max, a_row2[c-1]);
+            max = std::max(max, a_row2[c+1]);
+
+            max = std::max(max, a_row3[c-1]);
+            max = std::max(max, a_row3[c]);
+            max = std::max(max, a_row3[c+1]);
+
+            if (a_row2[c] < max)
+              a_row2[c] = 0;
+          }
+      }
+    }
+
 
   }
 
-  template <unsigned N, typename V, typename U>
-  std::enable_if_t<N == 9, void>
-  fast_detector(image2d<V>& in, image2d<V>& out, U th)
+  template <typename V>
+  void fast_detector9(image2d<V>& A, image2d<int>& keypoints, int th, bool local_maxima = false,
+                      bool low_density = false)
   {
-    const auto circle = fast_windows::circle(in);
-    const auto circle4 = fast_windows::circle4(in);
-
-    int nr = in.nrows();
-    int nc = in.ncols();
-
-    // First pass. Fast test.
-// #pragma omp parallel for
-//     for (int r = 0; r < nr; r++)
-//     {
-//       V* lprev = &in(r - 2, 0);
-//       V* l = &in(r, 0);
-//       V* lnext = &in(r + 2, 0);
-//       V* out_row = &out(r, 0);
-
-// #pragma omp simd aligned(l, lprev, lnext, out_row : sizeof(int) * 8)
-//       for (int c = 0; c < nc; c++)
-//       {
-//         V a = l[c];
-//         V v1 = lprev[c - 2];
-//         V v2 = lnext[c + 2];
-//         V v3 = lprev[c + 2];
-//         V v4 = lnext[c - 2];
-
-//         V as = a + th;
-//         V ai = a - th;
-
-//         int n_inf = (v1 < ai) +
-//           (v2 < ai) +
-//           (v3 < ai) +
-//           (v4 < ai);
-
-//         int n_sup = (v1 > as) +
-//           (v2 > as) +
-//           (v3 > as) +
-//           (v4 > as);
-//         out_row[c] = n_inf >= 3 || n_sup >= 3;
-//       }
-
-//     }
-
-
-//#pragma omp parallel for
-    for (int r = 0; r < nr; r++)
+    if (low_density)
     {
-      V* lprev = &in(r - 3, 0);
-      V* l = &in(r, 0);
-      V* lnext = &in(r + 3, 0);
-      V* out_row = &out(r, 0);
+      FAST_internals::fast_detector9_check4(A, keypoints, th);
+      FAST_internals::fast_detector9<false>(A, keypoints, th, local_maxima);
+    }
+    else
+      FAST_internals::fast_detector9<true>(A, keypoints, th);
 
-#pragma omp simd aligned(l, lprev, lnext, out_row : sizeof(int) * 8)
-      for (int c = 0; c < nc; c++)
-      {
-        V a = l[c];
-        V v1 = l[c - 3];
-        V v2 = l[c + 3];
-        V v3 = lprev[c];
-        V v4 = lnext[c];
-
-        V as = a + th;
-        V ai = a - th;
-
-        int n_inf = (v1 < ai) +
-          (v2 < ai) +
-          (v3 < ai) +
-          (v4 < ai);
-
-        int n_sup = (v1 > as) +
-          (v2 > as) +
-          (v3 > as) +
-          (v4 > as);
-        //out_row[c] = out_row[c] && (n_inf >= 3 || n_sup >= 3);
-        out_row[c] = (n_inf >= 3 || n_sup >= 3);
-      }
-
+    if (local_maxima)
+    {
+      FAST_internals::fast_detector9_scores(A, keypoints, th);
+      FAST_internals::fast_detector9_local_maxima(keypoints);
     }
 
-    pixel_wise(in, out)//.step(1)
-      << [&] (V& a, V& b)
+  }
+
+  inline void make_keypoint_vector(image2d<int>& img, std::vector<vint2>& keypoints)
+  {
+    int n_threads = omp_get_num_threads();
+    int nc = img.ncols();
+    int nr = img.nrows();
+#pragma omp parallel
     {
-      if (!b)
-        // fast_saliency(a, b, circle4, th);
-        return;
-
-      int i = 0;
-      int values[16];
-      typedef decltype(a - b) T;
-
-      // Test on the whole 16pixels circle.
-      i = 0;
-      circle(a) < [&] (V& n)
+      std::vector<vint2> local;
+#pragma omp for
+      for (int r = 0; r < nr; r++)
       {
-        values[i] = n < a - th ? -1 : (n > a + th);
-        ++i;
-      };
-
-      // Count the max number of consecutive -1 or 1;
-      int n = 0;
-      int max_n = 0;
-      int cur = 0;
-      for (i = 0; i < 16; i++)
-      {
-        if (values[i] == cur) n++;
-        else if (values[i])
-        {
-          cur = values[i];
-          max_n = std::max(n, max_n);
-          n = 0;
-        }
+        auto* row = &img(r, 0);
+        for (int c = 0; c < nc; c++)
+          if (row[c])
+            local.push_back(vint2(r, c));
       }
-      i = 0;
-      if (n != 16 and cur == values[0])
-        while (values[i] == cur) i++;
-
-      n += i;
-      max_n = std::max(n, max_n);
-
-      b = max_n >= 9;
-    };
-
-
+#pragma omp critical
+        keypoints.insert(keypoints.end(), local.begin(), local.end());
+    }
   }
 }
 
-// SLOW
-// #pragma omp parallel for
-//     for (int r = 0; r < nr; r++)
-//     {
-//       V* lm3 = &in(r - 3, 0);
-//       V* lm2 = &in(r - 2, 0);
-//       V* lm1 = &in(r - 1, 0);
-//       V* l = &in(r, 0);
-//       V* lp1 = &in(r + 1, 0);
-//       V* lp2 = &in(r + 2, 0);
-//       V* lp3 = &in(r + 3, 0);
-
-//       V* out_row = &out(r, 0);
-
-//       #pragma omp simd// aligned(l, lprev, lnext, out_row : sizeof(int) * 8)
-//       for (int c = 0; c < nc; c++) if (out_row[c])
-//       {
-//         V vs[16];
-//         V a = l[c];
-//         V as = a + th;
-//         V ai = a - th;
-
-//         auto f = [=] (V x) { return x < ai ? -1 : (x > as); };
-//         vs[0] = f(lm3[c-1]);
-//         vs[1] = f(lm3[c]);
-//         vs[2] = f(lm3[c+1]);
-
-//         vs[3] = f(lm2[c+2]);
-
-//         vs[4] = f(lm1[c+3]);
-//         vs[5] = f(l[c+3]);
-//         vs[6] = f(lp1[c+3]);
-
-//         vs[7] = f(lp2[c+2]);
-
-//         vs[8] = f(lp3[c+1]);
-//         vs[9] = f(lp3[c]);
-//         vs[10] = f(lp3[c-1]);
-
-//         vs[11] = f(lp2[c-2]);
-
-//         vs[12] = f(lp1[c-3]);
-//         vs[13] = f(l[c-3]);
-//         vs[14] = f(lm1[c-3]);
-
-//         vs[15] = f(lm2[c-2]);
-
-//         // for (int i = 0; i < 16; i++)
-//         //   vs[i] = vs[i] < a - th ? -1 : (vs[i] > a + th);
-//         // Count the max number of consecutive -1 or 1;
-//         int n = 0;
-//         int max_n = 0;
-//         int cur = 0;
-//         int i;
-//         for (i = 0; i < 16; i++)
-//         {
-//       if (vs[i] == cur) n++;
-//       else if (vs[i])
-//       {
-//       cur = vs[i];
-//       max_n = std::max(n, max_n);
-//       n = 0;
-//     }
-//     }
-//         i = 0;
-//         if (N != 16 and cur == vs[0])
-//           while (vs[i] == cur) i++;
-
-//         n += i;
-//         max_n = std::max(n, max_n);
-
-//         out_row[c] = max_n >= 9;
-//       }
-
-//     }
-
-// Old iteration.
-// pixel_wise(in, out)//.step(1)
-//   << [&] (V& a, V& b)
-// {
-//   if (!b)
-//   // fast_saliency(a, b, circle4, th);
-//   return;
-
-//   int i = 0;
-//   int values[16];
-//   typedef decltype(a - b) T;
-//   // Fast test on circle4
-//   // i = 0;
-//   // int n_inf = 0;
-//   // int n_sup = 0;
-//   // circle4(a) < [&] (V& n)
-//   // {
-//   //   if (n < a - th) n_inf++;
-//   //   if (n > a + th) n_sup++;
-//   // };
-//   // if (n_inf < 3 && n_sup < 3) { b = 0; return; }
-
-//   // return;
-//   // Test on the whole 16pixels circle.
-//   i = 0;
-//   circle4(a) < [&] (V& n)
-//   {
-//     values[i] = n < a - th ? -1 : (n > a + th);
-//     ++i;
-//   };
-
-//   // Count the max number of consecutive -1 or 1;
-//   int n = 0;
-//   int max_n = 0;
-//   int cur = 0;
-//   for (i = 0; i < 16; i++)
-//   {
-//     if (values[i] == cur) n++;
-//     else if (values[i])
-//     {
-//       cur = values[i];
-//       max_n = std::max(n, max_n);
-//       n = 0;
-//     }
-//   }
-//   i = 0;
-//   if (N != 16 and cur == values[0])
-//     while (values[i] == cur) i++;
-
-//   n += i;
-//   max_n = std::max(n, max_n);
-
-//   b = max_n >= 9;
-// };
-
 #endif
-
-
