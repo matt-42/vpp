@@ -150,15 +150,30 @@ namespace vpp
 
   inline void keypoints_to_vector(image2d<int>& img, std::vector<vint2>& keypoints)
   {
-    pixel_wise(img, img.domain()) < [&] (auto& is_kp, auto& coord)
+    int n_threads = omp_get_num_threads();
+    int nc = img.ncols();
+    int nr = img.nrows();
+#pragma omp parallel
     {
-      //std::cout << std::this_thread::get_id() << std::endl;
-      //#pragma omp critical
+      std::vector<vint2> local;
+
+#pragma omp for
+      for (int r = 0; r < nr; r++)
       {
-        if (is_kp) keypoints.push_back(coord);
+        auto* row = &img(r, 0);
+        for (int c = 0; c < nc; c++)
+          if (row[c])
+            local.push_back(vint2(r, c));
       }
-    };
+
+
+#pragma omp critical
+        keypoints.insert(keypoints.end(), local.begin(), local.end());
+    }
   }
 }
 
 #endif
+
+
+
