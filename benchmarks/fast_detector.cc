@@ -77,8 +77,7 @@ int main(int argc, char* argv[])
   image2d<vuchar3> opencv_out = clone(A);
   pixel_wise(vpp_out, tmp, A) << [] (vuchar3& o, int& k, vuchar3& in)
   {
-    if (!k)
-      o = k ? in : vuchar3(0,0, 255);
+    o = k ? vuchar3(0,0, 255) : in;
   };
 
   for (int i = 0; i < keypoints.size(); i++)
