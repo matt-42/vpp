@@ -11,6 +11,7 @@ namespace vpp
   {
     inline bool fast9_check_code(uint code32)
     {
+      // Thanks Arkanosis (https://github.com/Arkanosis) for this hack.
       uint64_t code48 = code32;
       code48 |= code48 << 32;
       code48 &= code48 << 2;
