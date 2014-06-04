@@ -4,7 +4,6 @@
 # include <vpp/core/imageNd.hh>
 # include <vpp/core/boxNd.hh>
 # include <vpp/core/copy.hh>
-# include <vpp/core/cast_to_float.hh>
 
 namespace vpp
 {
@@ -195,7 +194,7 @@ namespace vpp
 
   template <typename V, unsigned N>
   cast_to_float<V>
-  imageNd<V, N>::linear_interpolate(const vfloat<N>& p)
+  imageNd<V, N>::linear_interpolate(const vfloat<N>& p) const
   {
     static_assert(N == 2, "linear_interpolate only supports 2d images.");
     assert(ptr_->border_ >= 1);
@@ -206,7 +205,7 @@ namespace vpp
     float a1 = p[1] - x[1];
 
     const V* l1 = address_of(x);
-    const V* l2 = (const char*)l1 + pitch_;
+    const V* l2 = (const char*)l1 + ptr_->pitch_;
 
     return cast_to_float<V>((1 - a0) * (1 - a1) *  l1[0] +
                             a0 * (1 - a1) *  l2[0] +

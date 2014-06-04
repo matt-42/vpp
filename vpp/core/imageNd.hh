@@ -4,6 +4,7 @@
 # include <memory>
 # include <vpp/core/boxNd.hh>
 # include <vpp/core/imageNd_iterator.hh>
+# include <vpp/core/cast_to_float.hh>
 
 namespace vpp
 {
@@ -79,6 +80,8 @@ namespace vpp
     // Access to values.
     inline V& operator()(const vint<N>& p);
     inline const V& operator()(const vint<N>& p) const;
+
+    inline cast_to_float<V> linear_interpolate(const vfloat<N>& p) const;
 
     template <typename... Tail>
     inline const V& operator()(int c, Tail... cs) const
