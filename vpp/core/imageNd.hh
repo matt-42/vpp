@@ -100,8 +100,6 @@ namespace vpp
 
     inline int offset_of(const vint<N>& p) const;
 
-    // inline int coords_to_index(const vint<N>& p) const;
-
     inline int coords_to_offset(const vint<N>& p) const;
 
     inline bool has(coord_type& p) const { return ptr_->domain_.has(p); }

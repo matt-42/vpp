@@ -4,6 +4,7 @@
 # include <vpp/core/imageNd.hh>
 # include <vpp/core/boxNd.hh>
 # include <vpp/core/copy.hh>
+# include <vpp/core/cast_to_float.hh>
 
 namespace vpp
 {
@@ -159,19 +160,6 @@ namespace vpp
 
   }
 
-  // template <typename V, unsigned N>
-  // int imageNd<V, N>::coords_to_index(const vint<N>& p) const
-  // {
-  //   int idx = p[N-1];
-  //   int ds = 1;
-  //   for (int i = N - 2; i >= 0; i--)
-  //   {
-  //     ds *= ptr_->domain_.size(i + 1);
-  //     idx += ds * p[i];
-  //   }
-  //   return idx;
-  // }
-
   template <typename V, unsigned N>
   int imageNd<V, N>::coords_to_offset(const vint<N>& p) const
   {
@@ -205,6 +193,26 @@ namespace vpp
     return *addr;
   }
 
+  template <typename V, unsigned N>
+  cast_to_float<V>
+  imageNd<V, N>::linear_interpolate(const vfloat<N>& p)
+  {
+    static_assert(N == 2, "linear_interpolate only supports 2d images.");
+    assert(ptr_->border_ >= 1);
+
+    cast_to_float<V> res;
+    vint2 x = p;
+    float a0 = p[0] - x[0];
+    float a1 = p[1] - x[1];
+
+    const V* l1 = address_of(x);
+    const V* l2 = (const char*)l1 + pitch_;
+
+    return cast_to_float<V>((1 - a0) * (1 - a1) *  l1[0] +
+                            a0 * (1 - a1) *  l2[0] +
+                            (1 - a0) * a1 *  l1[1] +
+                            a0 * a1 *  l2[1]);
+  }
 
   template <typename V, unsigned N>
   V*
