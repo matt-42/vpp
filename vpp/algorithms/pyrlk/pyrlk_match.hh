@@ -1,4 +1,7 @@
+#ifndef VPP_ALGORITHMS_PYRLK_HH_
+# define VPP_ALGORITHMS_PYRLK_HH_
 
+# include <vpp/core/pyramid.hh>
 
 namespace vpp
 {
@@ -37,3 +40,5 @@ namespace vpp
     }
   }
 }
+
+#endif
