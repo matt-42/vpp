@@ -3,12 +3,9 @@
 
 int main()
 {
-  using vpp::boxNd_iterator;
-  using vpp::image2d;
-  using vpp::vint2;
+  using namespace vpp;
 
-
-  image2d<int> img(3, 3);
+  image2d<int> img(3, 3, border(1));
 
   vint2 ref[] = {
     vint2(0, 0),
@@ -26,9 +23,7 @@ int main()
   for (auto& p : img)
   {
     std::cout << long(&p -  &img(0,0)) << " " << (&img(ref[i]) - &img(0,0)) << std::endl;
-    //std::cout << &p << std::endl;
     assert(&p == &img(ref[i]));
-
     i++;
   }
 }
