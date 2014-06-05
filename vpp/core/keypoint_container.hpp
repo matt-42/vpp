@@ -58,21 +58,21 @@ namespace vpp
     fill(index2d_, -1);
   }
 
-  template <typename P, typename F>
-  template <typename T, typename D>
-  void
-  keypoint_container<P, F>::sync_attributes(T& container,
-                                      typename T::value_type new_value,
-                                      D die_fun) const
-  {
-  }
+  // template <typename P, typename F>
+  // template <typename T, typename D>
+  // void
+  // keypoint_container<P, F>::sync_attributes(T& container,
+  //                                     typename T::value_type new_value,
+  //                                     D die_fun) const
+  // {
+  // }
 
   template <typename P, typename F>
   void
   keypoint_container<P, F>::add(const keypoint_type& p,
                                 const feature_type& f)
   {
-    sparse_buffer_(p.position) = particles_vec_.size();
+    sparse_buffer_(p.position) = keypoint_vector_.size();
     keypoint_vector_.push_back(p);
     feature_vector_.push_back(f);
   }
@@ -87,10 +87,10 @@ namespace vpp
 
   template <typename P, typename F>
   void
-  keypoint_container<P, F>::remove(vint2 pos)
+  keypoint_container<P, F>::remove(vint2 position)
   {
-    assert(has(pos));
-    remove(index2d_(p));
+    assert(has(position));
+    remove(index2d_(position));
   }
 
   template <typename P, typename F>
@@ -99,8 +99,6 @@ namespace vpp
   {
     assert(i < size());
     assert(i >= 0);
-
-    keypoint_type p = particles_vec_[i];
 
     keypoint_vector_[i] = p;
     feature_vector_[i] = f;
@@ -126,7 +124,7 @@ namespace vpp
   int
   keypoint_container<P, F>::size() const
   {
-    return particles_vec_.size();
+    return keypoint_vector_.size();
   }
 
 }
