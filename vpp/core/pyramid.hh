@@ -1,6 +1,8 @@
 #ifndef VPP_PYRAMID_HH__
 # define VPP_PYRAMID_HH__
 
+# include <vpp/core/image2d.hh>
+# include <vpp/core/box_nbh2d.hh>
 
 namespace vpp
 {
@@ -8,13 +10,22 @@ namespace vpp
   template <typename V>
   void subsample2(const image2d<V>& in, image2d<V>& out)
   {
-    typedef decltype(V() + V()) sum_type;
-    auto nbh = box_nbh<V, 2, 2>(in);
-    pixel_wise(in, out) << [&] (V& a, V& b)
+    auto nbh = const_box_nbh2d<V, 2, 2>(in);
+
+    int nr = out.nrows();
+    int nc = out.ncols();
+
+#pragma omp parallel for
+    for (int r = 0; r < nr; r++)
     {
-      sum_type sum = zero<sum_type>();
-      nbh(a) << [&] (V& n) { sum += n; };
-      b = sum / 4;
+      V* out_row = &out(r, 0);
+      const V* row1 = &in(r * 2, 0);
+      const V* row2 = &in(r * 2 + 1, 0);
+      #pragma omp simd
+      for (int c = 0; c < nc; c++)
+      {
+        out_row[c][0] = (row1[c * 2][0] + row1[c * 2 + 1][0] + row2[c * 2][0] + row2[c * 2 + 1][0]) / 4;
+      }
     }
   }
 
@@ -31,12 +42,12 @@ namespace vpp
     {
       for (int i = 0; i < nlevels; i++)
       {
-        levels[i] = imageNd<V, N>(d);
+        levels_[i] = imageNd<V, N>(d);
         d = make_box2d(d.nrows() / factor, d.ncols() / factor);
       }
     }
 
-    void update(const image<V, N>& in)
+    void update(const imageNd<V, N>& in)
     {
       copy(in, levels_[0]);
       for (int i = 1; i < levels_.size(); i++)
@@ -53,16 +64,19 @@ namespace vpp
       return factor_;
     }
 
+    std::vector<image_type>& levels() { return levels_; };
+    const std::vector<image_type>& levels() const { return levels_; };
+
   private:
     std::vector<image_type> levels_;
     int factor_;
   };
 
   template <typename V>
-  using pyramid2d = pyramid<2, V>;
+  using pyramid2d = pyramid<V, 2>;
 
   template <typename V>
-  using pyramid3d = pyramid<3, V>;
+  using pyramid3d = pyramid<V, 3>;
 
 };
 
