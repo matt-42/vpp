@@ -1,6 +1,14 @@
 #include <iostream>
 #include <vpp/vpp.hh>
 
+using namespace vpp;
+
+// const / non const test.
+void test_const(const image2d<int>& A, image2d<int>& B)
+{
+  vpp::pixel_wise(A, B) << [&] (const int& a, int& b) { b = a; };
+}
+
 int main()
 {
   using vpp::parallel_for_openmp;
