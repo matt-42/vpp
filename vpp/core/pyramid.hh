@@ -3,6 +3,7 @@
 
 # include <vpp/core/image2d.hh>
 # include <vpp/core/box_nbh2d.hh>
+# include <vpp/core/vector.hh>
 
 namespace vpp
 {
@@ -10,8 +11,6 @@ namespace vpp
   template <typename V>
   void subsample2(const image2d<V>& in, image2d<V>& out)
   {
-    auto nbh = const_box_nbh2d<V, 2, 2>(in);
-
     int nr = out.nrows();
     int nc = out.ncols();
 
@@ -21,7 +20,7 @@ namespace vpp
       V* out_row = &out(r, 0);
       const V* row1 = &in(r * 2, 0);
       const V* row2 = &in(r * 2 + 1, 0);
-      #pragma omp simd
+#pragma omp simd
       for (int c = 0; c < nc; c++)
       {
         out_row[c][0] = (row1[c * 2][0] + row1[c * 2 + 1][0] + row2[c * 2][0] + row2[c * 2 + 1][0]) / 4;
@@ -47,9 +46,18 @@ namespace vpp
       }
     }
 
-    void update(const imageNd<V, N>& in)
+    image_type& operator[] (unsigned i)
     {
-      copy(in, levels_[0]);
+      return levels_[i];
+    }
+
+    const image_type& operator[] (unsigned i) const
+    {
+      return levels_[i];
+    }
+
+    void propagate_level0()
+    {
       for (int i = 1; i < levels_.size(); i++)
       {
         if (factor_ == 2)
@@ -59,9 +67,19 @@ namespace vpp
       }
     }
 
-    int factor() const
+    void update(const imageNd<V, N>& in)
     {
-      return factor_;
+      copy(in, levels_[0]);
+      propagate_level0();
+    }
+
+    int factor() const { return factor_; }
+    int size() const { return levels_.size(); }
+
+    void swap(pyramid<V, N>& o)
+    {
+      levels_.swap(o.levels_);
+      std::swap(factor_, o.factor_);
     }
 
     std::vector<image_type>& levels() { return levels_; };
