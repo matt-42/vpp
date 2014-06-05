@@ -31,6 +31,26 @@ namespace vpp
 
 #undef VPP_ALIAS_DECL
 
+  template <typename T>
+  struct plus_promotion_
+  {
+    typedef decltype(T() + T()) type;
+  };
+
+  template <typename X, int N>
+  struct plus_promotion_<Eigen::Matrix<X, N, 1>>
+  {
+    typedef Eigen::Matrix<decltype(X() + X()), N, 1> type;
+  };
+
+  template <typename T>
+  using plus_promotion = typename plus_promotion_<T>::type;
+
+  template <typename U, typename T>
+  U cast(const T& t) { return t; }
+
+  template <typename U, typename V, unsigned N>
+  U cast(const vector<V, N>& t) { return t.cast<decltype(U()[0])>(); }
 
 };
 

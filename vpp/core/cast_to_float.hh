@@ -1,6 +1,8 @@
 #ifndef VPP_CAST_TO_FLOAT_HH__
 # define VPP_CAST_TO_FLOAT_HH__
 
+# include <Eigen/Core>
+
 namespace vpp
 {
 
@@ -10,7 +12,7 @@ namespace vpp
     typedef float ret;
   };
 
-  template <unsigned N, typename V>
+  template <int N, typename V>
   struct cast_to_float_<Eigen::Matrix<V, N, 1>>
   {
     typedef Eigen::Matrix<float, N, 1> ret;
