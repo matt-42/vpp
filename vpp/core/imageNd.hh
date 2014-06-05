@@ -42,8 +42,10 @@ namespace vpp
     typedef V value_type;
     typedef vint<N> coord_type;
     typedef boxNd<N> domain_type;
-    typedef imageNd_iterator<V, N> iterator;
-    typedef imageNd_row_iterator<V, N> row_iterator;
+    typedef imageNd_iterator<V, N, unconstify> iterator;
+    typedef imageNd_iterator<V, N, constify> const_iterator;
+    typedef imageNd_row_iterator<V, N, unconstify> row_iterator;
+    typedef imageNd_row_iterator<V, N, constify> const_row_iterator;
     enum { dimension = N };
 
     // Constructors.
@@ -105,7 +107,7 @@ namespace vpp
 
     inline int coords_to_offset(const vint<N>& p) const;
 
-    inline bool has(coord_type& p) const { return ptr_->domain_.has(p); }
+    inline bool has(const coord_type& p) const { return ptr_->domain_.has(p); }
     inline bool has(const V* p) const { return p >= ptr_->data_ and p < ptr_->data_end_; }
     // Access to raw buffer.
     inline V* data() { return ptr_->data_; }

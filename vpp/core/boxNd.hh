@@ -55,6 +55,9 @@ namespace vpp
       return p2_[d] - p1_[d] + 1;
     }
 
+    inline int ncols() const { return size(0); }
+    inline int nrows() const { return size(1); }
+
   private:
     coord_type p1_;
     coord_type p2_;

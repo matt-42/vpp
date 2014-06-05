@@ -96,6 +96,24 @@ namespace vpp
   typename boxNd<N, C>::coord_type get_p2(const boxNd<N, C>& box) { return box.p2(); }
 
 
+  template <typename T>
+  struct get_row_iterator
+  {
+    typedef typename T::row_iterator type;
+  };
+
+  template <typename T>
+  struct get_row_iterator<const T>
+  {
+    typedef typename T::const_row_iterator type;
+  };
+
+  template <unsigned N>
+  struct get_row_iterator<const boxNd<N>>
+  {
+    typedef typename boxNd<N>::row_iterator type;
+  };
+
 
   template <typename B, typename... Params>
   class parallel_for_pixel_wise_runner;
@@ -121,11 +139,11 @@ namespace vpp
       for (int r = start; r <= end; r++)
       {
         auto cur_ = internals::tuple_transform(ranges_, [&] (auto& range) {
-            typedef typename std::remove_reference_t<decltype(range)>::row_iterator IT;
+            typedef typename get_row_iterator<std::remove_reference_t<decltype(range)>>::type IT;
             return IT(vint2(r, p1[1]), range);
           });
 
-        typedef typename std::remove_reference_t<decltype(std::get<0>(ranges_))>::row_iterator IT1;
+        typedef typename get_row_iterator<std::remove_reference_t<decltype(std::get<0>(ranges_))>>::type IT1;
         auto end0_ = IT1(vint2(r, p2[1] + 1), std::get<0>(ranges_));
         auto& cur0_ = std::get<0>(cur_);
 
