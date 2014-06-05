@@ -22,6 +22,7 @@
 # include <vpp/core/cast_to_float.hh>
 
 # include <vpp/core/keypoint_container.hh>
+# include <vpp/core/pyramid.hh>
 
 # include <vpp/core/parallel_for.hh>
 
