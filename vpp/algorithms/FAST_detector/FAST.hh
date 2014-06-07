@@ -83,7 +83,7 @@ namespace vpp
     }
 
     template <int fullcheck, typename V, typename U>
-    void fast_detector9(image2d<V>& A, image2d<U>& B, int th, bool with_scores = false)
+    void fast_detector9(image2d<V>& A, image2d<U>& B, int th)
     {
       int nc = A.ncols();
       int nr = A.nrows();
@@ -248,8 +248,44 @@ namespace vpp
       }
     }
 
-
   }
+
+  void fast9_blockwise_maxima(image2d<int>& A, int block_size)
+  {
+    int nc = A.ncols();
+    int nr = A.nrows();
+    int pitch = A.pitch();
+
+    #pragma omp parallel for
+    for (int r = 0; r < nr - block_size; r += block_size)
+    {
+      int* rows[block_size];
+      for (int i = 0; i < block_size; i++)
+        rows[i] = &A(r + i, 0);
+
+      for (int c = 0; c < nc - block_size; c += block_size)
+      {
+        // Maximum search.
+        vint2 pmax;
+        int vmax = 0;
+        for (int br = 0; br < block_size; br++)
+        for (int bc = c; bc < c + block_size; bc++)
+        {
+          int v = rows[br][bc];
+          rows[br][bc] = 0;
+          if (v > vmax)
+          {
+            vmax = v;
+            pmax = vint2(br, bc);
+          }
+        }
+
+        if (vmax > 0)
+          rows[pmax[0]][pmax[1]] = vmax;
+      }
+    }
+  }
+
 
   template <typename V>
   void fast_detector9(image2d<V>& A, image2d<int>& keypoints, int th, bool local_maxima = false,
@@ -258,7 +294,7 @@ namespace vpp
     if (low_density)
     {
       FAST_internals::fast_detector9_check4(A, keypoints, th);
-      FAST_internals::fast_detector9<false>(A, keypoints, th, local_maxima);
+      FAST_internals::fast_detector9<false>(A, keypoints, th);
     }
     else
       FAST_internals::fast_detector9<true>(A, keypoints, th);
@@ -269,6 +305,30 @@ namespace vpp
       FAST_internals::fast_detector9_local_maxima(keypoints);
     }
 
+  }
+
+  template <typename V>
+  void fast9_detect(image2d<V>& A, image2d<int>& keypoints, int th,
+                    bool low_density = false)
+  {
+    if (low_density)
+    {
+      FAST_internals::fast_detector9_check4(A, keypoints, th);
+      FAST_internals::fast_detector9<false>(A, keypoints, th);
+    }
+    else
+      FAST_internals::fast_detector9<true>(A, keypoints, th);
+  }
+
+  template <typename V>
+  void fast9_scores(image2d<V>& A, image2d<int>& keypoints, int th)
+  {
+    FAST_internals::fast_detector9_scores(A, keypoints, th);
+  }
+
+  inline void fast9_filter_localmaximas(image2d<int>& keypoints)
+  {
+    FAST_internals::fast_detector9_local_maxima(keypoints);
   }
 
   inline void make_keypoint_vector(image2d<int>& img, std::vector<vint2>& keypoints)
