@@ -11,6 +11,8 @@ namespace vpp
   template <typename C>
   struct keypoint
   {
+    keypoint(vector<C, 2> pos) : position(pos), velocity(zero<vector<C, 2>>()) {}
+
     vector<C, 2> position;
     vector<C, 2> velocity;
     int age;
@@ -45,8 +47,8 @@ namespace vpp
 
     keypoint_vector_type&  keypoints()                 { return keypoint_vector_; }
     const keypoint_vector_type& keypoints() const      { return keypoint_vector_; }
-    image2d<int>&       keypoint_index2d()             { return index2d_; }
-    const image2d<int>& keypoint_index2d() const       { return index2d_; }
+    image2d<int>&       index2d()             { return index2d_; }
+    const image2d<int>& index2d() const       { return index2d_; }
 
     keypoint_type& operator[] (unsigned i)             { return keypoint_vector_[i]; }
     const keypoint_type& operator[] (unsigned i) const { return keypoint_vector_[i]; }
