@@ -31,19 +31,27 @@ namespace vpp
   OPENCV_TYPEOF_(float, float, 32S);
   OPENCV_TYPEOF_(int, int, 32S);
 
-  // template <typename V>
-  // image2d<V> from_opencv(cv::Mat m)
-  // {
-  //   int dims[] = { m.rows, m.cols };
-  //   m.addref();
-  //   return image2d<V>(dims, 0, (V*) m.data, m.step, true);
-  // }
+  struct opencv_data_holder
+  {
+    int* refcount;
+    void* data;
+  };
+
+  static void opencv_data_deleter(void* data)
+  {
+    opencv_data_holder* d = (opencv_data_holder*) data;
+
+    if (d->refcount and *(d->refcount) > 1)
+      *(d->refcount) -= 1;
+    else if (d->refcount and *(d->refcount) == 1)
+      cv::fastFree(d->data);
+  }
 
   template <typename V>
-  image2d<V> from_opencv(cv::Mat&& m)
+  image2d<V> from_opencv(cv::Mat m)
   {
-    image2d<V> res({ m.rows, m.cols }, 0, (V*) m.data, m.step, false);
-    res.set_external_refcount(m.refcount);
+    image2d<V> res({ m.rows, m.cols }, 0, (V*) m.data, m.step);
+    res.set_external_data_holder(new opencv_data_holder{m.refcount, m.data}, opencv_data_deleter);
     m.addref();
     return res;
   }
