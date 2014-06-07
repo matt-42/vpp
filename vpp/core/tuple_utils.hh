@@ -61,6 +61,32 @@ namespace vpp
       apply_args_star_impl<0, sizeof...(Args)>(t, f);
     }
 
+
+    template<size_t argIndex, size_t argSize, class... Args, class...
+             Unpacked, class F, class G>
+    inline typename std::enable_if<(argIndex == argSize),
+                                   void>::type apply_args_transform_impl(std::tuple<Args...>& t, F f, G g,
+                                                          Unpacked&&... u)
+    {
+      f((g(u))...);
+    }
+
+    template<size_t argIndex, size_t argSize, class... Args, class...
+             Unpacked, class F, class G>
+    inline typename std::enable_if<(argIndex < argSize),
+      void>::type apply_args_transform_impl(std::tuple<Args...>& t, F f, G g,
+                                  Unpacked&&... u)
+    {
+      apply_args_transform_impl<argIndex + 1, argSize>(t, f, g, u...,
+                                             std::get<argIndex>(t));
+    }
+
+    template<class... Args, class F, class G>
+    inline void apply_args_transform(std::tuple<Args...>& t, F f, G g)
+    {
+      apply_args_transform_impl<0, sizeof...(Args)>(t, f, g);
+    }
+
     template<unsigned N, unsigned SIZE, typename F, typename... T>
     inline typename std::enable_if<(N == SIZE), void>::type
     tuple_map_(std::tuple<T...>& t, F f)
