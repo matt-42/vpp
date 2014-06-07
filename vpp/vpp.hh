@@ -25,5 +25,9 @@
 # include <vpp/core/pyramid.hh>
 
 # include <vpp/core/parallel_for.hh>
+# include <vpp/core/block_wise.hh>
+
+# include <vpp/core/sum.hh>
+
 
 #endif
