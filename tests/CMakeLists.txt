@@ -38,8 +38,19 @@ add_test(opencv_bridge opencv_bridge)
 add_executable(fill fill.cc)
 add_test(fill fill)
 
-
 add_executable(pyramid pyramid.cc)
 add_test(pyramid pyramid)
+
+add_executable(cast cast.cc)
+add_test(cast cast)
+
+add_executable(sum sum.cc)
+add_test(sum sum)
+
+add_executable(tuple_utils tuple_utils.cc)
+add_test(tuple_utils tuple_utils)
+
+add_executable(block_wise block_wise.cc)
+add_test(block_wise block_wise)
 
 target_link_libraries(opencv_bridge ${OpenCV_LIBS})
