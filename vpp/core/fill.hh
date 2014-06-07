@@ -14,6 +14,12 @@ namespace vpp
     pixel_wise(img) << [=] (auto& pix) { pix = value; };
   }
 
+  template <typename V, unsigned N>
+  void fill(imageNd<V, N>& img, V value, const boxNd<N>& box)
+  {
+    pixel_wise(box, img) << [=] (auto&, auto& pix) { pix = value; };
+  }
+
 };
 
 #endif
