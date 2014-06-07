@@ -3,9 +3,7 @@
 
 int main()
 {
-  using vpp::imageNd;
-  using vpp::vint2;
-  using vpp::vint3;
+  using namespace vpp;
 
   imageNd<int, 2> img_test({2,3});
 
@@ -50,9 +48,6 @@ int main()
 
   std::vector<int> dim3 = {100, 200, 300};
   imageNd<int, 3> img3(dim3, 1);
-  //assert((char*)(&img3(vint3(0,0,0))) == ((char*)img3.data() + 1 * dim3[1] * img3.pitch() + img3.pitch() + sizeof(int) ));
-
-  //assert(img.data() == )
 
   int i = 0;
   for (auto& p : img) p = i++;
@@ -69,5 +64,16 @@ int main()
   {
     assert(img(p) == img_clone(p));
     assert(img(p) == img_clone_border(p));
+  }
+
+  // Subimage.
+  {
+    vint2 p1 = vint2(10,10);
+    vint2 p2 = vint2(12,15);
+
+    auto sub = img | box2d(p1, p2);
+    assert(&sub(0,0) == &img(p1));
+    assert(sub.nrows() == (p2[0] - p1[0] + 1));
+    assert(sub.ncols() == (p2[1] - p1[1] + 1));
   }
 }
