@@ -14,6 +14,7 @@ namespace vpp
     int nr = out.nrows();
     int nc = out.ncols();
 
+    typedef plus_promotion<V> S;
 #pragma omp parallel for
     for (int r = 0; r < nr; r++)
     {
@@ -23,7 +24,8 @@ namespace vpp
 #pragma omp simd
       for (int c = 0; c < nc; c++)
       {
-        out_row[c][0] = (row1[c * 2][0] + row1[c * 2 + 1][0] + row2[c * 2][0] + row2[c * 2 + 1][0]) / 4;
+        out_row[c] = vpp::cast<V, S>((cast<S>(row1[c * 2]) + cast<S>(row1[c * 2 + 1]) +
+                                      cast<S>(row2[c * 2]) + cast<S>(row2[c * 2 + 1])) / 4);
       }
     }
   }
@@ -35,13 +37,13 @@ namespace vpp
 
     typedef imageNd<V, N> image_type;
 
-    pyramid(boxNd<N> d, int nlevels, int factor)
+    pyramid(boxNd<N> d, int nlevels, int factor, border b = 0)
       : levels_(nlevels),
         factor_(factor)
     {
       for (int i = 0; i < nlevels; i++)
       {
-        levels_[i] = imageNd<V, N>(d);
+        levels_[i] = imageNd<V, N>(d, b);
         d = make_box2d(d.nrows() / factor, d.ncols() / factor);
       }
     }
