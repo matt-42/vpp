@@ -7,6 +7,7 @@ int main()
   using vpp::image2d;
   using vpp::vint2;
 
+  // From opencv
   {
     cv::Mat_<int> m(100, 200);
 
@@ -26,12 +27,27 @@ int main()
 
     {
       cv::Mat_<int> m(100, 200);
-      v = vpp::from_opencv<int>(cv::Mat(m));
+      v = vpp::from_opencv<int>(m);
 
       assert(v.nrows() == 100);
       assert(v.ncols() == 200);
 
       assert(*(m.refcount) == 2);
+    }
+
+    for (auto& p : v) p = 42;
+    for (auto& p : v) assert(p == 42);
+  }
+
+  // To opencv
+  {
+    image2d<int> v(100, 200);
+
+    {
+      cv::Mat_<int> m = vpp::to_opencv(v);
+
+      assert(m.rows == 100);
+      assert(m.cols == 200);
     }
 
     for (auto& p : v) p = 42;
