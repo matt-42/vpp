@@ -31,26 +31,44 @@ namespace vpp
 
 #undef VPP_ALIAS_DECL
 
+  // Promote a type to avoid addition overflow. Scalar version.
   template <typename T>
   struct plus_promotion_
   {
     typedef decltype(T() + T()) type;
   };
 
+  // Promote a type to avoid addition overflow. Vector version.
   template <typename X, int N>
   struct plus_promotion_<Eigen::Matrix<X, N, 1>>
   {
     typedef Eigen::Matrix<decltype(X() + X()), N, 1> type;
   };
 
+  // plus_promotion_ helper.
   template <typename T>
   using plus_promotion = typename plus_promotion_<T>::type;
 
-  template <typename U, typename T>
-  U cast(const T& t) { return t; }
 
-  template <typename U, typename V, unsigned N>
-  U cast(const vector<V, N>& t) { return t.cast<decltype(U()[0])>(); }
+  // Cast a value from V to U. Scalar version.
+  template <typename U, typename V>
+  struct cast_
+  {
+    static U run(const V& v) { return v; }
+  };
+
+  // Cast a value from V to U. Vector version.
+  template <typename U, typename VS, int N>
+  struct cast_<U, vector<VS, N>>
+  {
+    static U run(const vector<VS, N>& v) {
+      return v.template cast<typename U::Scalar>();
+    }
+  };
+
+  // Cast helper.
+  template <typename U, typename V>
+  U cast(const V& v) { return cast_<U, V>::run(v); }
 
 };
 
