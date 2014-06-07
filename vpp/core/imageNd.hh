@@ -134,6 +134,9 @@ namespace vpp
   template <typename V, unsigned N>
   imageNd<V, N> clone_with_border(imageNd<V, N>& img);
 
+  template <typename V, unsigned N>
+  imageNd<V, N> operator|(imageNd<V, N>& img, const boxNd<N>& b) { return img.subimage(b); }
+
 };
 
 # include <vpp/core/imageNd.hpp>
