@@ -9,35 +9,25 @@
 namespace vpp
 {
 
-  template <typename P>
-  void delete_imageNd_data(P* ptr)
-  {
-    if (ptr->external_refcount_ && *(ptr->external_refcount_) > 1)
-    {
-      (*(ptr->external_refcount_))--;
-    }
-     else
-      delete ptr;
-  }
-
-  template <typename V, unsigned N, typename EXTERNAL_REFCOUNT_TYPE = int>
+  template <typename V, unsigned N>
   class imageNd_data
   {
   public:
     V* data_;
+    std::shared_ptr<void> data_sptr_;
     V* data_end_;
     V* begin_;
     boxNd<N> domain_;
     int border_;
     int pitch_;
-    bool own_data_;
-    EXTERNAL_REFCOUNT_TYPE* external_refcount_;
   };
 
   template <typename V, unsigned N>
   class imageNd
   {
   public:
+
+    typedef imageNd<V, N> self;
 
     typedef V value_type;
     typedef vint<N> coord_type;
@@ -60,7 +50,7 @@ namespace vpp
 
     imageNd(const boxNd<N>& domain, border b = 0);
 
-    imageNd(std::vector<int> dims, border b, V* data, int pitch, bool own_data = false);
+    imageNd(std::vector<int> dims, border b, V* data, int pitch);
 
     // Copy constructor. Share the data.
     imageNd(const imageNd<V, N>& other);
@@ -124,7 +114,10 @@ namespace vpp
     inline const boxNd<N>& domain() const { return ptr_->domain_; }
     inline boxNd<N> domain_with_border() const { return ptr_->domain_ + vpp::border(ptr_->border_); }
 
-    inline void set_external_refcount (int* refcount) { ptr_->external_refcount_ = refcount; }
+    inline self subimage(const boxNd<N>& d);
+
+    inline void set_external_data_holder(void* data, void (data_deleter)(void*))
+    { ptr_->data_sptr_ = std::shared_ptr<void>(data, data_deleter); }
 
   protected:
     void allocate(const std::vector<int>& dims, vpp::border b);

@@ -48,14 +48,13 @@ namespace vpp
   }
 
   template <typename V, unsigned N>
-  imageNd<V, N>::imageNd(std::vector<int> dims, vpp::border b, V* data, int pitch, bool own_data)
+  imageNd<V, N>::imageNd(std::vector<int> dims, vpp::border b, V* data, int pitch)
   {
-    ptr_ = std::shared_ptr<imageNd_data<V, N>>(new imageNd_data<V, N>(),
-                               delete_imageNd_data<imageNd_data<V, N>>);
+    ptr_ = std::shared_ptr<imageNd_data<V, N>>(new imageNd_data<V, N>());
+
     ptr_->data_ = data;
     ptr_->begin_ = ptr_->data_;
     ptr_->pitch_ = pitch;
-    ptr_->own_data_ = own_data;
     ptr_->domain_.p1() = vint<N>::Zero();
     for (unsigned i = 0; i < N; i++)
       ptr_->domain_.p2()[i] = dims[i] - 1;
@@ -117,12 +116,11 @@ namespace vpp
   template <typename V, unsigned N>
   void imageNd<V, N>::allocate(const std::vector<int>& dims, vpp::border b)
   {
-    typedef vint16 align_type;
-    const int align_size = sizeof(align_type);
+    typedef std::aligned_storage<sizeof(vint16), alignof(vint16)> align_type;
+    const int align_size = sizeof(vint16);
 
     ptr_ = std::make_shared<imageNd_data<V, N>>();
     auto& d = *ptr_;
-    d.own_data_ = true;
     d.border_ = b.size();
 
     int border_size = d.border_ * sizeof(V);
@@ -140,15 +138,12 @@ namespace vpp
     for (int i = 0; i < N - 1; i++)
       size *= (dims[i] + b.size() * 2);
     size *= d.pitch_;
-    d.data_ = (V*)(new align_type[1 + (size) / align_size]);
+    d.data_ = reinterpret_cast<V*>(new align_type[1 + (size) / sizeof(align_type)]);
 
-    if (long(d.data_) % align_size)
-    {
-      d.data_ = (V*)(((char*)d.data_) + align_size - long(d.data_) % align_size);
-    }
+    d.data_sptr_ = std::shared_ptr<void>(d.data_);
 
     d.data_end_ = d.data_ + size / sizeof(V);
-    assert(!(long(d.data_) % align_size));
+    assert(!(long(d.data_) % alignof(align_type)));
     d.domain_.p1() = vint<N>::Zero();
     for (unsigned i = 0; i < N; i++)
       d.domain_.p2()[i] = dims[i] - 1;
@@ -232,6 +227,22 @@ namespace vpp
   imageNd<V, N>::offset_of(const vint<N>& p) const
   {
     return coords_to_offset(p);
+  }
+
+  template <typename V, unsigned N>
+  imageNd<V, N>
+  imageNd<V, N>::subimage(const boxNd<N>& d)
+  {
+    imageNd<V, N> res;
+
+    res.ptr_ = std::shared_ptr<imageNd_data<V, N>>(new imageNd_data<V, N>());
+    *res.ptr_.get() = *this->ptr_.get();
+    res.ptr_->begin_ = address_of(d.p1());
+    boxNd<N> domain = d;
+    domain.p2() -= domain.p1();
+    domain.p1() -= domain.p1();
+    res.ptr_->domain_ = domain;
+    return res;
   }
 
   template <typename I>
