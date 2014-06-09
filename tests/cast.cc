@@ -6,7 +6,7 @@ using namespace vpp;
 int main()
 {
   vuchar3 p;
-  //vint3 x = cast<vint3>(p);
+  vint3 x = cast<vint3>(p);
 
   vint1 xxx; xxx[0] = (20);
   float y = cast<float>(xxx);
