@@ -76,4 +76,19 @@ int main()
     assert(sub.nrows() == (p2[0] - p1[0] + 1));
     assert(sub.ncols() == (p2[1] - p1[1] + 1));
   }
+
+  // Linear interpolation.
+  {
+    image2d<int> test(2,2, border(1));
+
+    test(0,0) = 0;
+    test(0,1) = 1;
+    test(1,0) = 2;
+    test(1,1) = 3;
+    float v1 = (1+2+3)/4.f;
+    assert(test.linear_interpolate(vfloat2(0.5, 0.5)) == v1);
+    float v2 = (0.25 * 0.75) * 1 + (0.25 * 0.75) * 2 + (0.25 * 0.25) * 3;
+    assert(test.linear_interpolate(vfloat2(0.25, 0.25)) == v2);
+  }
+
 }
