@@ -188,13 +188,11 @@ namespace vpp
   }
 
   template <typename V, unsigned N>
-  cast_to_float<V>
+  V
   imageNd<V, N>::linear_interpolate(const vfloat<N>& p) const
   {
     static_assert(N == 2, "linear_interpolate only supports 2d images.");
-    assert(ptr_->border_ >= 1);
 
-    cast_to_float<V> res;
     vint2 x = p.cast<int>();
     float a0 = p[0] - x[0];
     float a1 = p[1] - x[1];
@@ -202,10 +200,10 @@ namespace vpp
     const V* l1 = address_of(x);
     const V* l2 = (const V*)((const char*)l1 + ptr_->pitch_);
 
-    return ((1 - a0) * (1 - a1) *  l1[0] +
+    return V((1 - a0) * (1 - a1) *  l1[0] +
             a0 * (1 - a1) *  l2[0] +
             (1 - a0) * a1 *  l1[1] +
-            a0 * a1 *  l2[1]).cast<float>();
+            a0 * a1 *  l2[1]);
   }
 
   template <typename V, unsigned N>

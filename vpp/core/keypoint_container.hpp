@@ -32,13 +32,13 @@ namespace vpp
 
     for (;pts_it != keypoint_vector_.end();)
     {
-      if (pts_it->alive() != 0)
+      if (pts_it->alive())
       {
         *pts_res++ = *pts_it;
         *feat_res++ = *feat_it;
         int prev_index = pts_it - keypoint_vector_.begin();
         int new_index = pts_res - keypoint_vector_.begin() - 1;
-        index2d_(pts_it->position) = new_index;
+        index2d_(cast<vint2>(pts_it->position)) = new_index;
         matches_[prev_index] = new_index;
         assert(keypoint_vector_[index2d_(pts_it->position)].position == pts_it->position);
       }
@@ -53,7 +53,7 @@ namespace vpp
 
   template <typename P, typename F>
   void
-  keypoint_container<P, F>::swap_buffers()
+  keypoint_container<P, F>::prepare_matching()
   {
     fill(index2d_, -1);
   }
@@ -72,7 +72,7 @@ namespace vpp
   keypoint_container<P, F>::add(const keypoint_type& p,
                                 const feature_type& f)
   {
-    sparse_buffer_(p.position) = keypoint_vector_.size();
+    index2d_(cast<vint2>(p.position)) = keypoint_vector_.size();
     keypoint_vector_.push_back(p);
     feature_vector_.push_back(f);
   }

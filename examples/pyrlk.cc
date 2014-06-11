@@ -100,9 +100,10 @@ int main(int argc, char* argv[])
     make_keypoint_vector(detector, kps);
 
     int f;
-    for (vint2 p : kps) keypoints.add(KP(p), f);
+    for (vint2 p : kps) keypoints.add(KP(cast<vfloat2>(p)), f);
     pyrlk_match(pyramid1, pyramid1_grad, pyramid2, keypoints, lk_match_point_square_win<5>(), 0.01, 3);
 
+    keypoints.compact();
 
     copy(frame, frame_display);
     auto rect = box_nbh2d<vuchar3, 3, 3>(frame);

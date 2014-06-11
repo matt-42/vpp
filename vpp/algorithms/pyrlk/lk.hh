@@ -13,6 +13,7 @@ namespace vpp
                                          F A, F B, GD Ag,
                                          float min_ev)
     {
+      typedef typename F::value_type V;
       int ws = WS;
       int hws = ws/2;
 
@@ -55,7 +56,7 @@ namespace vpp
       Eigen::Vector2f nk = Eigen::Vector2f::Ones();
 
       vfloat2 gs[ws * ws];
-      vfloat1 as[ws * ws];
+      V as[ws * ws];
       {
         for(int i = 0, r = -hws; r <= hws; r++)
         {
@@ -87,7 +88,11 @@ namespace vpp
             vfloat2 n2 = v + vfloat2(r, c) * factor;
             {
               auto g = gs[i];
-              float dt = (vfloat1(as[i][0]) - B.linear_interpolate(n2))[0];
+              //std::cout << "as:" << as[i] << std::endl;
+              //std::cout << "B:" << B.linear_interpolate(n2)[0] << std::endl;
+
+              float dt = (as[i] - B.linear_interpolate(n2))[0];
+              //std::cout << "dt:" << dt << std::endl;
               bk += Eigen::Vector2f(g[0] * dt, g[1] * dt);
               cpt++;
             }
@@ -110,7 +115,7 @@ namespace vpp
           vfloat2 n2 = v + vfloat2(r, c) * factor;
           int i = (r+hws) * hws + (c+hws);
           {
-            err += fabs((vfloat1(as[i][0]) - B.linear_interpolate(n2))[0]);
+            err += fabs(cast<float>(as[i] - B.linear_interpolate(n2)));
             cpt++;
           }
         }

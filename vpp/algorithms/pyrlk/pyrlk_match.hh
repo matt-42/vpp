@@ -19,7 +19,8 @@ namespace vpp
                    M matcher,
                    float min_ev, float max_err)
   {
-    #pragma omp parallel for
+    keypoints.prepare_matching();
+    //#pragma omp parallel for
     for(int i = 0; i < keypoints.size(); i++)
     {
       auto& kp = keypoints[i];

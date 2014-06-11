@@ -73,7 +73,7 @@ namespace vpp
     inline V& operator()(const vint<N>& p);
     inline const V& operator()(const vint<N>& p) const;
 
-    inline cast_to_float<V> linear_interpolate(const vfloat<N>& p) const;
+    inline V linear_interpolate(const vfloat<N>& p) const;
 
     template <typename... Tail>
     inline const V& operator()(int c, Tail... cs) const

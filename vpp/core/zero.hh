@@ -16,7 +16,7 @@ namespace vpp
     operator float() { return 0.f; }
   };
 
-  template <unsigned N, typename V>
+  template <int N, typename V>
   struct zero<Eigen::Matrix<V, N, 1>>
   {
     operator Eigen::Matrix<V, N, 1>() { return Eigen::Matrix<V, N, 1>::Zero(); }

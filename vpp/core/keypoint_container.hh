@@ -11,7 +11,9 @@ namespace vpp
   template <typename C>
   struct keypoint
   {
-    keypoint(vector<C, 2> pos) : position(pos), velocity(zero<vector<C, 2>>()) {}
+    keypoint() : age(0) {}
+    keypoint(vector<C, 2> pos) : position(pos), velocity(zero<vector<C, 2>>()),
+                                 age(0) {}
 
     vector<C, 2> position;
     vector<C, 2> velocity;
@@ -33,7 +35,7 @@ namespace vpp
     keypoint_container(const box2d& d);
 
     void compact();
-    void swap_buffers();
+    void prepare_matching();
 
     // template <typename T, typename D>
     // void sync_attributes(T& container, typename T::value_type new_value = typename T::value_type(),

@@ -86,6 +86,16 @@ namespace vpp
     }
   };
 
+  template <typename VS, typename US>
+  struct cast_<vector<US, 1>, vector<VS, 1>>
+  {
+    static vector<US, 1> run(const vector<VS, 1>& v) {
+      vector<US, 1> res;
+      res[0] = v[0];
+      return res;
+    }
+  };
+
   // Cast helper.
   template <typename U, typename V>
   U cast(const V& v) { return cast_<U, V>::run(v); }
