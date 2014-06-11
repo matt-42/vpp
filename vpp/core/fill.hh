@@ -8,8 +8,8 @@
 namespace vpp
 {
 
-  template <typename V, unsigned N>
-  void fill(imageNd<V, N>& img, V value)
+  template <typename V, typename U, unsigned N>
+  void fill(imageNd<V, N>& img, U value)
   {
     pixel_wise(img) << [=] (auto& pix) { pix = value; };
   }

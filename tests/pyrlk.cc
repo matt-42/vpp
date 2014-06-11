@@ -1,0 +1,66 @@
+#include <iostream>
+#include <vpp/vpp.hh>
+
+#include <vpp/utils/opencv_bridge.hh>
+#include <vpp/algorithms/pyrlk/pyrlk_match.hh>
+#include <vpp/algorithms/filters/scharr.hh>
+
+#include <opencv2/opencv.hpp>
+
+using namespace vpp;
+
+int main()
+{
+  image2d<vuchar1> i1(100,100);
+  image2d<vuchar1> i2(100,100);
+
+  image2d<vuchar1> i1_blur(100,100);
+  image2d<vuchar1> i2_blur(100,100);
+
+  fill(i1, vuchar1::Zero());
+  fill(i2, vuchar1::Zero());
+
+  box_nbh2d<vuchar1, 5, 5> box(i1);
+
+  box(i1(50,50)) < [] (auto& n) { n[0] = 255; };
+  box(i2(52,52)) < [] (auto& n) { n[0] = 255; };
+
+  // i1(50,50)[0] = 255;
+  // i2(52,52)[0] = 255;
+
+  cv::GaussianBlur(to_opencv(i1), to_opencv(i1_blur), cv::Size(9,9), 3, 3, cv::BORDER_REPLICATE);
+  cv::GaussianBlur(to_opencv(i2), to_opencv(i2_blur), cv::Size(9,9), 3, 3, cv::BORDER_REPLICATE);
+
+  cv::imwrite("i1.jpg", to_opencv(i1_blur));
+  cv::imwrite("i2.jpg", to_opencv(i2_blur));
+
+
+  pyrlk_keypoint_container keypoints(i1.domain());
+  int f;
+  keypoints.add(keypoint<float>(vfloat2(50, 50)), f);
+
+  int nscales = 1;
+
+  pyramid2d<vuchar1> pyramid1(i1.domain(), nscales, 2, border(3));
+  pyramid2d<vuchar1> pyramid2(i1.domain(), nscales, 2, border(3));
+  pyramid2d<vfloat2> pyramid1_grad(i1.domain(), nscales, 2, border(3));
+
+  copy(i1_blur, pyramid1[0]);
+  copy(i2_blur, pyramid2[0]);
+
+
+  pyramid1.propagate_level0();
+  pyramid2.propagate_level0();
+
+  scharr(pyramid1[0], pyramid1_grad[0]);
+
+  pyramid1_grad.propagate_level0();
+
+  //cv::imwrite("i1_grad.jpg", to_opencv(pyramid1_grad[0]));
+
+  pyrlk_match(pyramid1, pyramid1_grad, pyramid2, keypoints, lk_match_point_square_win<5>(), 0.01, 10);
+
+  std::cout << keypoints.size() << std::endl;
+  std::cout << keypoints[0].position.transpose() << std::endl;
+
+}

@@ -25,21 +25,29 @@ namespace vpp
     {
       auto& kp = keypoints[i];
       vfloat2 tr = vfloat2(0.f,0.f);
-      for(int S = 0; S < pyramid_prev.size(); S++)
+      float dist = 0.f;
+      for(int S = pyramid_prev.size() - 1; S >= 0; S--)
       {
         tr *= pyramid_prev.factor();
-        auto match = matcher(kp.position, tr, pyramid_prev[S], pyramid_next[S], pyramid_prev_grad[S], min_ev);
+        auto match = matcher(kp.position / std::pow(2, S), tr, pyramid_prev[S], pyramid_next[S], pyramid_prev_grad[S], min_ev);
         if (match.second < max_err)
+        {
           tr = match.first;
+          dist = match.second;
+        }
         else
         {
+          //std::cout <<  << "re  "  << tr.transpose() << std::endl;
           keypoints.remove(i);
           goto nextpoint;
         }
       }
 
+      std::cout << kp.position.transpose() << "  "  << tr.transpose() << std::endl;
       kp.position += tr;
       kp.age++;
+      if (dist > max_err || !pyramid_prev[0].domain().has(cast<vint2>(kp.position)))
+        keypoints.remove(i);
       // fixme keypoints.update_index(i, kp.position.cast<int>());
 
     nextpoint:

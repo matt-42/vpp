@@ -200,10 +200,13 @@ namespace vpp
     const V* l1 = address_of(x);
     const V* l2 = (const V*)((const char*)l1 + ptr_->pitch_);
 
-    return V((1 - a0) * (1 - a1) *  l1[0] +
-            a0 * (1 - a1) *  l2[0] +
-            (1 - a0) * a1 *  l1[1] +
-            a0 * a1 *  l2[1]);
+    //typedef plus_promotion<V> S;
+    typedef cast_to_float<V> S;
+
+    return cast<V>((1 - a0) * (1 - a1) *  cast<S>(l1[0]) +
+                   a0 * (1 - a1) *  cast<S>(l2[0]) +
+                   (1 - a0) * a1 *  cast<S>(l1[1]) +
+                   a0 * a1 *  cast<S>(l2[1]));
   }
 
   template <typename V, unsigned N>

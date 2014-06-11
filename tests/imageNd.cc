@@ -79,16 +79,29 @@ int main()
 
   // Linear interpolation.
   {
-    image2d<int> test(2,2, border(1));
+    image2d<vuchar1> test(2,2, border(1));
 
-    test(0,0) = 0;
-    test(0,1) = 1;
-    test(1,0) = 2;
-    test(1,1) = 3;
-    float v1 = (1+2+3)/4.f;
-    assert(test.linear_interpolate(vfloat2(0.5, 0.5)) == v1);
-    float v2 = (0.25 * 0.75) * 1 + (0.25 * 0.75) * 2 + (0.25 * 0.25) * 3;
-    assert(test.linear_interpolate(vfloat2(0.25, 0.25)) == v2);
+    {
+      vuchar1 m; m << 2;
+      vint1 a = cast<vint1>(m);
+      assert(a[0] == 2);
+    }
+
+    {
+      vint1 m; m << 2;
+      vuchar1 a = cast<vuchar1>(m);
+      assert(a[0] == 2);
+    }
+
+    test(0,0)[0] = 0;
+    test(0,1)[0] = 10;
+    test(1,0)[0] = 20;
+    test(1,1)[0] = 30;
+    int v1 = (10+20+30)/4.f;
+    // std::cout << int(test.linear_interpolate(vfloat2(0.5, 0.5))[0]) << std::endl;
+    assert(test.linear_interpolate(vfloat2(0.5, 0.5))[0] == v1);
+    // int v2 = (0.25 * 0.75) * 10 + (0.25 * 0.75) * 20 + (0.25 * 0.25) * 30;
+    // assert(test.linear_interpolate(vfloat2(0.25, 0.25)) == v2);
   }
 
 }

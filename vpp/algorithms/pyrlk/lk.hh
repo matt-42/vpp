@@ -2,6 +2,7 @@
 # define VPP_ALGORITHMS_PYRLK_LK_HH_
 
 # include <Eigen/Dense>
+# include <cfloat>
 
 namespace vpp
 {
@@ -11,7 +12,7 @@ namespace vpp
     template <typename F, typename GD>
     std::pair<vfloat2, float> operator()(vfloat2 p, vfloat2 tr_prediction,
                                          F A, F B, GD Ag,
-                                         float min_ev)
+                                         float min_ev_th)
     {
       typedef typename F::value_type V;
       int ws = WS;
@@ -41,12 +42,14 @@ namespace vpp
         }
 
       // Check minimum eigenvalue.
+      float min_ev = 99999.f;
       auto ev = G.eigenvalues();
       for (int i = 0; i < ev.size(); i++)
         if (fabs(ev[i].real()) < min_ev) min_ev = fabs(ev[i].real());
 
-      if (min_ev < 0.0001)
-        return std::pair<vfloat2, float>(vfloat2(-1,-1), 1000);
+      std::cout << min_ev << std::endl;
+      if (min_ev < min_ev_th)
+        return std::pair<vfloat2, float>(vfloat2(-1,-1), FLT_MAX);
 
       Eigen::Matrix2f G1 = G.inverse();
 
@@ -103,6 +106,8 @@ namespace vpp
         nk = G1 * bk;
         if (nk.norm() > ws) return std::pair<vfloat2, float>(vfloat2(-1,-1), FLT_MAX);
         v += vfloat2(nk[0], nk[1]);
+
+        std::cout << "v: " << v.transpose() << std::endl;
         if (!domain.has(v.cast<int>()))
           return std::pair<vfloat2, float>(vfloat2(-1,-1), FLT_MAX);
       }
@@ -115,10 +120,15 @@ namespace vpp
           vfloat2 n2 = v + vfloat2(r, c) * factor;
           int i = (r+hws) * hws + (c+hws);
           {
+            std::cout << n2.transpose() << std::endl;
+            std::cout << " err: "  << as[i].cast<int>() << " - " << B.linear_interpolate(n2).cast<int>() << std::endl;
+            std::cout << " err: "  << B(n2.cast<int>()).cast<int>() << std::endl;
             err += fabs(cast<float>(as[i] - B.linear_interpolate(n2)));
             cpt++;
           }
         }
+
+      //std::cout << "v: " << (v - p).transpose() << " " << err / cpt << std::endl;
 
       return std::pair<vfloat2, float>(v - p, err / cpt);
 

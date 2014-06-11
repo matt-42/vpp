@@ -28,7 +28,7 @@ set(LIBS
 link_directories(${THIRDPARTY}/lib)
 
 add_definitions(-std=c++1y -g -fopenmp)
-add_definitions(-Ofast -march=native )
+add_definitions(-Ofast -march=native)
 add_definitions(-DNDEBUG)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)

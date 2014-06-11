@@ -51,33 +51,36 @@ namespace vpp
 
 
   // Cast a value from V to U. Scalar version.
-  template <typename U, typename V>
+  template <typename U, typename V, typename Enable = void>
   struct cast_
   {
     static U run(const V& v) { return v; }
   };
 
-  // Cast a value from V to U. Vector version.
-  template <typename U, typename VS, int N>
-  struct cast_<U, vector<VS, N>>
+  // Cast an Eigen matrix to U.
+  template <typename U, typename D>
+  struct cast_<U, Eigen::MatrixBase<D>, typename std::enable_if<!std::is_scalar<U>::value>::type
+               >
   {
-    static U run(const vector<VS, N>& v) {
+    static U run(const Eigen::MatrixBase<D>& v) {
       return v.template cast<typename U::Scalar>();
     }
   };
 
-  // Cast a value from V to U. Vector (N == 1) version.
-  template <typename U, typename VS>
-  struct cast_<U, vector<VS, 1>>
+  // Cast an Eigen matrix of size 1 to U. Handle convertion to scalar types likes float or int.
+  template <typename U, typename D>
+  struct cast_<U, Eigen::MatrixBase<D>, typename std::enable_if<Eigen::MatrixBase<D>::SizeAtCompileTime == 1 &&
+                                                                std::is_scalar<U>::value>::type>
   {
-    static U run(const vector<VS, 1>& v) {
+    static U run(const Eigen::MatrixBase<D>& v) {
       return U(v[0]);
-      //return 0.1f;
     }
   };
 
-  template <typename V, typename US>
-  struct cast_<vector<US, 1>, V>
+  // Cast a scalar to an Eigen matrix of size 1.
+  template <typename US, typename V>
+  struct cast_<vector<US, 1>, V,
+               typename std::enable_if<std::is_scalar<V>::value>::type>
   {
     static vector<US, 1> run(const V& v) {
       vector<US, 1> res;
@@ -86,19 +89,28 @@ namespace vpp
     }
   };
 
-  template <typename VS, typename US>
-  struct cast_<vector<US, 1>, vector<VS, 1>>
-  {
-    static vector<US, 1> run(const vector<VS, 1>& v) {
-      vector<US, 1> res;
-      res[0] = v[0];
-      return res;
-    }
-  };
+  // template <typename VS, typename US>
+  // struct cast_<vector<US, 1>, vector<VS, 1>>
+  // {
+  //   static vector<US, 1> run(const vector<VS, 1>& v) {
+  //     vector<US, 1> res;
+  //     res[0] = v[0];
+  //     return res;
+  //   }
+  // };
 
   // Cast helper.
   template <typename U, typename V>
-  U cast(const V& v) { return cast_<U, V>::run(v); }
+  typename std::enable_if<!std::is_base_of<Eigen::MatrixBase<V>, V>::value, U>::type
+  cast(const V& v) { return cast_<U, V>::run(v); }
+
+  template <typename U, typename V>
+  typename std::enable_if<std::is_base_of<Eigen::MatrixBase<V>, V>::value, U>::type
+  cast(const V& v) { return cast_<U, Eigen::MatrixBase<V>>::run(v); }
+
+  // template <typename U, typename V>
+  // typename std::enable_if<std::is_base_of<Eigen::MatrixBase<U>, U>::value, U>::type
+  // cast(const V& v) { return cast_<Eigen::MatrixBase<U>, V>::run(v); }
 
 };
 

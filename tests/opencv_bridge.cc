@@ -18,6 +18,7 @@ int main()
       assert(v.ncols() == 200);
 
       assert(*(m.refcount) == 2);
+
     }
     assert(*(m.refcount) == 1);
   }
@@ -32,9 +33,11 @@ int main()
       assert(v.nrows() == 100);
       assert(v.ncols() == 200);
 
+      m.at<int>(50, 50) = 41;
       assert(*(m.refcount) == 2);
     }
 
+    assert(v(50, 50) == 41);
     for (auto& p : v) p = 42;
     for (auto& p : v) assert(p == 42);
   }
@@ -48,8 +51,10 @@ int main()
 
       assert(m.rows == 100);
       assert(m.cols == 200);
+      m.at<int>(50, 50) = 41;
     }
 
+    assert(v(50, 50) == 41);
     for (auto& p : v) p = 42;
     for (auto& p : v) assert(p == 42);
   }

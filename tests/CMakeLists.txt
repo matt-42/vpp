@@ -53,4 +53,8 @@ add_test(tuple_utils tuple_utils)
 add_executable(block_wise block_wise.cc)
 add_test(block_wise block_wise)
 
+add_executable(pyrlk pyrlk.cc)
+add_test(pyrlk pyrlk)
+
+target_link_libraries(pyrlk ${OpenCV_LIBS})
 target_link_libraries(opencv_bridge ${OpenCV_LIBS})

@@ -99,19 +99,30 @@ int main(int argc, char* argv[])
     std::vector<vint2> kps;
     make_keypoint_vector(detector, kps);
 
+
     int f;
     for (vint2 p : kps) keypoints.add(KP(cast<vfloat2>(p)), f);
-    pyrlk_match(pyramid1, pyramid1_grad, pyramid2, keypoints, lk_match_point_square_win<5>(), 0.01, 3);
+    pyrlk_match(pyramid1, pyramid1_grad, pyramid2, keypoints, lk_match_point_square_win<5>(), 0.01, 10);
 
     keypoints.compact();
 
     copy(frame, frame_display);
     auto rect = box_nbh2d<vuchar3, 3, 3>(frame);
-    for (vint2 p : kps)
-      rect(frame(p)) < [] (vuchar3& n) { n = vuchar3(0, 0, 255); };
+    // for (vint2 p : kps)
+    //   rect(frame(p)) < [] (vuchar3& n) { n = vuchar3(0, 0, 255); };
+
+    for (auto& p : keypoints.keypoints())
+      if (p.age > 2)
+        rect(frame(p.position.cast<int>())) < [] (vuchar3& n) { n = vuchar3(0, 0, 255); };
 
     pixel_wise(pyramid1_grad[0], grad_display) << [] (vfloat2 g, vuchar1& out) { out[0] = 128 + g[0]; };
 
+    // image2d<vuchar1> i1(pyramid1[0].domain());
+    // copy(pyramid1[0], i1);
+    // image2d<vuchar1> i2(pyramid2[0].domain());
+    // copy(pyramid2[0], i2);
+
+    //pixel_wise(i1, i2) << [] (auto& a, auto& b) { a = vuchar1(128) + b - a; };
     ImageView("frame") << frame << grad_display << show;
 
     std::cout << frame_cpt << " " << keypoints.size() << std::endl;
