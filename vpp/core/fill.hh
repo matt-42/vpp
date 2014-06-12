@@ -20,6 +20,13 @@ namespace vpp
     pixel_wise(box, img) << [=] (auto&, auto& pix) { pix = value; };
   }
 
+  template <typename V, unsigned N>
+  void fill_with_border(imageNd<V, N>& img, V value)
+  {
+    auto box = img.domain_with_border();
+    pixel_wise(box, img) << [=] (auto&, auto& pix) { pix = value; };
+  }
+
 };
 
 #endif

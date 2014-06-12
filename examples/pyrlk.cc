@@ -13,14 +13,14 @@
 #include <dige/image.h>
 #include <dige/widgets/image_view.h>
 
+#include <regex>
 
 using namespace vpp;
 
 bool open_videocapture(const char* str, cv::VideoCapture& cap)
 {
-  long int device = atoi(str);
-  if (device > 0)
-    cap.open(device);
+  if (std::regex_match(str, std::regex("[0-9]+")))
+    cap.open(atoi(str));
   else cap.open(str);
 
   if (!cap.isOpened())
@@ -46,9 +46,9 @@ int main(int argc, char* argv[])
   using dg::widgets::show;
   using dg::widgets::newline;
 
-  if (argc != 4)
+  if (argc != 5)
   {
-    std::cerr << "Usage : " << argv[0] << " video nscales fast_threshold" << std::endl;
+    std::cerr << "Usage : " << argv[0] << " video nscales fast_threshold box_size" << std::endl;
     return 1;
   }
 
@@ -57,6 +57,7 @@ int main(int argc, char* argv[])
 
   int nscales = atoi(argv[2]);
   int fast_th = atoi(argv[3]);
+  int box_size = atoi(argv[4]);
 
   int frame_cpt = 0;
 
@@ -86,20 +87,23 @@ int main(int argc, char* argv[])
 
     if (!(frame_cpt % 5))
     {
+      fill(detector, 1);
       fast9_detect(*(image2d<unsigned char>*)&(pyramid_next[0]), detector, fast_th);
       fast9_scores(*(image2d<unsigned char>*)&(pyramid_next[0]), detector, fast_th);
-      fast9_blockwise_maxima(detector, 10);
-      block_wise(vint2(10, 10), detector, keypoints.index2d()) << [] (image2d<int> D, image2d<int> I)
+      fast9_blockwise_maxima(detector, box_size);
+      block_wise(vint2(box_size, box_size), detector, keypoints.index2d())
+        << [box_size] (image2d<int> D, image2d<int> I)
       {
-        if (sum(I) > 0) fill(D, 0);
+        if (sum(I) > -(box_size*box_size)) fill(D, 0);
       };
+
+      std::vector<vint2> kps;
+      make_keypoint_vector(detector, kps);
+
+      int f;
+      for (vint2 p : kps) keypoints.add(KP(cast<vfloat2>(p)), f);
     }
 
-    std::vector<vint2> kps;
-    make_keypoint_vector(detector, kps);
-
-    int f;
-    for (vint2 p : kps) keypoints.add(KP(cast<vfloat2>(p)), f);
     pyrlk_match(pyramid_prev, pyramid_prev_grad, pyramid_next, keypoints, lk_match_point_square_win<5>(), 0.01, 10);
 
     keypoints.compact();
