@@ -27,23 +27,24 @@ namespace vpp
       for (int c = 0; c < nc; c++)
       {
         out_row[c] = vector<V, 2>(
-          (3 * int(row1[c - 1][0]) +
-           10 * int(row2[c - 1][0]) +
-           3 * int(row3[c - 1][0])
+
+          (3 * int(row3[c - 1][0]) +
+           10 * int(row3[c][0]) +
+           3 * int(row3[c + 1][0])
            -
-           3 * int(row1[c + 1][0]) -
-           10 * int(row2[c + 1][0]) -
-           3 * int(row3[c + 1][0])) / 32.f
+           3 * int(row1[c - 1][0]) -
+           10 * int(row1[c ][0]) -
+           3 * int(row1[c + 1][0])) / 32.f
 
           ,
 
-          (3 * int(row1[c - 1][0]) +
-           10 * int(row1[c][0]) +
-           3 * int(row1[c + 1][0])
+          (3 * int(row1[c + 1][0]) +
+           10 * int(row2[c + 1][0]) +
+           3 * int(row3[c + 1][0])
            -
-           3 * int(row3[c - 1][0]) -
-           10 * int(row3[c ][0]) -
-           3 * int(row3[c + 1][0])) / 32.f
+           3 * int(row1[c - 1][0]) -
+           10 * int(row2[c - 1][0]) -
+           3 * int(row3[c - 1][0])) / 32.f
           );
       }
     }
