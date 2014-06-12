@@ -257,13 +257,13 @@ namespace vpp
     int pitch = A.pitch();
 
     #pragma omp parallel for
-    for (int r = 0; r < nr - block_size; r += block_size)
+    for (int r = 0; r < nr; r += block_size)
     {
       int* rows[block_size];
       for (int i = 0; i < block_size; i++)
         rows[i] = &A(r + i, 0);
 
-      for (int c = 0; c < nc - block_size; c += block_size)
+      for (int c = 0; c < nc; c += block_size)
       {
         // Maximum search.
         vint2 pmax;
