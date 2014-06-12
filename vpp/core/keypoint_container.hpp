@@ -8,9 +8,9 @@ namespace vpp
 
   template <typename P, typename F>
   keypoint_container<P, F>::keypoint_container(const box2d& d)
-    : index2d_(d)
+    : index2d_(d, border(10))
   {
-    fill(index2d_, -1);
+    fill_with_border(index2d_, -1);
     keypoint_vector_.reserve((d.nrows() * d.ncols()) / 10);
     feature_vector_.reserve((d.nrows() * d.ncols()) / 10);
     compact_has_run_ = false;
@@ -55,7 +55,7 @@ namespace vpp
   void
   keypoint_container<P, F>::prepare_matching()
   {
-    fill(index2d_, -1);
+    fill_with_border(index2d_, -1);
   }
 
   // template <typename P, typename F>
