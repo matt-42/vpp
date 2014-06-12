@@ -47,7 +47,6 @@ namespace vpp
       for (int i = 0; i < ev.size(); i++)
         if (fabs(ev[i].real()) < min_ev) min_ev = fabs(ev[i].real());
 
-      std::cout << min_ev << std::endl;
       if (min_ev < min_ev_th)
         return std::pair<vfloat2, float>(vfloat2(-1,-1), FLT_MAX);
 
@@ -59,7 +58,8 @@ namespace vpp
       Eigen::Vector2f nk = Eigen::Vector2f::Ones();
 
       vfloat2 gs[ws * ws];
-      V as[ws * ws];
+      typedef plus_promotion<V> S;
+      S as[ws * ws];
       {
         for(int i = 0, r = -hws; r <= hws; r++)
         {
@@ -69,7 +69,7 @@ namespace vpp
             if (Ag.has(n.cast<int>()))
             {
               gs[i] = Ag.linear_interpolate(n);
-              as[i] = A.linear_interpolate(n);
+              as[i] = cast<S>(A.linear_interpolate(n));
             }
             i++;
           }
@@ -91,11 +91,7 @@ namespace vpp
             vfloat2 n2 = v + vfloat2(r, c) * factor;
             {
               auto g = gs[i];
-              //std::cout << "as:" << as[i] << std::endl;
-              //std::cout << "B:" << B.linear_interpolate(n2)[0] << std::endl;
-
-              float dt = (as[i] - B.linear_interpolate(n2))[0];
-              //std::cout << "dt:" << dt << std::endl;
+              float dt = (cast<float>(as[i]) - cast<float>(B.linear_interpolate(n2)));
               bk += Eigen::Vector2f(g[0] * dt, g[1] * dt);
               cpt++;
             }
@@ -107,7 +103,6 @@ namespace vpp
         if (nk.norm() > ws) return std::pair<vfloat2, float>(vfloat2(-1,-1), FLT_MAX);
         v += vfloat2(nk[0], nk[1]);
 
-        std::cout << "v: " << v.transpose() << std::endl;
         if (!domain.has(v.cast<int>()))
           return std::pair<vfloat2, float>(vfloat2(-1,-1), FLT_MAX);
       }
@@ -118,17 +113,12 @@ namespace vpp
         for(int c = -hws; c <= hws; c++)
         {
           vfloat2 n2 = v + vfloat2(r, c) * factor;
-          int i = (r+hws) * hws + (c+hws);
+          int i = (r+hws) * ws + (c+hws);
           {
-            std::cout << n2.transpose() << std::endl;
-            std::cout << " err: "  << as[i].cast<int>() << " - " << B.linear_interpolate(n2).cast<int>() << std::endl;
-            std::cout << " err: "  << B(n2.cast<int>()).cast<int>() << std::endl;
-            err += fabs(cast<float>(as[i] - B.linear_interpolate(n2)));
+            err += fabs(cast<float>(as[i] - cast<S>(B.linear_interpolate(n2))));
             cpt++;
           }
         }
-
-      //std::cout << "v: " << (v - p).transpose() << " " << err / cpt << std::endl;
 
       return std::pair<vfloat2, float>(v - p, err / cpt);
 

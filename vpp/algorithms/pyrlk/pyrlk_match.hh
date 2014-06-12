@@ -20,7 +20,7 @@ namespace vpp
                    float min_ev, float max_err)
   {
     keypoints.prepare_matching();
-    //#pragma omp parallel for
+#pragma omp parallel for
     for(int i = 0; i < keypoints.size(); i++)
     {
       auto& kp = keypoints[i];
@@ -33,22 +33,20 @@ namespace vpp
         if (match.second < max_err)
         {
           tr = match.first;
-          dist = match.second;
         }
-        else
-        {
-          //std::cout <<  << "re  "  << tr.transpose() << std::endl;
-          keypoints.remove(i);
-          goto nextpoint;
-        }
+        dist = match.second;
+        // else
+        // {
+        //   keypoints.remove(i);
+        //   goto nextpoint;
+        // }
       }
 
-      std::cout << kp.position.transpose() << "  "  << tr.transpose() << std::endl;
       kp.position += tr;
       kp.age++;
       if (dist > max_err || !pyramid_prev[0].domain().has(cast<vint2>(kp.position)))
         keypoints.remove(i);
-      // fixme keypoints.update_index(i, kp.position.cast<int>());
+      keypoints.update_index(i, kp.position.cast<int>());
 
     nextpoint:
       continue;

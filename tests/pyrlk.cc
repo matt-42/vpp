@@ -9,7 +9,7 @@
 
 using namespace vpp;
 
-int main()
+int main(int argc, char* argv[])
 {
   image2d<vuchar1> i1(100,100);
   image2d<vuchar1> i2(100,100);
@@ -25,21 +25,14 @@ int main()
   box(i1(50,50)) < [] (auto& n) { n[0] = 255; };
   box(i2(52,52)) < [] (auto& n) { n[0] = 255; };
 
-  // i1(50,50)[0] = 255;
-  // i2(52,52)[0] = 255;
-
-  cv::GaussianBlur(to_opencv(i1), to_opencv(i1_blur), cv::Size(9,9), 3, 3, cv::BORDER_REPLICATE);
-  cv::GaussianBlur(to_opencv(i2), to_opencv(i2_blur), cv::Size(9,9), 3, 3, cv::BORDER_REPLICATE);
-
-  cv::imwrite("i1.jpg", to_opencv(i1_blur));
-  cv::imwrite("i2.jpg", to_opencv(i2_blur));
-
+  cv::GaussianBlur(to_opencv(i1), to_opencv(i1_blur), cv::Size(9,9), 3, 5, cv::BORDER_REPLICATE);
+  cv::GaussianBlur(to_opencv(i2), to_opencv(i2_blur), cv::Size(9,9), 3, 5, cv::BORDER_REPLICATE);
 
   pyrlk_keypoint_container keypoints(i1.domain());
   int f;
   keypoints.add(keypoint<float>(vfloat2(50, 50)), f);
 
-  int nscales = 1;
+  int nscales = 4;
 
   pyramid2d<vuchar1> pyramid1(i1.domain(), nscales, 2, border(3));
   pyramid2d<vuchar1> pyramid2(i1.domain(), nscales, 2, border(3));
@@ -56,11 +49,20 @@ int main()
 
   pyramid1_grad.propagate_level0();
 
-  //cv::imwrite("i1_grad.jpg", to_opencv(pyramid1_grad[0]));
 
-  pyrlk_match(pyramid1, pyramid1_grad, pyramid2, keypoints, lk_match_point_square_win<5>(), 0.01, 10);
+  if (argc > 1 && std::string(argv[1]) == "--verbose")
+  {
+    std::cout << "Writing i1.jpg and i2.jpg" << std::endl;
+    cv::imwrite("i1.jpg", to_opencv(i1_blur));
+    cv::imwrite("i2.jpg", to_opencv(i2_blur));
 
-  std::cout << keypoints.size() << std::endl;
+    cv::imwrite("i1_3.jpg", to_opencv(pyramid1[3]));
+    cv::imwrite("i2_3.jpg", to_opencv(pyramid2[3]));
+  }
+
+  pyrlk_match(pyramid1, pyramid1_grad, pyramid2, keypoints, lk_match_point_square_win<5>(), 0.01, 50);
+
+  assert(keypoints.size() == 1);
   std::cout << keypoints[0].position.transpose() << std::endl;
-
+  assert((keypoints[0].position - vfloat2(52,52)).norm() < 0.2);
 }
