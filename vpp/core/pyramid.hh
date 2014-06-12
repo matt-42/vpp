@@ -9,6 +9,50 @@ namespace vpp
 {
 
   template <typename V>
+  void antialiasing_lowpass_filter(const image2d<V>& in, image2d<V>& out)
+  {
+    image2d<V> tmp(in.domain(), border(2));
+    int nr = in.nrows();
+    int nc = in.ncols();
+    typedef plus_promotion<V> S;
+
+    for (int r = 0; r < nr; r++)
+    {
+      const V* i = &in(r, 0);
+      V* o = &tmp(r, 0);
+      for (int c = 0; c < nc; c++)
+      {
+        o[c] =
+          cast<V>((1 * cast<S>(i[c - 2]) +
+                   4 * cast<S>(i[c - 1]) +
+                   6 * cast<S>(i[c]) +
+                   4 * cast<S>(i[c + 1]) +
+                   1 * cast<S>(i[c + 2])) / 16);
+      }
+    }
+
+    for (int r = 0; r < nr; r++)
+    {
+      const V* r1 = &tmp(r - 2, 0);
+      const V* r2 = &tmp(r - 1, 0);
+      const V* r3 = &tmp(r, 0);
+      const V* r4 = &tmp(r + 1, 0);
+      const V* r5 = &tmp(r + 2, 0);
+      V* o = &out(r, 0);
+      for (int c = 0; c < nc; c++)
+      {
+        o[c] =
+          cast<V>((1 * cast<S>(r1[c]) +
+                   4 * cast<S>(r2[c]) +
+                   6 * cast<S>(r3[c]) +
+                   4 * cast<S>(r4[c]) +
+                   1 * cast<S>(r5[c])) / 16);
+      }
+    }
+
+  }
+
+  template <typename V>
   void subsample2(const image2d<V>& in, image2d<V>& out)
   {
     int nr = out.nrows();
@@ -24,8 +68,9 @@ namespace vpp
 #pragma omp simd
       for (int c = 0; c < nc; c++)
       {
-        out_row[c] = vpp::cast<V, S>((cast<S>(row1[c * 2]) + cast<S>(row1[c * 2 + 1]) +
-                                      cast<S>(row2[c * 2]) + cast<S>(row2[c * 2 + 1])) / 4);
+        out_row[c] = row1[c * 2];
+        // out_row[c] = vpp::cast<V, S>((cast<S>(row1[c * 2]) + cast<S>(row1[c * 2 + 1]) +
+        //                               cast<S>(row2[c * 2]) + cast<S>(row2[c * 2 + 1])) / 4);
       }
     }
   }
@@ -63,7 +108,11 @@ namespace vpp
       for (int i = 1; i < levels_.size(); i++)
       {
         if (factor_ == 2)
-          subsample2(levels_[i - 1], levels_[i]);
+        {
+          image_type tmp(levels_[i - 1].domain(), border(3));
+          antialiasing_lowpass_filter(levels_[i - 1], tmp);
+          subsample2(tmp, levels_[i]);
+        }
         else
           assert(0); // Not implemented.
       }
