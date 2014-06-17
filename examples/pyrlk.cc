@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
       for (vint2 p : kps) keypoints.add(KP(cast<vfloat2>(p)), f);
     }
 
-    pyrlk_match(pyramid_prev, pyramid_prev_grad, pyramid_next, keypoints, lk_match_point_square_win<5>(), 0.01, 10);
+    pyrlk_match(pyramid_prev, pyramid_prev_grad, pyramid_next, keypoints, lk_match_point_square_win<11>(), 0.01, 10);
 
     keypoints.compact();
 

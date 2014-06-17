@@ -19,7 +19,7 @@ namespace vpp
 
     vfloat2 position() const
     {
-      assert(age() > 0);
+      assert(size() > 0);
       return history.front();
     }
 
