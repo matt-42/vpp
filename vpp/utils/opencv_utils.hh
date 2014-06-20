@@ -1,6 +1,8 @@
 #ifndef VPP_OPENCV_UTILS
 
+# include <regex>
 # include <opencv2/opencv.hpp>
+# include <vpp/core/boxNd.hh>
 
 bool open_videocapture(const char* str, cv::VideoCapture& cap)
 {
@@ -17,9 +19,9 @@ bool open_videocapture(const char* str, cv::VideoCapture& cap)
   return true;
 }
 
-box2d videocapture_domain(cv::VideoCapture& cap)
+vpp::box2d videocapture_domain(cv::VideoCapture& cap)
 {
-  return make_box2d(cap.get(CV_CAP_PROP_FRAME_HEIGHT),
+  return vpp::make_box2d(cap.get(CV_CAP_PROP_FRAME_HEIGHT),
                     cap.get(CV_CAP_PROP_FRAME_WIDTH));
 }
 

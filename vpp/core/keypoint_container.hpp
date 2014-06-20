@@ -55,17 +55,59 @@ namespace vpp
   void
   keypoint_container<P, F>::prepare_matching()
   {
+    compact_has_run_ = false;
     fill_with_border(index2d_, -1);
+    std::fill(matches_.begin(), matches_.end(), -1);
   }
 
-  // template <typename P, typename F>
-  // template <typename T, typename D>
-  // void
-  // keypoint_container<P, F>::sync_attributes(T& container,
-  //                                     typename T::value_type new_value,
-  //                                     D die_fun) const
-  // {
-  // }
+  template <typename P, typename F>
+  template <typename T, typename D>
+  void
+  keypoint_container<P, F>::sync_attributes(T& v,
+                                            typename T::value_type new_value,
+                                            D die_fun) const
+  {
+    unsigned nparts = keypoint_vector_.size();
+    if (compact_has_run_)
+    {
+      unsigned nmatches = matches_.size();
+      T tmp(nparts, new_value);
+      for(unsigned i = 0; i < nmatches; i++)
+      {
+	int ni = matches_[i];
+	if (ni >= 0)
+	{
+	  assert(ni < nparts);
+	  assert(keypoint_vector_[ni].age != 1 || i >= v.size());
+#ifndef NO_CPP0X
+	  if (i < v.size())
+	    tmp[ni] = std::move(v[i]);
+#else
+	  if (i < v.size())
+	    tmp[ni] = v[i];
+#endif
+
+	}
+	else if (ni < 0)
+	  die_fun(v[i]);
+      }
+      v.swap(tmp);
+      assert(v.size() == keypoint_vector_.size());
+    }
+    else
+      v.resize(nparts, new_value);
+  }
+
+  template <typename P, typename F>
+  template <typename T, typename U>
+  void
+  keypoint_container<P, F>::sync_attributes(T& container,
+                                            typename T::value_type new_value,
+                                            std::vector<U>& dead_vector) const
+  {
+    sync_attributes(container, new_value,
+                    [&dead_vector] (T& x) { dead_vector.push_back(std::move(x)); });
+  }
 
   template <typename P, typename F>
   void

@@ -37,9 +37,20 @@ namespace vpp
     void compact();
     void prepare_matching();
 
-    // template <typename T, typename D>
-    // void sync_attributes(T& container, typename T::value_type new_value = typename T::value_type(),
-    //     		 D die_fun = default_die_fun<typename T::value_type>()) const;
+    struct no_op
+    {
+      template <typename T>
+      void operator()(T& t) {}
+    };
+
+    template <typename T, typename D = no_op>
+    void sync_attributes(T& container, typename T::value_type new_value = typename T::value_type(),
+        		 D die_fun = D()) const;
+
+    template <typename T, typename U>
+    void sync_attributes(T& container,
+                         typename T::value_type new_value,
+                         std::vector<U>& dead_vector) const;
 
     void add(const keypoint_type& p, const feature_type& f);
     void remove(int i);
