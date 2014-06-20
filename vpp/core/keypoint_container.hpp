@@ -40,7 +40,7 @@ namespace vpp
         int new_index = pts_res - keypoint_vector_.begin() - 1;
         index2d_(cast<vint2>(pts_it->position)) = new_index;
         matches_[prev_index] = new_index;
-        assert(keypoint_vector_[index2d_(pts_it->position)].position == pts_it->position);
+        assert(keypoint_vector_[index2d_(pts_it->position.cast<int>())].position == pts_it->position);
       }
 
       pts_it++;

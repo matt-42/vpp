@@ -1,6 +1,7 @@
 #ifndef VPP_FAST3_DETECTOR_HH_
 # define VPP_FAST3_DETECTOR_HH_
 
+# include <omp.h>
 # include <thread>
 # include <vpp/vpp.hh>
 
