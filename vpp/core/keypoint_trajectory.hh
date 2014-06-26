@@ -35,6 +35,7 @@ namespace vpp
 
     vfloat2 operator[](unsigned i) const { return history[i]; }
 
+    const std::deque<vfloat2>& positions() { return history; }
   private:
     std::deque<vfloat2> history;
   };
