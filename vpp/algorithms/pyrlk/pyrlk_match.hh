@@ -17,7 +17,8 @@ namespace vpp
                    const pyramid2d<vector<V, 1>>& pyramid_next,
                    C& keypoints,
                    M matcher,
-                   float min_ev, float max_err)
+                   float min_ev, float max_err,
+                   float max_iteration, float convergence_delta)
   {
     keypoints.prepare_matching();
 #pragma omp parallel for
@@ -29,7 +30,7 @@ namespace vpp
       for(int S = pyramid_prev.size() - 1; S >= 0; S--)
       {
         tr *= pyramid_prev.factor();
-        auto match = matcher(kp.position / std::pow(2, S), tr, pyramid_prev[S], pyramid_next[S], pyramid_prev_grad[S], min_ev);
+        auto match = matcher(kp.position / std::pow(2, S), tr, pyramid_prev[S], pyramid_next[S], pyramid_prev_grad[S], min_ev, max_iteration, convergence_delta);
         if (match.second < max_err)
         {
           tr = match.first;

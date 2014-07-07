@@ -12,7 +12,9 @@ namespace vpp
     template <typename F, typename GD>
     std::pair<vfloat2, float> operator()(vfloat2 p, vfloat2 tr_prediction,
                                          F A, F B, GD Ag,
-                                         float min_ev_th)
+                                         float min_ev_th,
+                                         int max_interations,
+                                         float convergence_delta)
     {
       typedef typename F::value_type V;
       int ws = WS;
@@ -78,7 +80,7 @@ namespace vpp
       auto domain = B.domain() - border(3);
 
       // Gradient descent
-      for (int k = 0; k < 30 && nk.norm() >= 0.1; k++)
+      for (int k = 0; k < max_interations && nk.norm() >= convergence_delta; k++)
       {
         Eigen::Vector2f bk = Eigen::Vector2f::Zero();
         // Temporal difference.
