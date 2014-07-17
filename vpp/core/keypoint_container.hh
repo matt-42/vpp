@@ -66,6 +66,9 @@ namespace vpp
     keypoint_type& operator[] (unsigned i)             { return keypoint_vector_[i]; }
     const keypoint_type& operator[] (unsigned i) const { return keypoint_vector_[i]; }
 
+    keypoint_type& operator() (vint2 p)             { return keypoint_vector_[index2d_(p)]; }
+    const keypoint_type& operator() (vint2 p) const { return keypoint_vector_[index2d_(p)]; }
+
     int size() const;
 
     void update_index(unsigned i, const vint2& p);
