@@ -9,6 +9,8 @@ namespace vpp
   template <unsigned WS>
   struct lk_match_point_square_win
   {
+    enum { window_size = WS };
+
     template <typename F, typename GD>
     std::pair<vfloat2, float> operator()(vfloat2 p, vfloat2 tr_prediction,
                                          F A, F B, GD Ag,
@@ -102,11 +104,10 @@ namespace vpp
         }
 
         nk = G1 * bk;
-        if (nk.norm() > ws) return std::pair<vfloat2, float>(vfloat2(-1,-1), FLT_MAX);
         v += vfloat2(nk[0], nk[1]);
 
         if (!domain.has(v.cast<int>()))
-          return std::pair<vfloat2, float>(vfloat2(-1,-1), FLT_MAX);
+          return std::pair<vfloat2, float>(vfloat2(0, 0), FLT_MAX);
       }
 
       // Compute matching error as the ssd.

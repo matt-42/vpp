@@ -23,7 +23,7 @@ namespace vpp
     S.block<1, 4>(4,0) = y[2] * B.block<1, 4>(0,0) - y[0] * B.block<1, 4>(2,0);
     S.block<1, 4>(5,0) = y[0] * B.block<1, 4>(1,0) - y[1] * B.block<1, 4>(0,0);
 
-    JacobiSVD<MatrixXf> svd(S, ComputeThinV);
+    JacobiSVD<MatrixXf> svd(S, ComputeFullV);
     return (svd.matrixV().block<3, 1>(0, 3) / svd.matrixV()(3, 3));
   }
 

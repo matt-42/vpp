@@ -21,34 +21,43 @@ namespace vpp
                    float max_iteration, float convergence_delta)
   {
     keypoints.prepare_matching();
-#pragma omp parallel for
+    //#pragma omp parallel for
     for(int i = 0; i < keypoints.size(); i++)
     {
       auto& kp = keypoints[i];
-      vfloat2 tr = vfloat2(0.f,0.f);
-      float dist = 0.f;
-      for(int S = pyramid_prev.size() - 1; S >= 0; S--)
+      if (kp.alive())
       {
-        tr *= pyramid_prev.factor();
-        auto match = matcher(kp.position / std::pow(2, S), tr, pyramid_prev[S], pyramid_next[S], pyramid_prev_grad[S], min_ev, max_iteration, convergence_delta);
-        if (match.second < max_err)
+        vfloat2 tr = vfloat2(0.f,0.f);
+        float dist = 0.f;
+        for(int S = pyramid_prev.size() - 1; S >= 0; S--)
         {
-          tr = match.first;
+          tr *= pyramid_prev.factor();
+          auto match = matcher(kp.position / std::pow(2, S), tr, pyramid_prev[S], pyramid_next[S], pyramid_prev_grad[S], min_ev, max_iteration, convergence_delta);
+          //std::cout << "S: "  << S << " tr norm: " << match.first.norm() << std::endl;
+          if ((match.first - tr).norm() > M::window_size * 3)
+            goto remove_keypoint;
+
+          if (match.second < max_err)
+          {
+            tr = match.first;
+          }
+          dist = match.second;
+          // else
+          // {
+          //   keypoints.remove(i);
+          //   goto nextpoint;
+          // }
         }
-        dist = match.second;
-        // else
-        // {
-        //   keypoints.remove(i);
-        //   goto nextpoint;
-        // }
+
+        kp.position += tr;
+        kp.age++;
+        if (dist > max_err || !pyramid_prev[0].domain().has(cast<vint2>(kp.position)))
+        {
+        remove_keypoint:
+          keypoints.remove(i);
+        }
+        keypoints.update_index(i, kp.position.cast<int>());
       }
-
-      kp.position += tr;
-      kp.age++;
-      if (dist > max_err || !pyramid_prev[0].domain().has(cast<vint2>(kp.position)))
-        keypoints.remove(i);
-      keypoints.update_index(i, kp.position.cast<int>());
-
     nextpoint:
       continue;
     }

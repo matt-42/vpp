@@ -56,6 +56,8 @@ namespace vpp
     void remove(int i);
     void remove(vint2 pos);
 
+    template <typename T>
+    void move(int i, T pos);
     void update(unsigned i, const keypoint_type& p, const feature_type& f);
 
     keypoint_vector_type&  keypoints()                 { return keypoint_vector_; }

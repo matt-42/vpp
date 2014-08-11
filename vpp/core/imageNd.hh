@@ -119,6 +119,8 @@ namespace vpp
     inline void set_external_data_holder(void* data, void (data_deleter)(void*))
     { ptr_->data_sptr_ = std::shared_ptr<void>(data, data_deleter); }
 
+    inline void swap(imageNd<V, N>& o) { o.ptr_.swap(ptr_); }
+
   protected:
     void allocate(const std::vector<int>& dims, vpp::border b);
 

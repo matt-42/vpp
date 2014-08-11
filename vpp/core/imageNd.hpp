@@ -119,6 +119,9 @@ namespace vpp
     typedef std::aligned_storage<sizeof(vint16), alignof(vint16)> align_type;
     const int align_size = sizeof(vint16);
 
+    // typedef std::aligned_storage<sizeof(vchar1), alignof(vchar1)> align_type;
+    // const int align_size = sizeof(vchar1);
+
     ptr_ = std::make_shared<imageNd_data<V, N>>();
     auto& d = *ptr_;
     d.border_ = b.size();

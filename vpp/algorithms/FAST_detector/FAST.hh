@@ -262,7 +262,8 @@ namespace vpp
     {
       int* rows[block_size];
       for (int i = 0; i < block_size; i++)
-        rows[i] = &A(r + i, 0);
+        if (r + i < nr)
+          rows[i] = &A(r + i, 0);
 
       for (int c = 0; c < nc; c += block_size)
       {
@@ -271,15 +272,16 @@ namespace vpp
         int vmax = 0;
         for (int br = 0; br < block_size; br++)
         for (int bc = c; bc < c + block_size; bc++)
-        {
-          int v = rows[br][bc];
-          rows[br][bc] = 0;
-          if (v > vmax)
+          if (r + br < nr and c + bc < nc)
           {
-            vmax = v;
-            pmax = vint2(br, bc);
+            int v = rows[br][bc];
+            rows[br][bc] = 0;
+            if (v > vmax)
+            {
+              vmax = v;
+              pmax = vint2(br, bc);
+            }
           }
-        }
 
         if (vmax > 0)
           rows[pmax[0]][pmax[1]] = vmax;

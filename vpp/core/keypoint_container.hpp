@@ -125,6 +125,8 @@ namespace vpp
   {
     assert(i < size());
     keypoint_vector_[i].die();
+    auto& index = index2d_(keypoint_vector_[i].position.cast<int>());
+    if (index == i) index = -1;
   }
 
   template <typename P, typename F>
@@ -133,6 +135,19 @@ namespace vpp
   {
     assert(has(position));
     remove(index2d_(position));
+  }
+
+
+  template <typename P, typename F>
+  template <typename T>
+  void
+  keypoint_container<P, F>::move(int i, T position)
+  {
+    assert(i < size());
+    assert(i >= 0);
+
+    keypoint_vector_[i].position = position;
+    index2d_(position.cast<int>()) = i;
   }
 
   template <typename P, typename F>
