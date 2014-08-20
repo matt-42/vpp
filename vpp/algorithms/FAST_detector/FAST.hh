@@ -272,9 +272,10 @@ namespace vpp
         int vmax = 0;
         for (int br = 0; br < block_size; br++)
         for (int bc = c; bc < c + block_size; bc++)
-          if (r + br < nr and c + bc < nc)
+          if (r + br < nr and bc < nc)
           {
             int v = rows[br][bc];
+            //std::cout << v << std::endl;
             rows[br][bc] = 0;
             if (v > vmax)
             {

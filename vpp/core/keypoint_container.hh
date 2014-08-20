@@ -3,6 +3,7 @@
 
 # include <vpp/core/vector.hh>
 # include <vpp/core/image2d.hh>
+# include <vpp/core/zero.hh>
 
 
 namespace vpp

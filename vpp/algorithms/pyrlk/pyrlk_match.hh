@@ -49,14 +49,13 @@ namespace vpp
           // }
         }
 
-        kp.position += tr;
-        kp.age++;
-        if (dist > max_err || !pyramid_prev[0].domain().has(cast<vint2>(kp.position)))
+        if (dist > max_err || !pyramid_prev[0].domain().has(cast<vint2>(kp.position + tr)))
         {
         remove_keypoint:
           keypoints.remove(i);
         }
-        keypoints.update_index(i, kp.position.cast<int>());
+        else
+          keypoints.move(i, kp.position + tr);
       }
     nextpoint:
       continue;

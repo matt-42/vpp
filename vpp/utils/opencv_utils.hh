@@ -1,10 +1,12 @@
-#ifndef VPP_OPENCV_UTILS
+#ifndef VPP_OPENCV_UTILS_HH_
+# define VPP_OPENCV_UTILS_HH_
 
+# include <iostream>
 # include <regex>
-# include <opencv2/opencv.hpp>
+# include <opencv2/highgui/highgui.hpp>
 # include <vpp/core/boxNd.hh>
 
-bool open_videocapture(const char* str, cv::VideoCapture& cap)
+inline bool open_videocapture(const char* str, cv::VideoCapture& cap)
 {
   if (std::regex_match(str, std::regex("[0-9]+")))
     cap.open(atoi(str));
@@ -19,7 +21,7 @@ bool open_videocapture(const char* str, cv::VideoCapture& cap)
   return true;
 }
 
-vpp::box2d videocapture_domain(cv::VideoCapture& cap)
+inline vpp::box2d videocapture_domain(cv::VideoCapture& cap)
 {
   return vpp::make_box2d(cap.get(CV_CAP_PROP_FRAME_HEIGHT),
                     cap.get(CV_CAP_PROP_FRAME_WIDTH));
