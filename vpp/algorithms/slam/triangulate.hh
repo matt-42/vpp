@@ -2,15 +2,16 @@
 # define VPP_SLAM_TRIANGULATE_HH_
 
 # include <Eigen/Core>
+# include <Eigen/SVD>
 
 namespace vpp
 {
 
   // Triangulate a 3d point given 2 projections.
-  vfloat3 triangulate(vfloat3 x,
-                      vfloat3 y,
-                      Eigen::Matrix4f A,
-                      Eigen::Matrix4f B)
+  inline vfloat3 triangulate(vfloat3 x,
+                             vfloat3 y,
+                             Eigen::Matrix4f A,
+                             Eigen::Matrix4f B)
   {
     using namespace Eigen;
 

@@ -2,6 +2,7 @@
 # define VPP_CORE_KEYPOINT_CONTAINER_HPP_
 
 #include <vpp/core/keypoint_container.hh>
+#include <vpp/core/fill.hh>
 
 namespace vpp
 {
@@ -146,7 +147,10 @@ namespace vpp
     assert(i < size());
     assert(i >= 0);
 
-    keypoint_vector_[i].position = position;
+    auto& kp = keypoint_vector_[i];
+    kp.velocity = position - kp.position;
+    kp.position = position;
+    kp.age++;
     index2d_(position.cast<int>()) = i;
   }
 
