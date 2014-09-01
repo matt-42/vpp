@@ -9,6 +9,8 @@
 # include <vpp/core/imageNd_iterator.hh>
 # include <vpp/core/boxNd_iterator.hh>
 
+# include <vpp/core/colorspace_conversions.hh>
+
 # include <vpp/core/vector.hh>
 # include <vpp/core/neighborhood.hh>
 # include <vpp/core/boxNd.hh>
@@ -17,6 +19,7 @@
 # include <vpp/core/parallel_for.hh>
 
 # include <vpp/core/fill.hh>
+# include <vpp/core/draw.hh>
 
 # include <vpp/core/zero.hh>
 # include <vpp/core/cast_to_float.hh>
