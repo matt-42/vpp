@@ -53,7 +53,7 @@ namespace vpp
                          typename T::value_type new_value,
                          std::vector<U>& dead_vector) const;
 
-    void add(const keypoint_type& p, const feature_type& f);
+    void add(const keypoint_type& p, const feature_type& f = feature_type());
     void remove(int i);
     void remove(vint2 pos);
 

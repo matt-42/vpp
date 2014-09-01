@@ -151,7 +151,8 @@ namespace vpp
     kp.velocity = position - kp.position;
     kp.position = position;
     kp.age++;
-    index2d_(position.cast<int>()) = i;
+
+    index2d_(kp.position.cast<int>()) = i;
   }
 
   template <typename P, typename F>
