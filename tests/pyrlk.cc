@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
     cv::imwrite("i2_3.jpg", to_opencv(pyramid2[3]));
   }
 
-  pyrlk_match(pyramid1, pyramid1_grad, pyramid2, keypoints, lk_match_point_square_win<5>(), 0.01, 50);
+  pyrlk_match(pyramid1, pyramid1_grad, pyramid2, keypoints, lk_match_point_square_win<5>(), 0.01, 50, 50, 0.001);
 
   assert(keypoints.size() == 1);
   std::cout << keypoints[0].position.transpose() << std::endl;
