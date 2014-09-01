@@ -21,21 +21,18 @@ namespace vpp
                    float max_iteration, float convergence_delta)
   {
     keypoints.prepare_matching();
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for(int i = 0; i < keypoints.size(); i++)
     {
       auto& kp = keypoints[i];
       if (kp.alive())
       {
-        vfloat2 tr = vfloat2(0.f,0.f);
+        vfloat2 tr = vfloat2{0.f,0.f};
         float dist = 0.f;
         for(int S = pyramid_prev.size() - 1; S >= 0; S--)
         {
           tr *= pyramid_prev.factor();
           auto match = matcher(kp.position / std::pow(2, S), tr, pyramid_prev[S], pyramid_next[S], pyramid_prev_grad[S], min_ev, max_iteration, convergence_delta);
-          //std::cout << "S: "  << S << " tr norm: " << match.first.norm() << std::endl;
-          if ((match.first - tr).norm() > M::window_size * 3)
-            goto remove_keypoint;
 
           if (match.second < max_err)
           {

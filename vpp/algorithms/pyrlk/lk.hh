@@ -115,7 +115,12 @@ namespace vpp
       }
 
       nk = G1 * bk;
-      v += vfloat2(nk[0], nk[1]);
+      if (nk.norm() > 1)
+      {
+        nk.normalize();
+        nk *= 1;
+      }
+      v += vfloat2{nk[0], nk[1]};
 
       if (!domain.has(v.cast<int>()))
         return std::pair<vfloat2, float>(vfloat2(0, 0), FLT_MAX);
