@@ -1,9 +1,11 @@
+cmake_minimum_required(VERSION 2.8)
 
 find_package(OpenCV REQUIRED)
 
 enable_testing()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/.. /usr/include/eigen3)
+add_definitions(-std=c++1y -g)
 
 add_executable(imageNd imageNd.cc)
 add_test(imageNd imageNd)
@@ -52,6 +54,10 @@ add_test(tuple_utils tuple_utils)
 
 add_executable(block_wise block_wise.cc)
 add_test(block_wise block_wise)
+
+
+add_executable(colorspace_conversions colorspace_conversions.cc)
+add_test(colorspace_conversions colorspace_conversions)
 
 add_executable(pyrlk pyrlk.cc)
 add_test(pyrlk pyrlk)
