@@ -7,9 +7,9 @@ namespace vpp
 {
 
   template <typename I, typename J>
-  void copy(I& src, J& dst)
+  void copy(const I& src, J& dst)
   {
-    pixel_wise(src, dst) << [=] (auto& in, auto& out) { out = in; };
+    pixel_wise(src, dst) << [] (const auto& in, auto& out) { out = in; };
   }
 
 };
