@@ -69,9 +69,9 @@ namespace vpp
   }
 
   template <typename V, unsigned N>
-  imageNd<V, N>::imageNd(const imageNd<V, N>&& other)
+  imageNd<V, N>::imageNd(imageNd<V, N>&& other)
+    : ptr_(std::move(other.ptr_))
   {
-    *this = other;
   }
 
 
@@ -90,9 +90,9 @@ namespace vpp
 
 
   template <typename V, unsigned N>
-  imageNd<V, N>& imageNd<V, N>::operator=(const imageNd<V, N>&& other)
+  imageNd<V, N>& imageNd<V, N>::operator=(imageNd<V, N>&& other)
   {
-    ptr_ = other.ptr_;
+    ptr_ = std::move(other.ptr_);
     return *this;
   }
 
@@ -116,12 +116,9 @@ namespace vpp
   template <typename V, unsigned N>
   void imageNd<V, N>::allocate(const std::vector<int>& dims, vpp::border b)
   {
-    typedef std::aligned_storage<sizeof(vint16), alignof(vint16)> align_type;
-    const int align_size = sizeof(vint16);
+    const int align_size = 256; // Align rows addresses on multiples of 256 bits.
 
-    // typedef std::aligned_storage<sizeof(vchar1), alignof(vchar1)> align_type;
-    // const int align_size = sizeof(vchar1);
-
+    typedef unsigned long long ULL;
     ptr_ = std::make_shared<imageNd_data<V, N>>();
     auto& d = *ptr_;
     d.border_ = b.size();
@@ -135,18 +132,23 @@ namespace vpp
     }
 
     d.pitch_ = dims[N - 1] * sizeof(V) + border_size * 2;
-    if (d.pitch_ % 16) d.pitch_ += 16 - (d.pitch_ % 16);
+    if (d.pitch_ % align_size) d.pitch_ += align_size - (d.pitch_ % align_size);
 
     int size = 1;
     for (int i = 0; i < N - 1; i++)
       size *= (dims[i] + b.size() * 2);
     size *= d.pitch_;
-    d.data_ = reinterpret_cast<V*>(new align_type[1 + (size) / sizeof(align_type)]);
+    
+    d.data_ = (V*) malloc(align_size + size);
+    d.data_sptr_ = std::shared_ptr<void>(d.data_, [] (V* p) { 
+        free((char*)p); 
+      });
 
-    d.data_sptr_ = std::shared_ptr<void>(d.data_);
+    if (ULL(d.data_) % align_size)
+      d.data_ = (V*)((char*)(d.data_) + align_size - int(ULL(d.data_) % align_size));
 
     d.data_end_ = d.data_ + size / sizeof(V);
-    assert(!(long(d.data_) % alignof(align_type)));
+    assert(!(ULL(d.data_) % align_size));
     d.domain_.p1() = vint<N>::Zero();
     for (unsigned i = 0; i < N; i++)
       d.domain_.p2()[i] = dims[i] - 1;

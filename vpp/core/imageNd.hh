@@ -56,7 +56,7 @@ namespace vpp
     imageNd(const imageNd<V, N>& other);
 
     // Move constructor.
-    imageNd(const imageNd<V, N>&& other);
+    imageNd(imageNd<V, N>&& other);
 
     // Destructor.
     ~imageNd();
@@ -67,7 +67,7 @@ namespace vpp
 
     // Assigment.
     imageNd<V, N>& operator=(const imageNd<V, N>& other);
-    imageNd<V, N>& operator=(const imageNd<V, N>&& other);
+    imageNd<V, N>& operator=(imageNd<V, N>&& other);
 
     // Access to values.
     inline V& operator()(const vint<N>& p);
@@ -99,6 +99,7 @@ namespace vpp
 
     inline bool has(const coord_type& p) const { return ptr_->domain_.has(p); }
     inline bool has(const V* p) const { return p >= ptr_->data_ and p < ptr_->data_end_; }
+    inline bool has_data() const { return !!ptr_; }
     // Access to raw buffer.
     inline V* data() { return ptr_->data_; }
     inline const V* data() const { return ptr_->data_; }
