@@ -12,7 +12,7 @@ namespace vpp
   {
     inline bool fast9_check_code(uint code32)
     {
-      // Thanks Arkanosis (https://github.com/Arkanosis) for this implementation.
+      // Thanks Arkanosis (https://github.com/Arkanosis) for the idea.
       uint64_t code48 = code32;
       code48 |= code48 << 32;
       code48 &= code48 << 8;
@@ -104,7 +104,7 @@ namespace vpp
 
         auto* b_row = &B(r, 0);
 
-        #pragma omp simd aligned(a_row1, a_row2, a_row3, a_row4, a_row5, a_row6, a_row7, b_row:16 * sizeof(int))
+#pragma omp simd aligned(a_row1, a_row2, a_row3, a_row4, a_row5, a_row6, a_row7, b_row:8 * sizeof(int))
         for (int c = 0; c < nc; c++) if (b_row[c] || fullcheck)
         {
           V v = a_row4[c];
@@ -162,7 +162,7 @@ namespace vpp
 
         auto* b_row = &B(r, 0);
 
-        #pragma omp simd aligned(a_row1, a_row2, a_row3, a_row4, a_row5, a_row6, a_row7, b_row:16 * sizeof(int))
+        #pragma omp simd aligned(a_row1, a_row2, a_row3, a_row4, a_row5, a_row6, a_row7, b_row:8 * sizeof(int))
         for (int c = 0; c < nc; c++) if (b_row[c])
         {
           b_row[c] = fast_score(a_row1,
@@ -194,7 +194,7 @@ namespace vpp
 
         auto* b_row = &B(r, 0);
 
-#pragma omp simd aligned(a_row1, a_row4, a_row7, b_row:16 * sizeof(int))
+#pragma omp simd aligned(a_row1, a_row4, a_row7, b_row:8 * sizeof(int))
         for (int c = 0; c < nc; c++)
         {
           V v = a_row4[c];
@@ -227,7 +227,7 @@ namespace vpp
         V* a_row2 = a_row;
         V* a_row3 = shift_row(a_row, 1*pitch);
 
-        #pragma omp simd aligned(a_row1, a_row2, a_row3:16 * sizeof(int))
+#pragma omp simd aligned(a_row1, a_row2, a_row3:8 * sizeof(int))
         for (int c = 0; c < nc; c++)
           if (a_row2[c])
           {
