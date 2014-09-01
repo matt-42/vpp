@@ -1,9 +1,10 @@
 #include <iostream>
 #include <vpp/vpp.hh>
 
+using namespace vpp;
+
 int main()
 {
-  using namespace vpp;
 
   imageNd<int, 2> img_test({2,3});
 
@@ -40,10 +41,10 @@ int main()
 
   // Test with border.
 
-
+  int align_size = 256;
   imageNd<int, 2> img2(dims, 1);
-  assert(!(long(&img2(0,0)) % 16));
-  assert(!(img2.pitch() % 16));
+  assert(!(long(&img2(0,0)) % align_size));
+  assert(!(img2.pitch() % align_size));
   assert((char*)(&img2(vint2(99,199))) == ((char*)&img2(0,0) + 99 * img2.pitch() + 199 * sizeof(int)));
 
   std::vector<int> dim3 = {100, 200, 300};
@@ -104,4 +105,12 @@ int main()
     // assert(test.linear_interpolate(vfloat2(0.25, 0.25)) == v2);
   }
 
+  // Move.
+  {
+    image2d<int> i1(10, 10);
+    int* buffer = i1.data();
+    image2d<int> i2 = std::move(i1);
+    assert(i2.data() == buffer);
+    assert(!i1.has_data());
+  }
 }
