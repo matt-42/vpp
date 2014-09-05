@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <vpp/vpp.hh>
+#include <vpp/utils/opencv_bridge.hh>
+#include <opencv2/opencv.hpp>
 
 #include "get_time.hh"
 
@@ -14,17 +16,24 @@ void raw_naive(image2d<int> A, image2d<int> B)
   {
     int sum = 0;
     for (int d = -2; d <= 2; d++)
-      sum += B(r, c + d);
-    A(r, c) = sum / 5;
+    for (int e = -2; e <= 2; e++)
+      sum += B(r + d, c + e);
+    A(r, c) = sum / 25;
   }
 }
 
 void check(image2d<int> A, image2d<int> B)
 {
-  for (int r = 0; r < A.nrows(); r++)
-  for (int c = 0; c < A.ncols(); c++)
+  for (int r = 5; r < A.nrows() - 5; r++)
+  for (int c = 5; c < A.ncols() - 5; c++)
   {
-    assert(A(r, c) == (B(r, c - 2) + B(r, c - 1) + B(r, c) + B(r, c + 1) + B(r, c + 2)) / 5);
+
+    int sum = 0;
+    for (int d = -2; d <= 2; d++)
+      for (int e = -2; e <= 2; e++)
+        sum += B(r + d, c + e);
+
+    assert(A(r, c) == sum / 25);
   }
 }
 
@@ -42,39 +51,38 @@ void raw_openmp_simd(image2d<int> A, image2d<int> B)
     int nc = A.ncols();
     int sum = 0;
 
-    // Is actually slower. The compiler must do a great job optimizing the
-    // second loop...
-    // for (int d = -2; d <= 1; d++)
-    //   sum += curB[d];
-    // curA[0] = sum / 5;
-    // for (int i = 1; i < nc; i++)
-    // {
-    //   sum += curB[i + 2] - curB[i-3];
-    //   curA[i] = sum / 5;
-    // }
+    int* rows[5];
+    for (int i = -2; i <= 2; i++)
+      rows[i + 2] = &B(vint2(r + i, 0));
 
-#pragma omp simd aligned(curA, curB: 8 * sizeof(int))
     for (int i = 0; i < nc; i++)
     {
       int sum = 0;
       for (int d = -2; d <= 2; d++)
-        sum += curB[i + d];
-      curA[i] = sum / 5;
+        for (int e = -2; e <= 2; e++)
+          sum += rows[d + 2][i + e];
+      curA[i] = sum / 25;
     }
   }
 }
 
 void vpp_pixel_wise(image2d<int> A, image2d<int> B)
 {
-  auto nbh = box_nbh2d<int, 1, 5>(B);
-  vpp::pixel_wise(A, B) << [&] (int& a, int& b)
+  auto Bnbh = box_nbh2d<int, 5, 5>(B);
+  vpp::pixel_wise(A, Bnbh) << [&] (int& a, auto& b_nbh)
   {
     int sum = 0;
-    nbh(b) < [&] (int& n) { sum += n; };
-    a = sum / 5;
+    b_nbh.for_all([&] (int& n) { sum += n; });
+    a = sum / 25;
   };
 }
 
+void opencv(image2d<int> A, image2d<int> B)
+{
+  cv::boxFilter(to_opencv(B), to_opencv(A), -1, cv::Size(5,5), cv::Point(-1, -1), true, cv::BORDER_CONSTANT);
+
+  cv::blur(to_opencv(B), to_opencv(A), cv::Size(5,5), cv::Point(-1, -1), true, cv::BORDER_CONSTANT);
+}
 
 template <typename T>
 int bench(int size, T& results, int debug = 0)
@@ -87,7 +95,7 @@ int bench(int size, T& results, int debug = 0)
 
   pixel_wise(B) << [] (int& b) { b = rand() % 1000; };
 
-  int K = 1;
+  int K = 1000000;
   double time;
 
   // Cache warm up.
@@ -95,24 +103,32 @@ int bench(int size, T& results, int debug = 0)
 
   fill(A, 0);
   time = get_time_in_seconds();
-  for (int k = 0; k < K; k++)
-    raw_naive(A, B);
+  // for (int k = 0; k < K; k++)
+  //   raw_naive(A, B);
   double raw_naive_time = get_time_in_seconds() - time;
-  // check(A, B);
+  check(A, B);
 
   fill(A, 0);
   time = get_time_in_seconds();
-  for (int k = 0; k < K; k++)
-    raw_openmp_simd(A, B);
+  // for (int k = 0; k < K; k++)
+  //   raw_openmp_simd(A, B);
   double raw_openmp_simd_time = get_time_in_seconds() - time;
-  // check(A, B);
+  check(A, B);
+
+  fill(A, 0);
+  time = get_time_in_seconds();
+  // for (int k = 0; k < K; k++)
+  //   vpp_pixel_wise(A, B);
+  double pixel_wise_time = get_time_in_seconds() - time;
+  check(A, B);
+
 
   fill(A, 0);
   time = get_time_in_seconds();
   for (int k = 0; k < K; k++)
-    vpp_pixel_wise(A, B);
-  double pixel_wise_time = get_time_in_seconds() - time;
-  // check(A, B);
+    opencv(A, B);
+  double opencv_time = get_time_in_seconds() - time;
+  check(A, B);
 
   double freq = 3.7 * 1000 * 1000 * 1000;
   if (debug)
@@ -130,6 +146,7 @@ int bench(int size, T& results, int debug = 0)
   results.naive.push_back(freq * raw_naive_time / (K * size));
   results.pixel_wise.push_back(freq * pixel_wise_time / (K * size));
   results.raw.push_back(freq * raw_openmp_simd_time / (K * size));
+  results.opencv.push_back(freq * opencv_time / (K * size));
 }
 
 int main()
@@ -144,6 +161,7 @@ int main()
     std::vector<double> naive;
     std::vector<double> pixel_wise;
     std::vector<double> raw;
+    std::vector<double> opencv;
   } results;
 
   int step = 100000;
@@ -151,15 +169,17 @@ int main()
   for (int s = step; s < max_size; s += step)
     bench(s, results);
 
-  std::ofstream n("box_naive.txt");
-  std::ofstream p("box_pixel_wise.txt");
-  std::ofstream o("box_openmp.txt");
-  std::ofstream speedup("box_speedup.txt");
-  for (int s = 0; s < max_size/step; s ++)
+  std::ofstream n("box_5x5_naive.txt");
+  std::ofstream p("box_5x5_pixel_wise.txt");
+  std::ofstream o("box_5x5_openmp.txt");
+  std::ofstream ocv("box_5x5_opencv.txt");
+  std::ofstream speedup("box_5x5_speedup.txt");
+  for (int s = 0; s < (max_size/step - 1); s ++)
   {
-    n << s * step << '\t'<< results.naive[s] << std::endl;
-    p << s * step << '\t'<< results.pixel_wise[s] << std::endl;
-    o << s * step << '\t'<< results.raw[s] << std::endl;
-    speedup << s * step << '\t'<< results.naive[s] / results.pixel_wise[s] << std::endl;
+    n << (s+1) * step << '\t'<< results.naive[s] << std::endl;
+    p << (s+1) * step << '\t'<< results.pixel_wise[s] << std::endl;
+    o << (s+1) * step << '\t'<< results.raw[s] << std::endl;
+    ocv << (s+1) * step << '\t'<< results.opencv[s] << std::endl;
+    speedup << (s+1) * step << '\t'<< results.naive[s] / results.pixel_wise[s] << std::endl;
   }
 }

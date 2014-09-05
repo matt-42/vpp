@@ -1,7 +1,8 @@
 #include <iostream>
 #include <fstream>
-#include <vpp/boxNd.hh>
 #include <vpp/vpp.hh>
+#include <vpp/utils/opencv_bridge.hh>
+#include <opencv2/opencv.hpp>
 
 #include "get_time.hh"
 
@@ -15,7 +16,6 @@ void raw_naive(image2d<int> A, image2d<int> B, image2d<int> C)
   {
     A(r, c) = B(r, c) + C(r, c);
     // equivalent to pa[r * A.ncols() + c] = pb[r * B.ncols() + c] + pc[r * C.ncols() + c];
-
   }
 }
 
@@ -57,6 +57,12 @@ void vpp_pixel_wise(image2d<int> A, image2d<int> B, image2d<int> C)
   };
 }
 
+
+void opencv(image2d<int> A, image2d<int> B, image2d<int> C)
+{
+  cv::add(to_opencv(A), to_opencv(B), to_opencv(C));
+}
+
 template <typename T>
 int bench(int size, T& results)
 {
@@ -69,7 +75,7 @@ int bench(int size, T& results)
 
   pixel_wise(B, C) << [] (int& b, int& c) { b = rand(); c = rand(); };
 
-  int K = 400;
+  int K = 10;
   double time;
 
 
@@ -97,6 +103,14 @@ int bench(int size, T& results)
   double pixel_wise_time = get_time_in_seconds() - time;
   check(A, B, C);
 
+
+  fill(A, 0);
+  time = get_time_in_seconds();
+  for (int k = 0; k < K; k++)
+    opencv(A, B, C);
+  double opencv_time = get_time_in_seconds() - time;
+  check(A, B, C);
+
   // std::cout << "time per iteration (ms) : " << std::endl;
   // std::cout << "raw_naive_time: " << 1000. * raw_naive_time / K << std::endl;
   // std::cout << "raw_naive2_time: " << 1000. * raw_naive2_time / K << std::endl;
@@ -111,6 +125,7 @@ int bench(int size, T& results)
   results.naive.push_back(freq * raw_naive_time / (K * size));
   results.pixel_wise.push_back(freq * pixel_wise_time / (K * size));
   results.raw.push_back(freq * raw_openmp_simd_time / (K * size));
+  results.opencv.push_back(freq * opencv_time / (K * size));
 
   // results.naive.push_back(1000 * raw_naive_time / K);
   // results.pixel_wise.push_back(1000 * pixel_wise_time / K);
@@ -129,22 +144,25 @@ int main()
     std::vector<float> naive;
     std::vector<float> pixel_wise;
     std::vector<float> raw;
+    std::vector<float> opencv;
   } results;
 
-  int step = 10000;
-  int max_size = 1000000;
-  for (int s = 0; s < max_size; s += step)
+  int step = 100000;
+  int max_size = 4000000;
+  for (int s = step; s < max_size; s += step)
     bench(s, results);
 
   std::ofstream n("add_naive.txt");
   std::ofstream p("add_pixel_wise.txt");
   std::ofstream o("add_openmp.txt");
+  std::ofstream ocv("add_opencv.txt");
   std::ofstream speedup("add_speedup.txt");
-  for (int s = 0; s < max_size/step; s ++)
+  for (int s = 0; s < max_size/step - 1; s ++)
   {
-    n << s * step << '\t'<< results.naive[s] << std::endl;
-    p << s * step << '\t'<< results.pixel_wise[s] << std::endl;
-    o << s * step << '\t'<< results.raw[s] << std::endl;
-    speedup << s * step << '\t'<< results.naive[s] / results.pixel_wise[s] << std::endl;
+    n << (s + 1) * step << '\t'<< results.naive[s] << std::endl;
+    p << (s + 1) * step << '\t'<< results.pixel_wise[s] << std::endl;
+    o << (s + 1) * step << '\t'<< results.raw[s] << std::endl;
+    ocv << (s+1) * step << '\t'<< results.opencv[s] << std::endl;
+    speedup << (s + 1) * step << '\t'<< results.naive[s] / results.pixel_wise[s] << std::endl;
   }
 }
