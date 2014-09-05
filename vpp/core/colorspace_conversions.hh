@@ -23,7 +23,6 @@ namespace vpp
   {
     typedef vector<T, 3> out_type;
     typedef vector<U, 1> in_type;
-    std::cout << in.nrows() << " " << in.ncols() << std::endl;
     imageNd<out_type, N> out(in.domain());
     pixel_wise(in, out) << [] (const in_type& i, out_type& o)
     {
