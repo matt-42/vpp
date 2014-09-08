@@ -81,7 +81,7 @@ void opencv(image2d<int> A, image2d<int> B)
 {
   cv::boxFilter(to_opencv(B), to_opencv(A), -1, cv::Size(5,5), cv::Point(-1, -1), true, cv::BORDER_CONSTANT);
 
-  cv::blur(to_opencv(B), to_opencv(A), cv::Size(5,5), cv::Point(-1, -1), true, cv::BORDER_CONSTANT);
+  //cv::blur(to_opencv(B), to_opencv(A), cv::Size(5,5), cv::Point(-1, -1), true, cv::BORDER_CONSTANT);
 }
 
 template <typename T>
@@ -95,7 +95,7 @@ int bench(int size, T& results, int debug = 0)
 
   pixel_wise(B) << [] (int& b) { b = rand() % 1000; };
 
-  int K = 1000000;
+  int K = 10;
   double time;
 
   // Cache warm up.
@@ -103,22 +103,22 @@ int bench(int size, T& results, int debug = 0)
 
   fill(A, 0);
   time = get_time_in_seconds();
-  // for (int k = 0; k < K; k++)
-  //   raw_naive(A, B);
+  for (int k = 0; k < K; k++)
+    raw_naive(A, B);
   double raw_naive_time = get_time_in_seconds() - time;
   check(A, B);
 
   fill(A, 0);
   time = get_time_in_seconds();
-  // for (int k = 0; k < K; k++)
-  //   raw_openmp_simd(A, B);
+  for (int k = 0; k < K; k++)
+    raw_openmp_simd(A, B);
   double raw_openmp_simd_time = get_time_in_seconds() - time;
   check(A, B);
 
   fill(A, 0);
   time = get_time_in_seconds();
-  // for (int k = 0; k < K; k++)
-  //   vpp_pixel_wise(A, B);
+  for (int k = 0; k < K; k++)
+    vpp_pixel_wise(A, B);
   double pixel_wise_time = get_time_in_seconds() - time;
   check(A, B);
 
@@ -130,7 +130,7 @@ int bench(int size, T& results, int debug = 0)
   double opencv_time = get_time_in_seconds() - time;
   check(A, B);
 
-  double freq = 3.7 * 1000 * 1000 * 1000;
+  double freq = 3.2 * 1000 * 1000 * 1000;
   if (debug)
   {
     std::cout << "time per iteration (ms) : " << std::endl;
