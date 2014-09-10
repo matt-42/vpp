@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  int K = 40;
+  int K = 400;
 
   typedef image2d<vuchar3> I;
   I A = clone_with_border(from_opencv<vuchar3>(cv::imread(argv[1])), 3);
@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
   image2d<unsigned char> Agl(A.domain(), 3);
   image2d<unsigned char> Bgl(A.domain());
   image2d<int> tmp(A.domain(), 1);
-
+  fill(tmp, 0);
   pixel_wise(Agl, A) << [] (unsigned char& gl, vuchar3& c)
   {
     gl = (c[0] + c[1] + c[2]) / 3;
@@ -49,8 +49,8 @@ int main(int argc, char* argv[])
   for (unsigned i = 0; i < K; i++)
   {
     keypoints_vpp.clear();
-    fast_detector9(Agl, tmp, th, lm, false);
-    make_keypoint_vector(tmp, keypoints_vpp);
+    keypoints_vpp = fast_detector9(Agl, th, lm, false, &tmp);
+    //make_keypoint_vector(tmp, keypoints_vpp);
   }
   double vpp_ms_per_iter = 1000 * (get_time_in_seconds() - time) / K;
 
@@ -73,15 +73,18 @@ int main(int argc, char* argv[])
             << "OpenCV: " << opencv_ms_per_iter << "ms" << std::endl
             << "VPP: " << vpp_ms_per_iter << "ms" << std::endl;
 
-  image2d<vuchar3> vpp_out(A.domain());
+  image2d<vuchar3> vpp_out = clone(A);
   image2d<vuchar3> opencv_out = clone(A);
-  pixel_wise(vpp_out, tmp, A) << [] (vuchar3& o, int& k, vuchar3& in)
-  {
-    o = k ? vuchar3(0,0, 255) : in;
-  };
+  // pixel_wise(vpp_out, tmp, A) << [] (vuchar3& o, int& k, vuchar3& in)
+  // {
+  //   o = k ? vuchar3(0,0, 255) : in;
+  // };
 
   for (int i = 0; i < keypoints.size(); i++)
     opencv_out(keypoints[i].pt.y, keypoints[i].pt.x) = vuchar3(0, 0, 255);
+
+  for (int i = 0; i < keypoints_vpp.size(); i++)
+    vpp_out(keypoints_vpp[i]) = vuchar3(0, 0, 255);
 
   cv::imwrite("opencv.ppm", to_opencv(opencv_out));
   cv::imwrite("vpp.ppm", to_opencv(vpp_out));
