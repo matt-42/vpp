@@ -28,7 +28,7 @@ void check(image2d<int> A, image2d<int> B, image2d<int> C)
   }
 }
 
-
+__attribute__((optimize("no-tree-vectorize")))
 void raw_openmp_simd(image2d<int> A, image2d<int> B, image2d<int> C)
 {
   int nr = A.nrows();
@@ -111,13 +111,10 @@ int bench(int size, T& results)
   double opencv_time = get_time_in_seconds() - time;
   check(A, B, C);
 
-  // std::cout << "time per iteration (ms) : " << std::endl;
-  // std::cout << "raw_naive_time: " << 1000. * raw_naive_time / K << std::endl;
-  // std::cout << "raw_naive2_time: " << 1000. * raw_naive2_time / K << std::endl;
-  // std::cout << "raw_sequential_time: " << 1000. * raw_sequential_time / K << std::endl;
-  // std::cout << "raw_openmp_time: " << 1000. * raw_openmp_time / K << std::endl;
-  // std::cout << "raw_openmp_simd_time: " << 1000. * raw_openmp_simd_time / K << std::endl;
-  // std::cout << "vpp_pixel_wise: " << 1000. * pixel_wise_time / K << std::endl;
+  std::cout << "time per iteration (ms) : " << std::endl;
+  std::cout << "raw_naive_time: " << 1000. * raw_naive_time / K << std::endl;
+  std::cout << "raw_openmp_simd_time: " << 1000. * raw_openmp_simd_time / K << std::endl;
+  std::cout << "vpp_pixel_wise: " << 1000. * pixel_wise_time / K << std::endl;
   //std::cout << "domain iteration overhead: " << 100. * id_time / ref_time - 100. << "%" << std::endl;
 
   double freq = 3.7 * 1000 * 1000 * 1000;

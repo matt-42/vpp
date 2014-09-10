@@ -45,11 +45,7 @@ void raw_openmp_simd(image2d<int> A, image2d<int> B)
   for (int r = 0; r < nr; r++)
   {
     int* curA = &A(vint2(r, 0));
-    int* curB = &B(vint2(r, 0));
-    int* endA = curA + A.nrows();
-
     int nc = A.ncols();
-    int sum = 0;
 
     int* rows[5];
     for (int i = -2; i <= 2; i++)
@@ -66,14 +62,68 @@ void raw_openmp_simd(image2d<int> A, image2d<int> B)
   }
 }
 
-void vpp_pixel_wise(image2d<int> A, image2d<int> B)
+
+void raw_openmp_simd2(image2d<int> A, image2d<int> B)
 {
-  auto Bnbh = box_nbh2d<int, 5, 5>(B);
-  vpp::pixel_wise(A, Bnbh) << [&] (int& a, auto& b_nbh)
+  int nr = A.nrows();
+#pragma omp parallel for
+  for (int r = 0; r < nr; r++)
+  {
+    int* curA = &A(vint2(r, 0));
+    int nc = A.ncols();
+
+    int* rows[5];
+    for (int i = -2; i <= 2; i++)
+      rows[i + 2] = &B(vint2(r + i, 0));
+
+    for (int i = 0; i < nc; i++)
+    {
+      int sum = curA[i-1];
+
+      for (int d = -2; d <= 2; d++)
+        sum -= rows[d + 2][i - 3];
+      for (int d = -2; d <= 2; d++)
+        sum += rows[d + 2][i + 2];
+      curA[i] = sum;
+    }
+  }
+}
+
+void raw_openmp_simd3(image2d<int> A, image2d<int> B)
+{
+  int nr = A.nrows();
+#pragma omp parallel for
+  for (int r = 0; r < nr; r++)
+  {
+    int* curA = &A(vint2(r, 0));
+    int nc = A.ncols();
+
+    vint8* rows[5];
+    for (int i = -2; i <= 2; i++)
+      rows[i + 2] = (vint8*)&B(vint2(r + i, 0));
+
+    vector<int, 24> sums = vector<int, 24>::Zero();
+    for (int i = 0; i < (nc / 8) - 1; i++)
+    {
+      sums.segment<8>(16) = rows[0][i] + rows[1][i] + rows[2][i] + rows[3][i] + rows[4][i];
+
+      curA[i * 8 + 0] = sums.segment<5>(6).sum() / 25;
+      for (unsigned j = 1; j < 8; j++)
+        curA[i * 8 + j] = curA[i * 8 + j - 1] + (sums[6 + 5 + j] - sums[6 - 1 + j]) / 25;
+      sums = vector<int, 24>::Zero();
+      sums.segment<16>(0) = sums.segment<16>(8);
+    }
+  }
+}
+
+void vpp_pixel_wise(image2d<int> B, image2d<int> A)
+{
+  auto Anbh = box_nbh2d<int, 5, 5>(A);
+  vpp::pixel_wise(B, Anbh) << [&] (int& b, auto& a_nbh)
   {
     int sum = 0;
-    b_nbh.for_all([&] (int& n) { sum += n; });
-    a = sum / 25;
+    a_nbh.for_all([&sum] (int& n) { sum += n; });
+    b = sum / 25;
   };
 }
 
@@ -115,6 +165,14 @@ int bench(int size, T& results, int debug = 0)
   double raw_openmp_simd_time = get_time_in_seconds() - time;
   check(A, B);
 
+
+  fill(A, 0);
+  time = get_time_in_seconds();
+  for (int k = 0; k < K; k++)
+    raw_openmp_simd2(A, B);
+  double raw_openmp_simd2_time = get_time_in_seconds() - time;
+  check(A, B);
+
   fill(A, 0);
   time = get_time_in_seconds();
   for (int k = 0; k < K; k++)
@@ -136,11 +194,13 @@ int bench(int size, T& results, int debug = 0)
     std::cout << "time per iteration (ms) : " << std::endl;
     std::cout << "raw_naive_time: " << 1000. * raw_naive_time / K << std::endl;
     std::cout << "raw_openmp_simd_time: " << 1000. * raw_openmp_simd_time / K << std::endl;
+    std::cout << "raw_openmp_simd2_time: " << 1000. * raw_openmp_simd2_time / K << std::endl;
     std::cout << "vpp_pixel_wise: " << 1000. * pixel_wise_time / K << std::endl;
 
     double c = freq / (K * size);
     std::cout << "raw_naive_time: " << c * raw_naive_time << std::endl;
     std::cout << "raw_openmp_simd_time: " << c * raw_openmp_simd_time << std::endl;
+    std::cout << "raw_openmp_simd2_time: " << c * raw_openmp_simd2_time << std::endl;
     std::cout << "vpp_pixel_wise: " << c * pixel_wise_time << std::endl;
   }
   results.naive.push_back(freq * raw_naive_time / (K * size));
@@ -167,7 +227,7 @@ int main()
   int step = 100000;
   int max_size = 2000 * 2000;
   for (int s = step; s < max_size; s += step)
-    bench(s, results);
+    bench(s, results, 1);
 
   std::ofstream n("box_5x5_naive.txt");
   std::ofstream p("box_5x5_pixel_wise.txt");

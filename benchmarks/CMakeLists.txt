@@ -7,6 +7,7 @@ include_directories(/usr/include/eigen3)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 add_definitions(-O3 -std=c++1y -march=native -DNDEBUG -fopenmp)
+#add_definitions(-O3 -fno-tree-vectorize -std=c++1y -march=native -DNDEBUG -mno-avx -mno-avx2)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 add_executable(boxNd_iterator boxNd_iterator.cc)
