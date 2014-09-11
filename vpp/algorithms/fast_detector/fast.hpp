@@ -1,5 +1,5 @@
-#ifndef VPP_FAST3_DETECTOR_HH_
-# define VPP_FAST3_DETECTOR_HH_
+#ifndef VPP_FAST9_DETECTOR_HPP_
+# define VPP_FAST9_DETECTOR_HPP_
 
 # include "immintrin.h"
 # include <omp.h>
@@ -12,140 +12,6 @@ namespace vpp
 
   namespace FAST_internals
   {
-    inline bool fast9_check_code(uint code32)
-    {
-      // Thanks Arkanosis (https://github.com/Arkanosis) for the idea.
-      uint64_t code48 = code32;
-      code48 |= code48 << 32;
-      code48 &= code48 << 8;
-      code48 &= code48 << 4;
-      code48 &= code48 << 2;
-      return (code48 & (code48 << 2));
-    }
-
-    inline bool fast9_check_code_4(uint8_t code8)
-    {
-      uint16_t code16 = code8;
-      code16 |= code16 << 8;
-      return (code16 & (code16 << 2));
-    }
-
-    template <typename V>
-    V* shift_row(V* p, int diff)
-    {
-      return (V*)(((char*)p) + diff);
-    }
-
-    template <typename V>
-    inline
-    int fast_score(V* row1,
-                   V* row2,
-                   V* row3,
-                   V* row4,
-                   V* row5,
-                   V* row6,
-                   V* row7,
-                   int c,
-                   int th)
-    {
-      V v = row4[c];
-      int sum_inf = 0;
-      int sum_sup = 0;
-
-      auto f = [&] (V a) -> int {
-        int diff = v - a;
-        if (diff < -th) sum_inf -= diff;
-        else if (diff > th) sum_sup += diff;
-      };
-
-      f(row1[c - 1]);
-      f(row1[c]);
-      f(row1[c + 1]);
-
-      f(row2[c + 2]);
-
-      f(row3[c + 3]);
-      f(row4[c + 3]);
-      f(row5[c + 3]);
-
-      f(row6[c + 2]);
-
-      f(row7[c + 1]);
-      f(row7[c]);
-      f(row7[c - 1]);
-
-      f(row6[c - 2]);
-
-      f(row5[c - 3]);
-      f(row4[c - 3]);
-      f(row3[c - 3]);
-
-      f(row2[c - 2]);
-
-      return std::max(sum_sup, sum_inf);
-    }
-
-
-    template <typename N>
-    inline
-    int fast_score_(N& nbh,
-                    int c,
-                    int th)
-    {
-      // V v = row4[c];
-      typedef typename N::value_type V;
-      V v = nbh.template at<0, 0>();
-      int sum_inf = 0;
-      int sum_sup = 0;
-
-      auto f = [&] (V a) -> int {
-        int diff = v - a;
-        if (diff < -th) sum_inf -= diff;
-        else if (diff > th) sum_sup += diff;
-      };
-
-      // f(row1[c - 1]);
-      // f(row1[c]);
-      // f(row1[c + 1]);
-      f(nbh.template at<-3, -1>());
-      f(nbh.template at<-3,  0>());
-      f(nbh.template at<-3,  1>());
-
-      // f(row2[c + 2]);
-      f(nbh.template at<-2,  2>());
-
-      // f(row3[c + 3]);
-      // f(row4[c + 3]);
-      // f(row5[c + 3]);
-      f(nbh.template at<-1, 3>());
-      f(nbh.template at< 0, 3>());
-      f(nbh.template at< 1, 3>());
-
-      // f(row6[c + 2]);
-      f(nbh.template at<2,  2>());
-
-      // f(row7[c + 1]);
-      // f(row7[c]);
-      // f(row7[c - 1]);
-      f(nbh.template at<3, +1>());
-      f(nbh.template at<3,  0>());
-      f(nbh.template at<3, -1>());
-
-      // f(row6[c - 2]);
-      f(nbh.template at< 2, -2>());
-
-      // f(row5[c - 3]);
-      // f(row4[c - 3]);
-      // f(row3[c - 3]);
-      f(nbh.template at< 1, -3>());
-      f(nbh.template at< 0, -3>());
-      f(nbh.template at<-1, -3>());
-
-      // f(row2[c - 2]);
-      f(nbh.template at<-2, -2>());
-
-      return std::max(sum_sup, sum_inf);
-    }
 
 #ifdef __AVX2__
     struct fast9_simd
@@ -252,6 +118,8 @@ namespace vpp
       int nc = A.ncols();
       int nr = A.nrows();
       int pitch = A.pitch();
+
+      auto shift_row = [] (V* ptr, int o) { return (V*)(((char*)ptr) + o); };
 
 #pragma omp parallel
       {
@@ -468,8 +336,62 @@ namespace vpp
 
     }
 
+    inline bool fast9_check_code(uint code32)
+    {
+      // Thanks Arkanosis (https://github.com/Arkanosis) for the idea.
+      uint64_t code48 = code32;
+      code48 |= code48 << 32;
+      code48 &= code48 << 8;
+      code48 &= code48 << 4;
+      code48 &= code48 << 2;
+      return (code48 & (code48 << 2));
+    }
 
-    template <int fullcheck, typename V, typename U>
+    template <typename N>
+    inline
+    int fast9_score(const N& nbh,
+                    int th)
+    {
+      typedef typename N::value_type V;
+      V v = nbh(0, 0);
+      int sum_inf = 0;
+      int sum_sup = 0;
+
+      auto f = [&] (V a) -> int {
+        int diff = v - a;
+        if (diff < -th) sum_inf -= diff;
+        else if (diff > th) sum_sup += diff;
+      };
+
+      f(nbh(-3, -1));
+      f(nbh(-3,  0));
+      f(nbh(-3,  1));
+
+      f(nbh(-2,  2));
+
+      f(nbh(-1, 3));
+      f(nbh( 0, 3));
+      f(nbh( 1, 3));
+
+      f(nbh(2,  2));
+
+      f(nbh(3, +1));
+      f(nbh(3,  0));
+      f(nbh(3, -1));
+
+      f(nbh( 2, -2));
+
+      f(nbh( 1, -3));
+      f(nbh( 0, -3));
+      f(nbh(-1, -3));
+
+      f(nbh(-2, -2));
+
+      return std::max(sum_sup, sum_inf);
+    }
+
+
+    template <typename V, typename U>
     void fast_detector9(image2d<V>& A, image2d<U>& B, int th)
     {
       int nc = A.ncols();
@@ -479,151 +401,67 @@ namespace vpp
       auto n = box_nbh2d<V, 7, 7>(A);
       pixel_wise(B, n) << [&] (U& b, auto& n)
       {
-        V v = n.at(0, 0);
+        V v = n(0, 0);
 
         auto f = [&] (V a) -> int { return ((a > v + th) << 1) ^ (a < v - th); };
 
         uint x  =
-          (f(n.at(3, -1)) << 20) +
-          (f(n.at(3,  0)) << 18) +
-          (f(n.at(3, +1)) << 16) +
+          (f(n(3, -1)) << 20) +
+          (f(n(3,  0)) << 18) +
+          (f(n(3, +1)) << 16) +
 
-          (f(n.at( 2, -2)) << 22) +
-          (f(n.at(2,  2)) << 14) +
+          (f(n( 2, -2)) << 22) +
+          (f(n(2,  2)) << 14) +
 
 
-          (f(n.at( 1, -3)) << 24) +
-          (f(n.at( 1, 3)) << 12) +
-          (f(n.at( 0, -3)) << 26) +
-          (f(n.at( 0, 3)) << 10) +
+          (f(n( 1, -3)) << 24) +
+          (f(n( 1, 3)) << 12) +
+          (f(n( 0, -3)) << 26) +
+          (f(n( 0, 3)) << 10) +
 
-          (f(n.at(-1, -3)) << 28) +
-          (f(n.at(-1, 3)) << 8) +
+          (f(n(-1, -3)) << 28) +
+          (f(n(-1, 3)) << 8) +
 
-          (f(n.at(-2, -2)) << 30) +
-          (f(n.at(-2,  2)) << 6) +
+          (f(n(-2, -2)) << 30) +
+          (f(n(-2,  2)) << 6) +
 
-          f(n.at(-3, -1)) +
-          (f(n.at(-3,  0)) << 2) +
-          (f(n.at(-3,  1)) << 4);
+          f(n(-3, -1)) +
+          (f(n(-3,  0)) << 2) +
+          (f(n(-3,  1)) << 4);
   
         b = fast9_check_code(x);
 
       };
     }
 
-
-    template <typename V, typename U>
-    void fast_detector9_scores(image2d<V>& A, image2d<U>& B, int th)
-    {
-      int nc = A.ncols();
-      int nr = A.nrows();
-      int pitch = A.pitch();
-
-#pragma omp parallel for
-      for (int r = 0; r < nr; r++)
-      {
-        V* a_row = &A(r, 0);
-        V* a_row1 = shift_row(a_row, -3*pitch);
-        V* a_row2 = shift_row(a_row, -2*pitch);
-        V* a_row3 = shift_row(a_row, -1*pitch);
-        V* a_row4 = a_row;
-        V* a_row5 = shift_row(a_row, 1*pitch);
-        V* a_row6 = shift_row(a_row, 2*pitch);
-        V* a_row7 = shift_row(a_row, 3*pitch);
-
-        auto* b_row = &B(r, 0);
-
-        #pragma omp simd aligned(a_row1, a_row2, a_row3, a_row4, a_row5, a_row6, a_row7, b_row:8 * sizeof(int))
-        for (int c = 0; c < nc; c++) if (b_row[c])
-        {
-          b_row[c] = fast_score(a_row1,
-                                a_row2,
-                                a_row3,
-                                a_row4,
-                                a_row5,
-                                a_row6,
-                                a_row7,
-                                c, th);
-        }
-      }
-    }
-
-    template <typename V, typename U>
-    void fast_detector9_check4(image2d<V>& A, image2d<U>& B, int th)
-    {
-      int nc = A.ncols();
-      int nr = A.nrows();
-      int pitch = A.pitch();
-
-#pragma omp parallel for
-      for (int r = 0; r < nr; r++)
-      {
-        V* a_row = &A(r, 0);
-        V* a_row1 = shift_row(a_row, -3*pitch);
-        V* a_row4 = a_row;
-        V* a_row7 = shift_row(a_row, 3*pitch);
-
-        auto* b_row = &B(r, 0);
-
-#pragma omp simd aligned(a_row1, a_row4, a_row7, b_row:8 * sizeof(int))
-        for (int c = 0; c < nc; c++)
-        {
-          V v = a_row4[c];
-
-          auto f = [&] (V a) -> int { return ((a > v + th) << 1) | (a < v - th); };
-
-          uint8_t x  =
-            (f(a_row1[c])) |
-            (f(a_row4[c - 3]) << 2) |
-            (f(a_row7[c]) << 4) |
-            (f(a_row4[c + 3]) << 6);
-
-          b_row[c] = fast9_check_code_4(x);
-        }
-      }
-    }
-
-    template <typename V>
-    void fast_detector9_local_maxima(image2d<V>& A)
-    {
-      int nc = A.ncols();
-      int nr = A.nrows();
-      int pitch = A.pitch();
-
-#pragma omp parallel for
-      for (int r = 0; r < nr; r++)
-      {
-        V* a_row = &A(r, 0);
-        V* a_row1 = shift_row(a_row, -1*pitch);
-        V* a_row2 = a_row;
-        V* a_row3 = shift_row(a_row, 1*pitch);
-
-#pragma omp simd aligned(a_row1, a_row2, a_row3:8 * sizeof(int))
-        for (int c = 0; c < nc; c++)
-          if (a_row2[c])
-          {
-            V max = 0;
-            max = std::max(max, a_row1[c-1]);
-            max = std::max(max, a_row1[c]);
-            max = std::max(max, a_row1[c+1]);
-
-            max = std::max(max, a_row2[c-1]);
-            max = std::max(max, a_row2[c+1]);
-
-            max = std::max(max, a_row3[c-1]);
-            max = std::max(max, a_row3[c]);
-            max = std::max(max, a_row3[c+1]);
-
-            if (a_row2[c] < max)
-              a_row2[c] = 0;
-          }
-      }
-    }
-
   }
 
-  void fast9_blockwise_maxima(image2d<int>& A, int block_size)
+  template <typename V>
+  void local_maxima_filter(image2d<V>& A, int nbh_size) // At the moment nbh_size is ignored.
+  {
+    auto nbh = box_nbh2d<V, 3, 3>(A);
+
+    pixel_wise(A, nbh) << [] (V& a, auto& nn)
+    {
+      V v = a;
+      int is_max = 1;
+      is_max &= a > nn(-1, -1);
+      is_max &= a > nn(-1, 0);
+      is_max &= a > nn(-1, 1);
+
+      is_max &= a > nn(0, -1);
+      is_max &= a > nn(0, 1);
+
+      is_max &= a > nn(1, -1);
+      is_max &= a > nn(1, 0);
+      is_max &= a > nn(1, 1);
+
+      if (!is_max) a = zero<V>();
+    };
+  }
+
+  template <typename V>
+  void blockwise_maxima_filter(image2d<V>& A, int block_size)
   {
     int nc = A.ncols();
     int nr = A.nrows();
@@ -632,7 +470,7 @@ namespace vpp
     #pragma omp parallel for
     for (int r = 0; r < nr; r += block_size)
     {
-      int* rows[block_size];
+      V* rows[block_size];
       for (int i = 0; i < block_size; i++)
         if (r + i < nr)
           rows[i] = &A(r + i, 0);
@@ -641,13 +479,12 @@ namespace vpp
       {
         // Maximum search.
         vint2 pmax;
-        int vmax = 0;
+        V vmax = 0;
         for (int br = 0; br < block_size; br++)
         for (int bc = c; bc < c + block_size; bc++)
           if (r + br < nr and bc < nc)
           {
-            int v = rows[br][bc];
-            //std::cout << v << std::endl;
+            V v = rows[br][bc];
             rows[br][bc] = 0;
             if (v > vmax)
             {
@@ -662,11 +499,13 @@ namespace vpp
     }
   }
 
-  inline void make_keypoint_vector(image2d<int>& img, std::vector<vint2>& keypoints)
+  template <typename V, typename F>
+  inline std::vector<vint2> compact_coordinates_if(image2d<V>& img, F f)
   {
-    int n_threads = omp_get_num_threads();
     int nc = img.ncols();
     int nr = img.nrows();
+    std::vector<vint2> points;
+
 #pragma omp parallel
     {
       std::vector<vint2> local;
@@ -675,94 +514,167 @@ namespace vpp
       {
         auto* row = &img(r, 0);
         for (int c = 0; c < nc; c++)
-          if (row[c])
+          if (f(row[c]))
             local.push_back(vint2(r, c));
       }
 #pragma omp critical
-        keypoints.insert(keypoints.end(), local.begin(), local.end());
+      points.insert(points.end(), local.begin(), local.end());
     }
+
+    return std::move(points);
+  }
+
+  template <typename V>
+  void fast9_keypoint_scores(image2d<V>& A,
+                             int th, 
+                             const std::vector<vint2> keypoints,
+                             std::vector<int>& scores)
+  {
+    scores.resize(keypoints.size());
+    #pragma omp parallel for simd
+    for (int i = 0; i < keypoints.size(); i++)
+      scores[i] = FAST_internals::fast9_score(box_nbh2d<V, 7, 7>(A, keypoints[i]), th);
   }
 
   template <typename V>
   std::vector<vint2> fast_detector9(image2d<V>& A,
-                                    int th, bool local_maxima = false,
-                                    bool low_density = false, image2d<int>* _scores = 0)
+                                    int th, std::vector<int>* scores)
   {
-    image2d<int> scores;
-    if (_scores) scores = *_scores;
-    else scores = image2d<int>(A.domain(), border(2));
+    std::vector<vint2> kps;
+    FAST_internals::fast_detector9_simd(A, kps, th);
+    if (scores)
+      fast9_keypoint_scores(A, th, kps, *scores);
+    return std::move(kps);
+  }
 
-    std::vector<vint2> res;
+  template <typename V, typename F>
+  std::vector<vint2> fast_detector9_maxima(image2d<V>& A,
+                                           int th,
+                                           std::vector<int>* scores,
+                                           F maxima_filter)
+  {
+    std::vector<vint2> kps;
+    FAST_internals::fast_detector9_simd(A, kps, th);
 
-    if (low_density)
+    image2d<unsigned int> scores_img(A.domain());
+    fill(scores_img, 0);
+
+    #pragma omp parallel for simd
+    for (int i = 0; i < kps.size(); i++)
     {
-      FAST_internals::fast_detector9_check4(A, scores, th);
-      FAST_internals::fast_detector9_simd(A, res, th);
-    }
-    else
-    {
-      FAST_internals::fast_detector9_simd(A, res, th);
+      auto p = kps[i];
+      int s = FAST_internals::fast9_score(box_nbh2d<V, 7, 7>(A, p), th);
+      scores_img(p) = s;
     }
 
-    if (local_maxima)
-    {
-      FAST_internals::fast_detector9_scores(A, scores, th);
-      FAST_internals::fast_detector9_local_maxima(scores);
-    }
-    //else if (_scores) FAST_internals::fast_detector9_scores(A, scores, th);
+    kps = maxima_filter(scores_img, kps);
 
-    //make_keypoint_vector(scores, res);
-    return std::move(res);
+    if (scores)
+    {
+      scores->resize(kps.size());
+#pragma omp parallel for
+      for (int i = 0; i < kps.size(); i++)
+        (*scores)[i] = scores_img(kps[i]);
+    }
+
+    return std::move(kps);
   }
 
   template <typename V>
   std::vector<vint2> fast_detector9_blockwise_maxima(image2d<V>& A,
-                                                     int th, int block_size,
-                                                     bool low_density = false,
-                                                     image2d<int>* _scores = 0)
+                                                     int th,
+                                                     int block_size,
+                                                     std::vector<int>* scores)
   {
-    image2d<int> scores;
-    if (_scores) scores = *_scores;
-    else scores = image2d<int>(A.domain(), border(block_size / 2));
+    return fast_detector9_maxima(A, th, scores,
+                                 [=] (auto& S, auto& kps)
+                                 {
+                                   int nc = S.ncols();
+                                   int nr = S.nrows();
+                                   int pitch = S.pitch();
+                                   std::vector<vint2> lms;
 
-    if (low_density)
-    {
-      FAST_internals::fast_detector9_check4(A, scores, th);
-      FAST_internals::fast_detector9<false>(A, scores, th);
-    }
-    else
-      FAST_internals::fast_detector9<true>(A, scores, th);
+                                   #pragma omp parallel
+                                   {
+                                     std::vector<vint2> local;
+                                     #pragma omp for
+                                     for (int r = 0; r < nr; r += block_size)
+                                     {
+                                       unsigned int* rows[block_size];
+                                       for (int i = 0; i < block_size; i++)
+                                         if (r + i < nr)
+                                           rows[i] = &S(r + i, 0);
 
-    FAST_internals::fast_detector9_scores(A, scores, th);
-    fast9_blockwise_maxima(scores, block_size);
+                                       for (int c = 0; c < nc; c += block_size)
+                                       {
+                                         // Maximum search.
+                                         vint2 pmax;
+                                         unsigned int vmax = 0;
+                                         for (int br = 0; br < block_size; br++)
+                                           for (int bc = c; bc < c + block_size; bc++)
+                                             if (r + br < nr and bc < nc)
+                                             {
+                                               unsigned int v = rows[br][bc];
+                                               if (v > vmax)
+                                               {
+                                                 vmax = v;
+                                                 pmax = vint2(br, bc);
+                                               }
+                                             }
 
-    std::vector<vint2> res;
-    make_keypoint_vector(scores, res);
-    return std::move(res);
+                                         if (vmax > 0)
+                                           local.push_back(vint2(r, 0) + pmax);
+                                       }
+                                     }
+                                     #pragma omp critical
+                                     lms.insert(lms.end(), local.begin(), local.end());
+                                   }
+                                   return lms;
+                                   // Cleaner but slower..
+                                   // blockwise_maxima_filter(S, block_size);
+                                   // return compact_coordinates_if(S, [] (unsigned int& s) { return s != 0; });
+                                 });
   }
 
   template <typename V>
-  void fast9_detect(image2d<V>& A, image2d<int>& keypoints, int th,
-                    bool low_density = false)
+  std::vector<vint2> fast_detector9_local_maxima(image2d<V>& A,
+                                                 int th,
+                                                 std::vector<int>* scores)
   {
-    if (low_density)
-    {
-      FAST_internals::fast_detector9_check4(A, keypoints, th);
-      FAST_internals::fast_detector9<false>(A, keypoints, th);
-    }
-    else
-      FAST_internals::fast_detector9<true>(A, keypoints, th);
-  }
-
-  template <typename V>
-  void fast9_scores(image2d<V>& A, image2d<int>& keypoints, int th)
-  {
-    FAST_internals::fast_detector9_scores(A, keypoints, th);
-  }
-
-  inline void fast9_filter_localmaximas(image2d<int>& keypoints)
-  {
-    FAST_internals::fast_detector9_local_maxima(keypoints);
+    return fast_detector9_maxima(A, th,
+                                 scores,
+                                 [] (auto& img, auto& kps)
+                                 {
+                                   std::vector<vint2> lms;
+                                   #pragma omp parallel
+                                   {
+                                     std::vector<vint2> local;
+                                     #pragma omp for
+                                     for (int i = 0; i < kps.size(); i++)
+                                     {
+                                       auto p = kps[i];
+                                       auto nn = box_nbh2d<unsigned int, 3, 3>(img, p);
+                                       unsigned int a = nn(0, 0);
+                                       int is_max = 1;
+                                       is_max &= a > nn(-1, -1);
+                                       is_max &= a > nn(-1, 0);
+                                       is_max &= a > nn(-1, 1);
+        
+                                       is_max &= a > nn(0, -1);
+                                       is_max &= a > nn(0, 1);
+        
+                                       is_max &= a > nn(1, -1);
+                                       is_max &= a > nn(1, 0);
+                                       is_max &= a > nn(1, 1);
+        
+                                       if (is_max)
+                                         local.push_back(p);
+                                     }
+                                     #pragma omp critical
+                                     lms.insert(lms.end(), local.begin(), local.end());
+                                   }
+                                   return lms;
+                                 });
   }
 }
 

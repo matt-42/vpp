@@ -5,9 +5,7 @@
 
 #include <vpp/vpp.hh>
 #include <vpp/utils/opencv_bridge.hh>
-#include <vpp/algorithms/FAST_detector/FAST.hh>
-// #include <vpp/algorithms/FAST_detector/FAST2.hh>
-// #include <vpp/algorithms/FAST_detector/FAST3.hh>
+#include <vpp/algorithms/fast_detector/fast.hh>
 
 #include "get_time.hh"
 
@@ -35,8 +33,6 @@ int main(int argc, char* argv[])
 
   image2d<unsigned char> Agl(A.domain(), 3);
   image2d<unsigned char> Bgl(A.domain());
-  image2d<int> tmp(A.domain(), 1);
-  fill(tmp, 0);
   pixel_wise(Agl, A) << [] (unsigned char& gl, vuchar3& c)
   {
     gl = (c[0] + c[1] + c[2]) / 3;
@@ -49,7 +45,13 @@ int main(int argc, char* argv[])
   for (unsigned i = 0; i < K; i++)
   {
     keypoints_vpp.clear();
-    keypoints_vpp = fast_detector9(Agl, th, lm, false, &tmp);
+    switch(lm)
+    {
+    case 0: keypoints_vpp = fast_detector9(Agl, th); break;
+    case 1: keypoints_vpp = fast_detector9_local_maxima(Agl, th); break;
+    case 2: keypoints_vpp = fast_detector9_blockwise_maxima(Agl, th, 10); break;
+    }
+
     //make_keypoint_vector(tmp, keypoints_vpp);
   }
   double vpp_ms_per_iter = 1000 * (get_time_in_seconds() - time) / K;
