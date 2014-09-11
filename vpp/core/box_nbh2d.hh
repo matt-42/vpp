@@ -32,72 +32,12 @@ namespace vpp
   };
 
   template <typename V, template <class> class Const, int nrows, int ncols>
-  struct box_nbh2d_accessor
-  {
-    box_nbh2d_accessor()
-    {
-    }
-
-    template <int r, int c>
-    Const<V>& at()
-    {
-      return rows_[r + nrows / 2][c];
-    }
-
-    Const<V>& at(int r, int c)
-    {
-      return rows_[r + nrows / 2][c];
-    }
-
-
-    template <int r>
-    Const<V>* row()
-    {
-      return rows_[r + nrows / 2];
-    }
-
-    template <typename F>
-    void for_all(F f)
-    {
-      for (int r = -nrows/2; r <= nrows/2; r++)
-        for (int c = -ncols/2; c <= ncols/2; c++)
-          f(at(r, c));
-    }
-
-    Const<V>* rows_[nrows];
-  };
-
-  template <typename V, template <class> class Const, int nrows, int ncols>
-  struct box_nbh2d_;
-
-  template <typename V, template <class> class Const, int nrows, int ncols>
-  struct box_nbh2d_row_iterator
-  {
-    typedef box_nbh2d_accessor<V, Const, nrows, ncols> accessor_type;
-
-    box_nbh2d_row_iterator(vint2 p, const box_nbh2d_<V, Const, nrows, ncols>& box)
-    {
-      for (int r = -nrows / 2; r <= nrows / 2; r++)
-        accessor_.rows_[r + nrows / 2] = (Const<V>*)((char*)box.begin_ + box.pitch_ * (p[0] + r));
-    }
-
-    void next()
-    {
-      for (int i = 0; i < nrows; i++)
-        accessor_.rows_[i]++;
-    }
-    
-    accessor_type& operator*()
-    {
-      return accessor_;
-    }
-
-    accessor_type accessor_;
-  };
+  struct box_nbh2d_row_iterator;
 
   template <typename V, template <class> class Const, int nrows, int ncols>
   struct box_nbh2d_
   {
+    typedef V value_type;
     typedef box_nbh2d_row_iterator<V, Const, nrows, ncols> row_iterator;
 
     inline box_nbh2d_(Const<image2d<V>>& img)
@@ -106,19 +46,60 @@ namespace vpp
     {
     }
 
-    inline box_nbh2_runner<V, Const, nrows, ncols> operator()(Const<V>& pix)
+    inline box_nbh2d_(Const<image2d<V>>& img, vint2 p)
+      : pitch_(img.pitch()),
+        begin_(&img(0,0))
     {
-      return box_nbh2_runner<V, Const, nrows, ncols>(pitch_, pix);
+      for (int r = -nrows / 2; r <= nrows / 2; r++)
+        rows_[r + nrows / 2] = (Const<V>*)((char*)begin_ + pitch_ * (p[0] + r) + p[1] * sizeof(V));
+    }
+
+    Const<V>& operator()(int r, int c) const { return rows_[r + nrows / 2][c]; }
+    Const<V>* row(int r) const { return rows_[r + nrows / 2]; }
+
+    template <typename F>
+    void for_all(F f) const
+    {
+      for (int r = -nrows/2; r <= nrows/2; r++)
+        for (int c = -ncols/2; c <= ncols/2; c++)
+          f(operator()(r, c));
     }
 
     int pitch_;
     Const<V>* begin_;
+    Const<V>* rows_[nrows];
   };
 
   template <typename V, int nrows, int ncols>
   using box_nbh2d = box_nbh2d_<V, unconstify, nrows, ncols>;
   template <typename V, int nrows, int ncols>
   using const_box_nbh2d = box_nbh2d_<V, constify, nrows, ncols>;
+
+  template <typename V, template <class> class Const, int nrows, int ncols>
+  struct box_nbh2d_row_iterator
+  {
+    typedef box_nbh2d_<V, Const, nrows, ncols> nbh_type;
+
+    box_nbh2d_row_iterator(vint2 p, const nbh_type& _nbh)
+      : nbh_(_nbh)
+    {
+      for (int r = -nrows / 2; r <= nrows / 2; r++)
+        nbh_.rows_[r + nrows / 2] = (Const<V>*)((char*)nbh_.begin_ + nbh_.pitch_ * (p[0] + r));
+    }
+
+    void next()
+    {
+      for (int i = 0; i < nrows; i++)
+        nbh_.rows_[i]++;
+    }
+    
+    nbh_type& operator*()
+    {
+      return nbh_;
+    }
+
+    nbh_type nbh_;
+  };
 
 }
 
