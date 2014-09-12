@@ -65,6 +65,12 @@ namespace vpp
           f(operator()(r, c));
     }
 
+    void next()
+    {
+      for (int i = 0; i < nrows; i++)
+        rows_[i]++;
+    }
+
     int pitch_;
     Const<V>* begin_;
     Const<V>* rows_[nrows];
@@ -89,8 +95,7 @@ namespace vpp
 
     void next()
     {
-      for (int i = 0; i < nrows; i++)
-        nbh_.rows_[i]++;
+      nbh_.next();
     }
     
     nbh_type& operator*()
