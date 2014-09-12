@@ -66,6 +66,8 @@ namespace vpp
     image2d<int>&       index2d()             { return index2d_; }
     const image2d<int>& index2d() const       { return index2d_; }
 
+    int index_of(vint2& p) const             { return index2d_(p); }
+
     keypoint_type& operator[] (unsigned i)             { return keypoint_vector_[i]; }
     const keypoint_type& operator[] (unsigned i) const { return keypoint_vector_[i]; }
 

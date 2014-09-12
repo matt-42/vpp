@@ -5,6 +5,13 @@
 
 namespace vpp
 {
+
+  template <typename T, typename U>
+  void rgb_to_graylevel(const vector<U, 3>& i, vector<T, 1>& o)
+  {
+    o[0] = (i[0] + i[1] + i[2]) / 3;
+  }
+
   template <typename T, typename U, unsigned N>
   imageNd<vector<T, 1>, N> rgb_to_graylevel(const imageNd<vector<U, 3>, N>& in)
   {
@@ -17,6 +24,7 @@ namespace vpp
     };
     return out;
   }
+
 
   template <typename T, typename U, unsigned N>
   imageNd<vector<T, 3>, N> graylevel_to_rgb(const imageNd<vector<U, 1>, N>& in)
