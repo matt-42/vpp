@@ -13,6 +13,95 @@ namespace vpp
   namespace FAST_internals
   {
 
+    inline bool fast9_check_code(uint code32)
+    {
+      // Thanks Arkanosis (https://github.com/Arkanosis) for the idea.
+      uint64_t code48 = code32;
+      code48 |= code48 << 32;
+      code48 &= code48 << 8;
+      code48 &= code48 << 4;
+      code48 &= code48 << 2;
+      return (code48 & (code48 << 2));
+    }
+
+    template <typename N>
+    inline
+    int fast9_score(const N& nbh,
+                    int th)
+    {
+      typedef typename N::value_type V;
+      V v = nbh(0, 0);
+      int sum_inf = 0;
+      int sum_sup = 0;
+
+      auto f = [&] (V a) -> int {
+        int diff = v - a;
+        if (diff < -th) sum_inf -= diff;
+        else if (diff > th) sum_sup += diff;
+      };
+
+      f(nbh(-3, -1));
+      f(nbh(-3,  0));
+      f(nbh(-3,  1));
+
+      f(nbh(-2,  2));
+
+      f(nbh(-1, 3));
+      f(nbh( 0, 3));
+      f(nbh( 1, 3));
+
+      f(nbh(2,  2));
+
+      f(nbh(3, +1));
+      f(nbh(3,  0));
+      f(nbh(3, -1));
+
+      f(nbh( 2, -2));
+
+      f(nbh( 1, -3));
+      f(nbh( 0, -3));
+      f(nbh(-1, -3));
+
+      f(nbh(-2, -2));
+
+      return std::max(sum_sup, sum_inf);
+    }
+
+    template <typename N>
+    bool is_fast9_keypoint(const N& n, int th)
+    {
+      typedef typename N::value_type V;
+
+      V v = n(0, 0);
+      
+      auto f = [&] (V a) -> int { return ((a > v + th) << 1) ^ (a < v - th); };
+
+      uint x  =
+        (f(n(3, -1)) << 20) +
+        (f(n(3,  0)) << 18) +
+        (f(n(3, +1)) << 16) +
+
+        (f(n( 2, -2)) << 22) +
+        (f(n(2,  2)) << 14) +
+
+        (f(n( 1, -3)) << 24) +
+        (f(n( 1, 3)) << 12) +
+        (f(n( 0, -3)) << 26) +
+        (f(n( 0, 3)) << 10) +
+
+        (f(n(-1, -3)) << 28) +
+        (f(n(-1, 3)) << 8) +
+
+        (f(n(-2, -2)) << 30) +
+        (f(n(-2,  2)) << 6) +
+
+        f(n(-3, -1)) +
+        (f(n(-3,  0)) << 2) +
+        (f(n(-3,  1)) << 4);
+  
+      return fast9_check_code(x);
+    }
+
 #ifdef __AVX2__
     struct fast9_simd
     {
@@ -139,7 +228,8 @@ namespace vpp
 
         typedef fast9_simd S;
         typedef typename S::V v;
-        for (int c = 0; c < nc - S::size; c += S::size)
+        int c;
+        for (c = 0; c < nc; c += S::size)
         {
           v hi,lo;
           v a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15;
@@ -324,7 +414,7 @@ namespace vpp
             unsigned char is_corner[S::size];
             S::storeu(is_corner, possible);
             for (int i = 0; i < S::size; i++)
-              if (is_corner[i]) local.push_back(vint2{r, c + i});
+              if (is_corner[i] and (c + i) < nc) local.push_back(vint2{r, c + i});
           }
         }
 
@@ -335,61 +425,6 @@ namespace vpp
     }
 
     }
-
-    inline bool fast9_check_code(uint code32)
-    {
-      // Thanks Arkanosis (https://github.com/Arkanosis) for the idea.
-      uint64_t code48 = code32;
-      code48 |= code48 << 32;
-      code48 &= code48 << 8;
-      code48 &= code48 << 4;
-      code48 &= code48 << 2;
-      return (code48 & (code48 << 2));
-    }
-
-    template <typename N>
-    inline
-    int fast9_score(const N& nbh,
-                    int th)
-    {
-      typedef typename N::value_type V;
-      V v = nbh(0, 0);
-      int sum_inf = 0;
-      int sum_sup = 0;
-
-      auto f = [&] (V a) -> int {
-        int diff = v - a;
-        if (diff < -th) sum_inf -= diff;
-        else if (diff > th) sum_sup += diff;
-      };
-
-      f(nbh(-3, -1));
-      f(nbh(-3,  0));
-      f(nbh(-3,  1));
-
-      f(nbh(-2,  2));
-
-      f(nbh(-1, 3));
-      f(nbh( 0, 3));
-      f(nbh( 1, 3));
-
-      f(nbh(2,  2));
-
-      f(nbh(3, +1));
-      f(nbh(3,  0));
-      f(nbh(3, -1));
-
-      f(nbh( 2, -2));
-
-      f(nbh( 1, -3));
-      f(nbh( 0, -3));
-      f(nbh(-1, -3));
-
-      f(nbh(-2, -2));
-
-      return std::max(sum_sup, sum_inf);
-    }
-
 
     template <typename V, typename U>
     void fast_detector9(image2d<V>& A, image2d<U>& B, int th)
