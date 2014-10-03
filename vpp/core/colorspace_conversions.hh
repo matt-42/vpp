@@ -17,7 +17,7 @@ namespace vpp
   {
     typedef vector<T, 1> out_type;
     typedef vector<U, 3> in_type;
-    imageNd<out_type, N> out(in.domain());
+    imageNd<out_type, N> out(in.domain(), in.border());
     pixel_wise(in, out) << [] (const in_type& i, out_type& o)
     {
       o[0] = (i[0] + i[1] + i[2]) / 3;
@@ -31,7 +31,7 @@ namespace vpp
   {
     typedef vector<T, 3> out_type;
     typedef vector<U, 1> in_type;
-    imageNd<out_type, N> out(in.domain());
+    imageNd<out_type, N> out(in.domain(), in.border());
     pixel_wise(in, out) << [] (const in_type& i, out_type& o)
     {
       o = out_type{i[0], i[0], i[0]};

@@ -120,6 +120,17 @@ namespace vpp
     feature_vector_.push_back(f);
   }
 
+
+  template <typename P, typename F>
+  void
+  keypoint_container<P, F>::add(const vfloat2& p)
+  {
+    keypoint_type kp(p);
+    index2d_(cast<vint2>(p)) = keypoint_vector_.size();
+    keypoint_vector_.push_back(kp);
+    feature_vector_.push_back(feature_type());
+  }
+
   template <typename P, typename F>
   void
   keypoint_container<P, F>::remove(int i)

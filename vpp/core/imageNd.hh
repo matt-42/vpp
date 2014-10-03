@@ -22,6 +22,15 @@ namespace vpp
     int pitch_;
   };
 
+  class align_on
+  {
+  public:
+    inline align_on(int _n) : n_(_n) {}
+    inline int n() const { return n_; }
+  private:
+    int n_;
+  };
+
   template <typename V, unsigned N>
   class imageNd
   {
@@ -48,7 +57,8 @@ namespace vpp
     imageNd(int nrows, int ncols, border b = 0); // 2D.
     imageNd(int nslices, int nrows, int ncols, border b = 0); // 3D.
 
-    imageNd(const boxNd<N>& domain, border b = 0);
+    //imageNd(const boxNd<N>& domain, border b = 0);
+    imageNd(const boxNd<N>& domain, border b = 0, align_on a = 64);
 
     imageNd(std::vector<int> dims, border b, V* data, int pitch);
 
@@ -111,6 +121,11 @@ namespace vpp
     inline int pitch() const { return ptr_->pitch_; }
     inline int border() const { return ptr_->border_; }
 
+    template <typename U>
+    inline imageNd<U, N>& cast() { return *(imageNd<U, N>*)this; }
+    template <typename U>
+    inline const imageNd<U, N>& cast() const { return *(const imageNd<U, N>*)this; }
+
     // Domain
     inline const boxNd<N>& domain() const { return ptr_->domain_; }
     inline boxNd<N> domain_with_border() const { return ptr_->domain_ + vpp::border(ptr_->border_); }
@@ -123,7 +138,7 @@ namespace vpp
     inline void swap(imageNd<V, N>& o) { o.ptr_.swap(ptr_); }
 
   protected:
-    void allocate(const std::vector<int>& dims, vpp::border b);
+    void allocate(const std::vector<int>& dims, vpp::border b, align_on align = 256);
 
     std::shared_ptr<imageNd_data<V, N> > ptr_;
   };
