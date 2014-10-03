@@ -114,7 +114,7 @@ namespace vpp
     inline self& operator++() { next(); }
 
     inline value_type& operator*() const { return *cur_; }
-    inline value_type* operator->() const { return cur_.addr(); }
+    inline value_type* operator->() const { return cur_; }
 
   private:
     int pitch_;

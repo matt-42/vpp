@@ -60,7 +60,9 @@ namespace vpp
     { cur_ = o.cur_; }
 
     inline boxNd_row_iterator<N, C>& next() { cur_[N-1]++; return *this; }
+    inline boxNd_row_iterator<N, C>& prev() { cur_[N-1]--; return *this; }
     inline boxNd_row_iterator<N, C>& operator++() { return next(); }
+    inline boxNd_row_iterator<N, C>& operator--() { return prev(); }
 
     inline operator coord_type() const { return cur_; }
     inline const coord_type& operator*() const  { return cur_; }

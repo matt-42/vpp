@@ -1,10 +1,19 @@
 #ifndef VPP_PARALLEL_FOR_HH_
 # define VPP_PARALLEL_FOR_HH_
 
+# include <iostream>
+# include <iod/iod2.hh>
+# include <iod/symbol.hh>
+
 # include <vpp/core/imageNd.hh>
 # include <vpp/core/image2d.hh>
 # include <vpp/core/boxNd.hh>
 # include <vpp/core/tuple_utils.hh>
+
+iod_define_symbol(s, row_forward);
+iod_define_symbol(s, col_forward);
+iod_define_symbol(s, row_backward);
+iod_define_symbol(s, col_backward);
 
 namespace vpp
 {
@@ -12,68 +21,6 @@ namespace vpp
   struct openmp {};
   struct pthreads {}; // Todo
   struct cpp_amp {}; // Todo
-
-  template <typename D, typename B>
-  class parallel_for_runner
-  {
-  public:
-
-    parallel_for_runner(const D& domain) : domain_(domain) {}
-
-    template <typename F>
-    void operator<<(F fun);
-
-  private:
-    const D& domain_;
-  };
-
-
-  template <>
-  template <typename F>
-  void
-  parallel_for_runner<box3d, openmp>::operator<<(F fun)
-  {
-    for (int s = domain_.p1()[0]; s <= domain_.p2()[0]; s++)
-#pragma omp parallel for schedule(static, 2)
-      for (int r = domain_.p1()[1]; r <= domain_.p2()[1]; r++)
-        for (int c = domain_.p1()[2]; c <= domain_.p2()[2]; c++)
-          fun(vint2(r, c));
-  }
-
-  template <>
-  template <typename F>
-  void
-  parallel_for_runner<box2d, openmp>::operator<<(F fun)
-  {
-#pragma omp parallel for schedule(static, 4)
-    for (int r = domain_.p1()[0]; r <= domain_.p2()[0]; r++)
-      for (int c = domain_.p1()[1]; c <= domain_.p2()[1]; c++)
-        fun(vint2(r, c));
-  }
-
-  template <>
-  template <typename F>
-  void
-  parallel_for_runner<box1d, openmp>::operator<<(F fun)
-  {
-#pragma omp parallel for schedule(static, 50)
-    for (int r = domain_.p1()[0]; r <= domain_.p2()[0]; r++)
-      fun(vint1(r));
-  }
-
-
-  template <typename D>
-  parallel_for_runner<D, openmp> parallel_for_openmp(D domain)
-  {
-    return parallel_for_runner<D, openmp>(domain);
-  }
-
-  template <typename D, typename B>
-  parallel_for_runner<D, B> parallel_for(D domain, B backend)
-  {
-    return parallel_for_runner<D, B>(domain);
-  }
-
 
   template <typename V, unsigned N>
   typename imageNd<V, N>::coord_type get_p1(imageNd<V, N>& img) { return img.domain().p1(); }
@@ -108,58 +55,87 @@ namespace vpp
     typedef typename T::const_row_iterator type;
   };
 
-  template <unsigned N>
-  struct get_row_iterator<const boxNd<N>>
-  {
-    typedef typename boxNd<N>::row_iterator type;
-  };
-
+  template <typename T>
+  using get_row_iterator_t = typename get_row_iterator<std::remove_reference_t<T>>::type;
 
   template <typename B, typename... Params>
   class parallel_for_pixel_wise_runner;
 
-  template <typename... Params>
-  class parallel_for_pixel_wise_runner<openmp, Params...>
+  using s::row_forward;
+  using s::row_backward;
+  using s::col_forward;
+  using s::col_backward;
+
+  template <typename OPTS, typename... Params>
+  class parallel_for_pixel_wise_runner<openmp, OPTS, Params...>
   {
   public:
-    typedef parallel_for_pixel_wise_runner<openmp, Params...> self;
+    typedef parallel_for_pixel_wise_runner<openmp, OPTS, Params...> self;
 
-    parallel_for_pixel_wise_runner(std::tuple<Params...> t) : ranges_(t), step_(1) {}
+    parallel_for_pixel_wise_runner(std::tuple<Params...> t, OPTS opts = iod::iod()) : ranges_(t), options_(opts) {}
 
     template <typename F>
-    void run(F fun, bool parallel)
+    void run_row_first(F fun, bool parallel)
     {
       auto p1 = get_p1(std::get<0>(ranges_));
       auto p2 = get_p2(std::get<0>(ranges_));
 
-      int start = p1[0];
-      int end = p2[0];
+      int row_start = p1[0];
+      int row_end = p2[0];
+
+      if (options_.has(row_forward))
+      {
+        swap(row_start, row_end);
+        std::cout << "Row forward" << std::endl;
+      }
 
 #pragma omp parallel for num_threads (parallel ? omp_get_num_procs() : 1)
-      for (int r = start; r <= end; r++)
+      for (int r = row_start;
+           options_.has(row_backward) ? r >= row_end : r <= row_end;
+           r += options_.has(row_backward) ? -1 : 1)
       {
+        int col_start = p1[1];
+        int col_end = p2[1];
+
+        const int inc = options_.has(col_backward) ? -1 : 1;
         auto cur_ = internals::tuple_transform(ranges_, [&] (auto& range) {
-            typedef typename get_row_iterator<std::remove_reference_t<decltype(range)>>::type IT;
-            return IT(vint2(r, p1[1]), range);
+            typedef get_row_iterator_t<decltype(range)> IT;
+            return IT(vint2(r, col_start), range);
           });
 
-        typedef typename get_row_iterator<std::remove_reference_t<decltype(std::get<0>(ranges_))>>::type IT1;
-        auto end0_ = IT1(vint2(r, p2[1] + 1), std::get<0>(ranges_));
+        typedef get_row_iterator_t<decltype(std::get<0>(ranges_))> IT1;
+        auto end0_ = IT1(vint2(r, col_end + inc), std::get<0>(ranges_));
         auto& cur0_ = std::get<0>(cur_);
 
         while (cur0_ != end0_)
         {
           internals::apply_args_star(cur_, fun);
-          internals::tuple_map(cur_, [this] (auto& it) { it.next(); });
+          internals::tuple_map(cur_, [this] (auto& it) { options_.has(row_backward) ? it.prev() : it.next(); });
         }
       }
 
     }
 
-    self& step(int step)
+    template <typename F>
+    void run(F fun, bool parallel)
     {
-      step_ = step;
-      return *this;
+      if (!options_.has(col_backward) and !options_.has(col_forward))
+        run_row_first(fun, parallel);
+      else
+        if (!options_.has(row_backward) and !options_.has(row_forward))
+          run_col_first(fun, parallel);
+        else
+        {
+
+        }
+    }
+
+    template <typename ...A>
+    auto operator()(A... _options)
+    {
+      auto new_options = iod::iod(_options...);
+      return parallel_for_pixel_wise_runner<openmp, decltype(new_options), Params...>
+        (ranges_, new_options);
     }
 
     template <typename F>
@@ -175,14 +151,14 @@ namespace vpp
     }
 
   private:
+    OPTS options_;
     std::tuple<Params...> ranges_;
-    int step_;
   };
 
   template <typename... PS>
-  parallel_for_pixel_wise_runner<openmp, PS...> pixel_wise(PS&&... params)
+  parallel_for_pixel_wise_runner<openmp, iod::iod_object<>, PS...> pixel_wise(PS&&... params)
   {
-    return parallel_for_pixel_wise_runner<openmp, PS...>(std::forward_as_tuple(params...));
+    return parallel_for_pixel_wise_runner<openmp, iod::iod_object<>, PS...>(std::forward_as_tuple(params...));
   }
 
 
@@ -208,9 +184,19 @@ namespace vpp
       for (int r = start; r <= end; r++)
       {
         auto cur_ = internals::tuple_transform(ranges_, [&] (auto& range) {
-            typedef typename std::remove_reference_t<decltype(range)>::iterator IT;
+            typedef typename get_row_iterator<std::remove_reference_t<decltype(range)>>::type IT;
             return IT(vint2(r, p1[1]), range);
           });
+
+        typedef typename get_row_iterator<std::remove_reference_t<decltype(std::get<0>(ranges_))>>::type IT1;
+        auto end0_ = IT1(vint2(r, p2[1] + 1), std::get<0>(ranges_));
+        auto& cur0_ = std::get<0>(cur_);
+
+        while (cur0_ != end0_)
+        {
+          internals::apply_args_star(cur_, fun);
+          internals::tuple_map(cur_, [this] (auto& it) { it.next(); });
+        }
 
         internals::apply_args_star(cur_, fun);
       }
@@ -240,6 +226,8 @@ namespace vpp
     return parallel_for_row_wise_runner<openmp, PS...>(std::forward_as_tuple(params...));
   }
 
+
+  using iod::iod;
 
   template <typename B, typename... Params>
   class parallel_for_col_wise_runner;

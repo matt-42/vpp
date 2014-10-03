@@ -198,7 +198,7 @@ namespace vpp
   {
     static_assert(N == 2, "linear_interpolate only supports 2d images.");
 
-    vint2 x = p.cast<int>();
+    vint2 x = p.template cast<int>();
     float a0 = p[0] - x[0];
     float a1 = p[1] - x[1];
 

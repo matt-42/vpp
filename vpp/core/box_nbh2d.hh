@@ -81,6 +81,12 @@ namespace vpp
   template <typename V, int nrows, int ncols>
   using const_box_nbh2d = box_nbh2d_<V, constify, nrows, ncols>;
 
+  template <int nrows, int ncols, typename I>
+  auto make_box_nbh2d(I& img)
+  {
+    return box_nbh2d<typename I::value_type, nrows, ncols>(img);
+  }
+
   template <typename V, template <class> class Const, int nrows, int ncols>
   struct box_nbh2d_row_iterator
   {
