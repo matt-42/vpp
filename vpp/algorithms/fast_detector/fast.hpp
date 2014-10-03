@@ -120,8 +120,8 @@ namespace vpp
       static V u_adds(V a, V b) { return _mm256_adds_epu8(a, b); }
       static bool all_equal_zero(V a) {return _mm256_testz_si256(a, _mm256_set1_epi8(255)) == 1;}
       static V repeat(int v) { return _mm256_set1_epi8(v); }
-      static V load(void* ptr) { return _mm256_load_si256((const __m256i*) (ptr)); }
-      static V loadu(void* ptr) { return _mm256_loadu_si256((const __m256i*) (ptr)); }
+      static V load(const void* ptr) { return _mm256_load_si256((const __m256i*) (ptr)); }
+      static V loadu(const void* ptr) { return _mm256_loadu_si256((const __m256i*) (ptr)); }
       static void storeu(void* ptr, V x) { _mm256_storeu_si256((__m256i*) (ptr), x); }
     };
 #else
@@ -144,8 +144,8 @@ namespace vpp
       static V u_adds(V a, V b) { return _mm_adds_epu8(a, b); }
       static bool all_equal_zero(V a) { return _mm_testz_si128(a, _mm_set1_epi8(255)) == 1; }
       static V repeat(int v) { return _mm_set1_epi8(v); }
-      static V load(void* ptr) { return _mm_load_si128((const V*) (ptr)); }
-      static V loadu(void* ptr) { return _mm_loadu_si128((const V*) (ptr)); }
+      static V load(const void* ptr) { return _mm_load_si128((const V*) (ptr)); }
+      static V loadu(const void* ptr) { return _mm_loadu_si128((const V*) (ptr)); }
       static void storeu(void* ptr, V x) { _mm_storeu_si128((V*) (ptr), x); }
     };
 
@@ -170,8 +170,8 @@ namespace vpp
       static V u_adds(V a, V b) { return vqaddq_u16(a, b); }
       static bool all_equal_zero(V a) { return _mm_testz_si128(a, _mm_set1_epi8(255)) == 1; }
       static V repeat(int v) { return _mm_set1_epi8(v); }
-      static V load(void* ptr) { return vld1q_u16((const uint16_t*) (ptr)); }
-      static V loadu(void* ptr) { return vld1q_u16((const uint16_t*) (ptr)); }
+      static V load(const void* ptr) { return vld1q_u16((const uint16_t*) (ptr)); }
+      static V loadu(const void* ptr) { return vld1q_u16((const uint16_t*) (ptr)); }
       static void storeu(void* ptr, V x) { vst1q_u16((uint16_t*) (ptr), x); }
     };
 
@@ -191,8 +191,8 @@ namespace vpp
       }
       static bool all_equal_zero(V a) { return a == 0; }
       static V repeat(int v) { return v; }
-      static V load(void* ptr) { return *(const V*) (ptr); }
-      static V loadu(void* ptr) { return *(const V*) (ptr); }
+      static V load(const void* ptr) { return *(const V*) (ptr); }
+      static V loadu(const void* ptr) { return *(const V*) (ptr); }
       static void storeu(void* ptr, V x) { (*(V*) (ptr)) = x; }
     };
 
@@ -202,7 +202,8 @@ namespace vpp
 #endif
 
     template <typename V>
-    void fast_detector9_simd(image2d<V>& A, std::vector<vint2>& keypoints, int th)
+    void fast_detector9_simd(image2d<V>& A, std::vector<vint2>& keypoints, int th,
+                             const image2d<unsigned char>& mask)
     {
       int nc = A.ncols();
       int nr = A.nrows();
@@ -226,6 +227,7 @@ namespace vpp
         V* a_row6 = shift_row(a_row, 2*pitch);
         V* a_row7 = shift_row(a_row, 3*pitch);
 
+        const unsigned char* m_row = mask.has_data() ? &mask(r, 0) : 0;
         typedef fast9_simd S;
         typedef typename S::V v;
         int c;
@@ -234,15 +236,23 @@ namespace vpp
           v hi,lo;
           v a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15;
 
+          v possible;
+          if (m_row)
+          {
+            possible = S::load(m_row + c);
+            if (S::all_equal_zero(possible))
+              continue;
+          }
+          else
+            possible = S::repeat(255);
+
           {
             v here = S::load(a_row4 + c);
             v th_ = S::repeat(th);
             hi = S::u_adds(here, th_);
             lo = S::u_subs(here, th_);
-
           }
 
-          v possible;
           {
             v a = S::load(a_row1 + c);
             v b = S::load(a_row7 + c);
@@ -250,7 +260,7 @@ namespace vpp
             a0 = S::check(a, hi, lo);
             a8 = S::check(b, hi, lo);
 
-            possible = a0 | a8;
+            possible &= a0 | a8;
             if (S::all_equal_zero(possible))
               continue;
 
@@ -560,7 +570,7 @@ namespace vpp
   }
 
   template <typename V>
-  void fast9_keypoint_scores(image2d<V>& A,
+  void fast_detector9_scores(image2d<V>& A,
                              int th, 
                              const std::vector<vint2> keypoints,
                              std::vector<int>& scores)
@@ -572,24 +582,35 @@ namespace vpp
   }
 
   template <typename V>
+  int fast_detector9_score(image2d<V>& A,
+                           int th, 
+                           vint2 p)
+  {
+    return FAST_internals::fast9_score(box_nbh2d<V, 7, 7>(A, p), th);
+  }
+
+  template <typename V>
   std::vector<vint2> fast_detector9(image2d<V>& A,
-                                    int th, std::vector<int>* scores)
+                                    int th,
+                                    const image2d<unsigned char>& mask,
+                                    std::vector<int>* scores)
   {
     std::vector<vint2> kps;
-    FAST_internals::fast_detector9_simd(A, kps, th);
+    FAST_internals::fast_detector9_simd(A, kps, th, mask);
     if (scores)
-      fast9_keypoint_scores(A, th, kps, *scores);
+      fast_detector9_scores(A, th, kps, *scores);
     return std::move(kps);
   }
 
   template <typename V, typename F>
   std::vector<vint2> fast_detector9_maxima(image2d<V>& A,
                                            int th,
+                                           const image2d<unsigned char>& mask,
                                            std::vector<int>* scores,
                                            F maxima_filter)
   {
     std::vector<vint2> kps;
-    FAST_internals::fast_detector9_simd(A, kps, th);
+    FAST_internals::fast_detector9_simd(A, kps, th, mask);
 
     image2d<unsigned int> scores_img(A.domain());
     fill(scores_img, 0);
@@ -619,9 +640,10 @@ namespace vpp
   std::vector<vint2> fast_detector9_blockwise_maxima(image2d<V>& A,
                                                      int th,
                                                      int block_size,
+                                                     const image2d<unsigned char>& mask,
                                                      std::vector<int>* scores)
   {
-    return fast_detector9_maxima(A, th, scores,
+    return fast_detector9_maxima(A, th, mask, scores,
                                  [=] (auto& S, auto& kps)
                                  {
                                    int nc = S.ncols();
@@ -674,9 +696,10 @@ namespace vpp
   template <typename V>
   std::vector<vint2> fast_detector9_local_maxima(image2d<V>& A,
                                                  int th,
+                                                 const image2d<unsigned char>& mask,
                                                  std::vector<int>* scores)
   {
-    return fast_detector9_maxima(A, th,
+    return fast_detector9_maxima(A, th, mask,
                                  scores,
                                  [] (auto& img, auto& kps)
                                  {

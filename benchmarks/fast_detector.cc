@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  int K = 400;
+  int K = 1000;
 
   typedef image2d<vuchar3> I;
   I A = clone_with_border(from_opencv<vuchar3>(cv::imread(argv[1])), 3);

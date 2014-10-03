@@ -97,14 +97,14 @@ namespace vpp
   }
 
   template <typename V, unsigned N>
-  imageNd<V, N>::imageNd(const boxNd<N>& domain, vpp::border b)
+  imageNd<V, N>::imageNd(const boxNd<N>& domain, vpp::border b, align_on a)
   {
     std::vector<int> dims(N);
 
     for (int i = 0; i < int(N); i++)
       dims[i] = domain.size(i);
 
-    allocate(dims, b);
+    allocate(dims, b, a);
   }
 
   template <typename V, unsigned N>
@@ -114,9 +114,9 @@ namespace vpp
   }
 
   template <typename V, unsigned N>
-  void imageNd<V, N>::allocate(const std::vector<int>& dims, vpp::border b)
+  void imageNd<V, N>::allocate(const std::vector<int>& dims, vpp::border b, align_on a)
   {
-    const int align_size = 256; // Align rows addresses on multiples of 256 bits.
+    const int align_size = a.n(); // Align rows addresses on multiples of a.n() bytes.
 
     typedef unsigned long long ULL;
     ptr_ = std::make_shared<imageNd_data<V, N>>();
@@ -208,10 +208,10 @@ namespace vpp
     //typedef plus_promotion<V> S;
     typedef cast_to_float<V> S;
 
-    return cast<V>((1 - a0) * (1 - a1) *  cast<S>(l1[0]) +
-                   a0 * (1 - a1) *  cast<S>(l2[0]) +
-                   (1 - a0) * a1 *  cast<S>(l1[1]) +
-                   a0 * a1 *  cast<S>(l2[1]));
+    return vpp::cast<V>((1 - a0) * (1 - a1) *  vpp::cast<S>(l1[0]) +
+                   a0 * (1 - a1) *  vpp::cast<S>(l2[0]) +
+                   (1 - a0) * a1 *  vpp::cast<S>(l1[1]) +
+                   a0 * a1 *  vpp::cast<S>(l2[1]));
   }
 
   template <typename V, unsigned N>

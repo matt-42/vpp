@@ -35,8 +35,8 @@ namespace vpp
       {
         for (int c = 0; c <= nc; c++)
         {
-          box2d b(vint2(rstart + r * dims_[0], cstart + c * dims_[1]),
-                  vint2(rstart + (r + 1) * dims_[0] - 1, cstart + (c + 1) * dims_[1] - 1));
+          box2d b(vint2{rstart + r * dims_[0], cstart + c * dims_[1]},
+                  vint2{rstart + (r + 1) * dims_[0] - 1, cstart + (c + 1) * dims_[1] - 1});
 
           internals::apply_args_transform(ranges_, fun, [&b] (auto& i) { return i | b; });
         }
