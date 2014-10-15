@@ -39,9 +39,10 @@ namespace vpp
         for (int c = 0; c <= nc; c++)
         {
           box2d b(vint2{rstart + r * dims_[0], cstart + c * dims_[1]},
-                  vint2{rstart + (r + 1) * dims_[0] - 1, cstart + (c + 1) * dims_[1] - 1});
+                  vint2{std::min(rstart + (r + 1) * dims_[0] - 1, rend),
+                      std::min(cstart + (c + 1) * dims_[1] - 1, cend)});
 
-          iod::static_if<iod::has_symbol<OPTS, s::_tie_arguments>::value>
+          iod::static_if<OPTS::has(s::tie_arguments)>
             ([this, b] (auto& fun) { // tie arguments into a tuple and pass it to fun.
               auto t = internals::tuple_transform(this->ranges_, [&b] (auto& i) { return i | b; });
               fun(t);

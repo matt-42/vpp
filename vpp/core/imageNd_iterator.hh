@@ -91,6 +91,7 @@ namespace vpp
       row_spacing_ = o.row_spacing_;
       cur_ = o.cur_;
       eor_ = o.eor_;
+      return *this;
     }
 
     inline imageNd_iterator(const coord_type& cur, Const<I>& image)
@@ -110,7 +111,7 @@ namespace vpp
       }
     }
 
-    inline self& operator++() { next(); }
+    inline self& operator++() { next(); return *this; }
 
     inline value_type& operator*() const { return *cur_; }
     inline value_type* operator->() const { return cur_; }

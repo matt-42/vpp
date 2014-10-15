@@ -16,7 +16,8 @@
 # include <vpp/core/boxNd.hh>
 # include <vpp/core/window.hh>
 # include <vpp/core/box_nbh2d.hh>
-# include <vpp/core/parallel_for.hh>
+# include <vpp/core/pixel_wise.hh>
+# include <vpp/core/block_wise.hh>
 
 # include <vpp/core/fill.hh>
 # include <vpp/core/draw.hh>
@@ -28,8 +29,6 @@
 # include <vpp/core/keypoint_trajectory.hh>
 # include <vpp/core/pyramid.hh>
 
-# include <vpp/core/parallel_for.hh>
-# include <vpp/core/block_wise.hh>
 
 # include <vpp/core/sum.hh>
 

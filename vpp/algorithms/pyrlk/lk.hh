@@ -72,9 +72,9 @@ namespace vpp
     vfloat2 v = prediction_;
     Eigen::Vector2f nk = Eigen::Vector2f::Ones();
 
-    vfloat2 gs[ws * ws];
+    vfloat2 gs[WS * WS];
     typedef plus_promotion<V> S;
-    S as[ws * ws];
+    S as[WS * WS];
     {
       for(int i = 0, r = -hws; r <= hws; r++)
       {

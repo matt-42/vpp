@@ -4,8 +4,8 @@ find_package(OpenCV REQUIRED)
 
 enable_testing()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/.. /usr/include/eigen3 /home/matt/projects/iod3)
-add_definitions(-std=c++14 -g)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/.. /usr/include/eigen3 $ENV{HOME}/projects/iod)
+add_definitions(-std=c++14 -g -fopenmp)
 
 add_executable(imageNd imageNd.cc)
 add_test(imageNd imageNd)
@@ -23,6 +23,7 @@ add_executable(imageNd_iterator imageNd_iterator.cc)
 add_test(imageNd_iterator imageNd_iterator)
 
 add_executable(parallel_for parallel_for.cc)
+target_link_libraries(parallel_for gomp)
 add_test(parallel_for parallel_for)
 
 add_executable(box_nbh2d box_nbh2d.cc)

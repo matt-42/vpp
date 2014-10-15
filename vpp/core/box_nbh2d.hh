@@ -48,7 +48,6 @@ namespace vpp
       : pitch_(img.pitch()),
         begin_(&img(0,0))
     {
-      std::cout << "begin: " << begin_ << std::endl;
     }
 
     inline box_nbh2d_(Const<image2d<V>>& img, vint2 p)
@@ -70,6 +69,11 @@ namespace vpp
         for (int c = -ncols/2; c <= ncols/2; c++)
           f(operator()(r, c));
     }
+
+    Const<V>& north() const { return (*this)(-1, 0); }
+    Const<V>& south() const { return (*this)( 1, 0); }
+    Const<V>& east() const { return (*this)( 0, -1); }
+    Const<V>& west() const { return (*this)( 0, 1); }
 
     void next() { for (int i = 0; i < nrows; i++)  rows_[i]++; }
     void prev() { for (int i = 0; i < nrows; i++)  rows_[i]--; }

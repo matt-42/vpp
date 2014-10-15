@@ -63,14 +63,15 @@ namespace vpp
   public:
     typedef parallel_for_pixel_wise_runner<openmp, OPTS, Params...> self;
 
-    parallel_for_pixel_wise_runner(std::tuple<Params...> t, OPTS opts = iod::D()) : ranges_(t), options_(opts) {}
+    parallel_for_pixel_wise_runner(std::tuple<Params...> t, OPTS opts = iod::D())
+      : ranges_(t), options_(opts) {}
 
 
     template <typename F>
     void run_row_first(F fun);
 
     template <typename F>
-    void run_col_first(F fun);
+    void run_col_first_parallel(F fun);
 
     template <typename F>
     void run(F fun, bool parallel)
@@ -78,8 +79,8 @@ namespace vpp
       if (!options_.has(col_backward) and !options_.has(col_forward))
         run_row_first(fun);
       else
-        if (!options_.has(row_backward) and !options_.has(row_forward))
-          run_col_first(fun);
+        if (parallel and !options_.has(row_backward) and !options_.has(row_forward))
+          run_col_first_parallel(fun);
         else
           run_row_first(fun);
     }
@@ -242,4 +243,4 @@ namespace vpp
 
 };
 
-#include <vpp/core/parallel_for.hpp>
+#include <vpp/core/pixel_wise.hpp>

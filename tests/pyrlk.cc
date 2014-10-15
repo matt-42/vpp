@@ -22,8 +22,11 @@ int main(int argc, char* argv[])
 
   box_nbh2d<vuchar1, 5, 5> box(i1);
 
-  box(i1(50,50)) < [] (auto& n) { n[0] = 255; };
-  box(i2(52,52)) < [] (auto& n) { n[0] = 255; };
+  box_nbh2d<vuchar1, 5, 5>(i1, vint2(50,50)).for_all([] (auto& n) { n[0] = 255; });
+  box_nbh2d<vuchar1, 5, 5>(i1, vint2(52,52)).for_all([] (auto& n) { n[0] = 255; });
+
+  // box(i1(50,50)) < [] (auto& n) { n[0] = 255; };
+  // box(i2(52,52)) < [] (auto& n) { n[0] = 255; };
 
   cv::GaussianBlur(to_opencv(i1), to_opencv(i1_blur), cv::Size(9,9), 3, 5, cv::BORDER_REPLICATE);
   cv::GaussianBlur(to_opencv(i2), to_opencv(i2_blur), cv::Size(9,9), 3, 5, cv::BORDER_REPLICATE);

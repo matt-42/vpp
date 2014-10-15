@@ -1,7 +1,7 @@
 #ifndef VPP_CORE_COLORSPACE_CONVERSIONS_HH__
 # define VPP_CORE_COLORSPACE_CONVERSIONS_HH__
 
-# include <vpp/core/parallel_for.hh>
+# include <vpp/core/pixel_wise.hh>
 
 namespace vpp
 {

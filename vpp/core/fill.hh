@@ -3,7 +3,7 @@
 
 # include <vpp/core/boxNd.hh>
 # include <vpp/core/vector.hh>
-# include <vpp/core/parallel_for.hh>
+# include <vpp/core/pixel_wise.hh>
 
 namespace vpp
 {
