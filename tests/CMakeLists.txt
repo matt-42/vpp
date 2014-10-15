@@ -22,9 +22,9 @@ add_test(boxNd_iterator boxNd_iterator)
 add_executable(imageNd_iterator imageNd_iterator.cc)
 add_test(imageNd_iterator imageNd_iterator)
 
-add_executable(parallel_for parallel_for.cc)
-target_link_libraries(parallel_for gomp)
-add_test(parallel_for parallel_for)
+add_executable(pixel_wise pixel_wise.cc)
+target_link_libraries(pixel_wise gomp)
+add_test(pixel_wise pixel_wise)
 
 add_executable(box_nbh2d box_nbh2d.cc)
 add_test(box_nbh2d box_nbh2d)

@@ -105,7 +105,7 @@ namespace vpp
                             (config[2] || config[3]))) && // no dependency or either row_* or col_* is activated (not both).
       !options_.has(serial); // user did not specify serial
 
-    const int bs = std::min(options_.get(block_size, 64), p2[1] - p1[1]);
+    const int bs = std::min(options_.get(block_size, 32), p2[1] - p1[1]);
     block_wise(vint2{1 + p2[0] - p1[0], bs}, ranges_)(s::tie_arguments)
       << [this, &fun] (auto& b)
     {
