@@ -130,7 +130,12 @@ namespace vpp
     inline const boxNd<N>& domain() const { return ptr_->domain_; }
     inline boxNd<N> domain_with_border() const { return ptr_->domain_ + vpp::border(ptr_->border_); }
 
+    inline const vector<int, N>& first_point_coordinates() const { return ptr_->domain_.first_point_coordinates(); }
+
+    inline const vector<int, N>& last_point_coordinates() const { return ptr_->domain_.last_point_coordinates(); }
+
     inline self subimage(const boxNd<N>& d);
+    inline const self const_subimage(const boxNd<N>& d) const;
 
     inline void set_external_data_holder(void* data, void (data_deleter)(void*))
     { ptr_->data_sptr_ = std::shared_ptr<void>(data, data_deleter); }
@@ -154,6 +159,9 @@ namespace vpp
 
   template <typename V, unsigned N>
   imageNd<V, N> operator|(imageNd<V, N>& img, const boxNd<N>& b) { return img.subimage(b); }
+
+  template <typename V, unsigned N>
+  const imageNd<V, N> operator|(const imageNd<V, N>& img, const boxNd<N>& b) { return img.const_subimage(b); }
 
 };
 

@@ -242,8 +242,24 @@ namespace vpp
     imageNd<V, N> res;
 
     res.ptr_ = std::shared_ptr<imageNd_data<V, N>>(new imageNd_data<V, N>());
-    *res.ptr_.get() = *this->ptr_.get();
+    *res.ptr_.get() = *this->ptr_.get(); // Copy the whole image data.
     res.ptr_->begin_ = address_of(d.p1());
+    boxNd<N> domain = d;
+    domain.p2() -= domain.p1();
+    domain.p1() -= domain.p1();
+    res.ptr_->domain_ = domain;
+    return res;
+  }
+
+  template <typename V, unsigned N>
+  const imageNd<V, N>
+  imageNd<V, N>::const_subimage(const boxNd<N>& d) const
+  {
+    imageNd<V, N> res;
+
+    res.ptr_ = std::shared_ptr<imageNd_data<V, N>>(new imageNd_data<V, N>());
+    *res.ptr_.get() = *this->ptr_.get();
+    res.ptr_->begin_ = const_cast<V*>(address_of(d.p1()));
     boxNd<N> domain = d;
     domain.p2() -= domain.p1();
     domain.p1() -= domain.p1();

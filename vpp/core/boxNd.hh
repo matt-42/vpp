@@ -44,6 +44,9 @@ namespace vpp
       return boxNd_iterator<N, C>(e, *this);
     }
 
+    inline const coord_type& first_point_coordinates() const { return p1_; }
+    inline const coord_type& last_point_coordinates() const { return p2_; }
+
     inline const coord_type& p1() const { return p1_; }
     inline const coord_type& p2() const { return p2_; }
 
@@ -128,6 +131,9 @@ namespace vpp
 
     return res;
   }
+
+  template <unsigned N>
+  auto operator|(const boxNd<N>& a, const boxNd<N>& b) { return b; }
 
 };
 

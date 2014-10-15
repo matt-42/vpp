@@ -1,19 +1,16 @@
-#ifndef VPP_PARALLEL_FOR_HH_
-# define VPP_PARALLEL_FOR_HH_
+#pragma once
 
-# include <iostream>
-# include <iod/iod2.hh>
-# include <iod/symbol.hh>
+#include <iostream>
+#include <iod/iod.hh>
+#include <iod/symbol.hh>
 
-# include <vpp/core/imageNd.hh>
-# include <vpp/core/image2d.hh>
-# include <vpp/core/boxNd.hh>
-# include <vpp/core/tuple_utils.hh>
+#include <vpp/core/imageNd.hh>
+#include <vpp/core/image2d.hh>
+#include <vpp/core/boxNd.hh>
+#include <vpp/core/tuple_utils.hh>
 
-iod_define_symbol(s, row_forward);
-iod_define_symbol(s, col_forward);
-iod_define_symbol(s, row_backward);
-iod_define_symbol(s, col_backward);
+#include <vpp/core/symbols.hh>
+#include <vpp/core/block_wise.hh>
 
 namespace vpp
 {
@@ -21,26 +18,6 @@ namespace vpp
   struct openmp {};
   struct pthreads {}; // Todo
   struct cpp_amp {}; // Todo
-
-  template <typename V, unsigned N>
-  typename imageNd<V, N>::coord_type get_p1(imageNd<V, N>& img) { return img.domain().p1(); }
-  template <typename V, unsigned N>
-  typename imageNd<V, N>::coord_type get_p1(const imageNd<V, N>& img) { return img.domain().p1(); }
-
-  template <typename C, unsigned N, typename... PS>
-  typename boxNd<N, C>::coord_type get_p1(boxNd<N, C>& box) { return box.p1(); }
-  template <typename C, unsigned N, typename... PS>
-  typename boxNd<N, C>::coord_type get_p1(const boxNd<N, C>& box) { return box.p1(); }
-
-  template <typename V, unsigned N>
-  typename imageNd<V, N>::coord_type get_p2(imageNd<V, N>& img) { return img.domain().p2(); }
-  template <typename V, unsigned N>
-  typename imageNd<V, N>::coord_type get_p2(const imageNd<V, N>& img) { return img.domain().p2(); }
-
-  template <typename C, unsigned N, typename... PS>
-  typename boxNd<N, C>::coord_type get_p2(boxNd<N, C>& box) { return box.p2(); }
-  template <typename C, unsigned N, typename... PS>
-  typename boxNd<N, C>::coord_type get_p2(const boxNd<N, C>& box) { return box.p2(); }
 
 
   template <typename T>
@@ -65,6 +42,20 @@ namespace vpp
   using s::row_backward;
   using s::col_forward;
   using s::col_backward;
+  using s::mem_forward;
+  using s::mem_backward;
+  using s::serial;
+  using s::block_size;
+
+  // Pixel wise takes a variable number of 2d ranges. (Todo: implement Nd version).
+  // A range should respect this interface:
+
+  //   vint2 first_point_coordinates() -> the first point coordinates of the range.
+  //   vint2 last_point_coordinates() -> the last point of the range.
+  //   typedefs row_iterator, const_row_iterator -> a class to iterate on each row of the range.
+  //       row_iterator(vint2 p, Range range) -> build an iterator an place it at position p.
+  //       operator!=(row_iterator a, row_iterator b) -> return true if a != b.
+  //       operator* -> return the current object (pixel, neighborhood access, point coordinates, ...)
 
   template <typename OPTS, typename... Params>
   class parallel_for_pixel_wise_runner<openmp, OPTS, Params...>
@@ -72,68 +63,31 @@ namespace vpp
   public:
     typedef parallel_for_pixel_wise_runner<openmp, OPTS, Params...> self;
 
-    parallel_for_pixel_wise_runner(std::tuple<Params...> t, OPTS opts = iod::iod()) : ranges_(t), options_(opts) {}
+    parallel_for_pixel_wise_runner(std::tuple<Params...> t, OPTS opts = iod::D()) : ranges_(t), options_(opts) {}
+
 
     template <typename F>
-    void run_row_first(F fun, bool parallel)
-    {
-      auto p1 = get_p1(std::get<0>(ranges_));
-      auto p2 = get_p2(std::get<0>(ranges_));
+    void run_row_first(F fun);
 
-      int row_start = p1[0];
-      int row_end = p2[0];
-
-      if (options_.has(row_forward))
-      {
-        swap(row_start, row_end);
-        std::cout << "Row forward" << std::endl;
-      }
-
-#pragma omp parallel for num_threads (parallel ? omp_get_num_procs() : 1)
-      for (int r = row_start;
-           options_.has(row_backward) ? r >= row_end : r <= row_end;
-           r += options_.has(row_backward) ? -1 : 1)
-      {
-        int col_start = p1[1];
-        int col_end = p2[1];
-
-        const int inc = options_.has(col_backward) ? -1 : 1;
-        auto cur_ = internals::tuple_transform(ranges_, [&] (auto& range) {
-            typedef get_row_iterator_t<decltype(range)> IT;
-            return IT(vint2(r, col_start), range);
-          });
-
-        typedef get_row_iterator_t<decltype(std::get<0>(ranges_))> IT1;
-        auto end0_ = IT1(vint2(r, col_end + inc), std::get<0>(ranges_));
-        auto& cur0_ = std::get<0>(cur_);
-
-        while (cur0_ != end0_)
-        {
-          internals::apply_args_star(cur_, fun);
-          internals::tuple_map(cur_, [this] (auto& it) { options_.has(row_backward) ? it.prev() : it.next(); });
-        }
-      }
-
-    }
+    template <typename F>
+    void run_col_first(F fun);
 
     template <typename F>
     void run(F fun, bool parallel)
     {
       if (!options_.has(col_backward) and !options_.has(col_forward))
-        run_row_first(fun, parallel);
+        run_row_first(fun);
       else
         if (!options_.has(row_backward) and !options_.has(row_forward))
-          run_col_first(fun, parallel);
+          run_col_first(fun);
         else
-        {
-
-        }
+          run_row_first(fun);
     }
 
     template <typename ...A>
     auto operator()(A... _options)
     {
-      auto new_options = iod::iod(_options...);
+      auto new_options = iod::D(_options...);
       return parallel_for_pixel_wise_runner<openmp, decltype(new_options), Params...>
         (ranges_, new_options);
     }
@@ -156,9 +110,16 @@ namespace vpp
   };
 
   template <typename... PS>
-  parallel_for_pixel_wise_runner<openmp, iod::iod_object<>, PS...> pixel_wise(PS&&... params)
+  auto pixel_wise(PS&&... params)
   {
     return parallel_for_pixel_wise_runner<openmp, iod::iod_object<>, PS...>(std::forward_as_tuple(params...));
+  }
+
+
+  template <typename... PS>
+  auto pixel_wise(std::tuple<PS...>& params)
+  {
+    return parallel_for_pixel_wise_runner<openmp, iod::iod_object<>, PS...>(params);
   }
 
 
@@ -227,8 +188,6 @@ namespace vpp
   }
 
 
-  using iod::iod;
-
   template <typename B, typename... Params>
   class parallel_for_col_wise_runner;
 
@@ -283,4 +242,4 @@ namespace vpp
 
 };
 
-#endif
+#include <vpp/core/parallel_for.hpp>

@@ -4,8 +4,8 @@ find_package(OpenCV REQUIRED)
 
 enable_testing()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/.. /usr/include/eigen3)
-add_definitions(-std=c++1y -g)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/.. /usr/include/eigen3 /home/matt/projects/iod3)
+add_definitions(-std=c++14 -g)
 
 add_executable(imageNd imageNd.cc)
 add_test(imageNd imageNd)

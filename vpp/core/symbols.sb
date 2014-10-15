@@ -1,0 +1,15 @@
+#pragma once
+
+#include <iod/symbol.hh>
+
+// iod symbols for video++.
+
+tie_arguments
+row_forward
+row_backward
+col_forward
+col_backward
+mem_forward
+mem_backward
+serial
+block_size

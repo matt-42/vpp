@@ -108,37 +108,26 @@ namespace vpp
     }
 
 
-
-    template <typename F, typename... U>
-    struct transform_tuple_elements
-    {
-      typedef std::tuple<std::result_of_t<F(std::add_rvalue_reference_t<U>)>...> type;
-    };
-
-    template <typename F, typename... U>
-    using transform_tuple_elements_t = typename transform_tuple_elements<F, U...>::type;
-
-    template<unsigned N, unsigned SIZE, typename R, typename F, typename... T, typename... U>
+    template<unsigned N, unsigned SIZE, typename F, typename... T, typename... U>
     inline
-    typename std::enable_if<N == SIZE, R>::type
-    tuple_map2_(std::tuple<T...>& t, F f, U&&... u) 
+    auto
+    tuple_map2_(std::enable_if_t<(N == SIZE), int>*, std::tuple<T...>& t, F f, U&&... u) 
     {
       return std::make_tuple(f(u)...);
     }
 
-    template<unsigned N, unsigned SIZE, typename R, typename F, typename... T, typename... U>
+    template<unsigned N, unsigned SIZE, typename F, typename... T, typename... U>
     inline
-    typename std::enable_if<(N < SIZE), R>::type
-    tuple_map2_(std::tuple<T...>& t, F f, U&&... u)
+    auto
+    tuple_map2_(std::enable_if_t<(N < SIZE), int>*, std::tuple<T...>& t, F f, U&&... u)
     {
-      return tuple_map2_<N + 1, SIZE, R>(t, f, u..., std::get<N>(t));
+      return tuple_map2_<N + 1, SIZE>(0, t, f, u..., std::get<N>(t));
     }
 
     template<typename F, typename... T>
-    inline auto tuple_transform(std::tuple<T...>& t, F f) -> transform_tuple_elements_t<F, T...>
+    inline auto tuple_transform(std::tuple<T...>& t, F f)
     {
-      typedef transform_tuple_elements_t<F, T...> R;
-      return tuple_map2_<0, sizeof...(T), R>(t, f);
+      return tuple_map2_<0, sizeof...(T)>(0, t, f);
     }
 
   }
