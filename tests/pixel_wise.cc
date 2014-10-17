@@ -22,7 +22,7 @@ int main()
   // One domain.
   box2d domain = vpp::make_box2d(10, 10);
   auto it = domain.begin();
-  vpp::pixel_wise(domain)(row_forward, col_forward), [&] (auto& p) {
+  vpp::pixel_wise(domain)(row_forward, col_forward) | [&] (auto& p) {
     assert(*it == p);
     it.next();
   };
@@ -32,30 +32,34 @@ int main()
 
   // Row forward.
   fill(img2, 1);
-  vpp::pixel_wise(img2, nbh)(row_forward) << [&] (auto& o, auto& nbh) {
+  vpp::pixel_wise(img2, nbh)(row_forward) | [&] (auto& o, auto& nbh) {
     o = o + nbh(0, -1);
   };
   for (auto p : img2.domain()) { assert(img2(p) == p[1] + 1); }
 
   // Row backward.
   fill(img2, 1);
-  vpp::pixel_wise(img2, nbh)(row_backward) << [&] (auto& o, auto& nbh) {
+  vpp::pixel_wise(img2, nbh)(row_backward) | [&] (auto& o, auto& nbh) {
     o = o + nbh(0, 1);
   };
   for (auto p : img2.domain()) { assert(img2(p) == (img2.ncols() - p[1])); }
 
   // Col forward.
   fill(img2, 1);
-  vpp::pixel_wise(img2, nbh, img2.domain())(col_forward) << [&] (auto& o, auto& nbh, vint2 p) {
+  vpp::pixel_wise(img2, nbh, img2.domain())(col_forward) | [&] (auto& o, auto& nbh, vint2 p) {
     o = o + nbh(-1, 0);
   };
   for (auto p : img2.domain()) { assert(img2(p) == (p[0] + 1)); }
 
   // Col forward.
   fill(img2, 1);
-  vpp::pixel_wise(img2, nbh, img2.domain())(col_backward) << [&] (auto& o, auto& nbh, vint2 p) {
+  vpp::pixel_wise(img2, nbh, img2.domain())(col_backward) | [&] (auto& o, auto& nbh, vint2 p) {
     o = o + nbh(1, 0);
   };
   for (auto p : img2.domain()) { assert(img2(p) == (img2.nrows() - p[0])); }
 
+  // Image construction.
+  auto img3 = pixel_wise(img2) | [] (auto& x) { return x; };
+  for (auto p : img2.domain()) { assert(img2(p) == img3(p)); }
+  
 }

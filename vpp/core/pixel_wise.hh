@@ -1,7 +1,9 @@
 #pragma once
 
 #include <iostream>
+#include <tuple>
 #include <iod/iod.hh>
+#include <iod/callable_traits.hh>
 #include <iod/symbol.hh>
 
 #include <vpp/core/imageNd.hh>
@@ -18,7 +20,6 @@ namespace vpp
   struct openmp {};
   struct pthreads {}; // Todo
   struct cpp_amp {}; // Todo
-
 
   template <typename T>
   struct get_row_iterator
@@ -94,23 +95,41 @@ namespace vpp
         (ranges_, new_options);
     }
 
+    template <typename ...A>
+    auto operator()(iod::iod_object<A...> _options)
+    {
+      auto new_options = _options;
+      return parallel_for_pixel_wise_runner<openmp, decltype(new_options), Params...>
+        (ranges_, new_options);
+    }
 
+    // Compute the return type of a given kernel function.
     template <typename F>
-    void operator|(F fun) // if fun -> void.
+    using kernel_return_type = decltype(std::declval<F>()(*std::declval<get_row_iterator_t<Params>>()...));
+
+    // if fun -> void.
+    template <typename F,
+              typename X = std::enable_if_t<std::is_same<kernel_return_type<F>, void>::value>>
+    void operator|(F fun) 
     {
       run(fun, true);
     }
 
-    template <typename F>
-    auto operator|(F fun) // if fun -> something != void.
+    // if fun -> something != void.
+    template <typename F,
+              typename X = std::enable_if_t<!std::is_same<kernel_return_type<F>, void>::value>>
+    auto operator|(F fun)
     {
       auto p1 = std::get<0>(ranges_).first_point_coordinates();
       auto p2 = std::get<0>(ranges_).last_point_coordinates();
 
-      // fixme fun_return_type.
+      typedef kernel_return_type<F> fun_return_type;
       image2d<fun_return_type> out(box2d(p1, p2));
-      pixel_wise(std::tuple_cat(out, ranges_))(options_) | [] (auto& o, Params... ps)
-      { o = fun(ps...); }
+      auto ranges = std::tuple_cat(std::make_tuple(out), ranges_);
+      pixel_wise(ranges)(options_) |
+        [&fun] (auto& o,
+                decltype(*std::declval<get_row_iterator_t<Params>>())... ps)
+      { o = fun(ps...); };
 
       return out;
     }

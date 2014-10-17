@@ -4,6 +4,10 @@
 
 // iod symbols for video++.
 
+//  Convert the symbol file into a C++ header using sed, or another text processing tool
+//  with the equivalent command:
+//  sed -e 's/^\([a-zA-Z1-9_]\+\)/#ifndef IOD_SYMBOL_\1\n\#define IOD_SYMBOL_\1\n    iod_define_symbol(\1)\n#endif/' symbols.sb > symbols.hh
+
 tie_arguments
 row_forward
 row_backward
