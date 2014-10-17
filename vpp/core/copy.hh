@@ -1,15 +1,16 @@
 #ifndef VPP_COPY_HH__
 # define VPP_COPY_HH__
 
-# include <vpp/core/pixel_wise.hh>
-
 namespace vpp
 {
+
+  template <typename... PS>
+  auto pixel_wise(PS&&... params);
 
   template <typename I, typename J>
   void copy(const I& src, J& dst)
   {
-    pixel_wise(src, dst) << [] (const auto& in, auto& out) { out = in; };
+    pixel_wise(src, dst) | [] (const auto& in, auto& out) { out = in; };
   }
 
 };

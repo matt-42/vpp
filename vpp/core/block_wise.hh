@@ -9,6 +9,7 @@
 namespace vpp
 {
 
+  using s::no_threads;
   template <typename OPTS, typename V, typename... Params>
   class block_wise_runner
   {
@@ -66,15 +67,9 @@ namespace vpp
     }
 
     template <typename F>
-    void operator<<(F fun)
+    void operator|(F fun)
     {
-      run(fun, true);
-    }
-
-    template <typename F>
-    void operator<(F fun)
-    {
-      run(fun, false);
+      run(fun, !options_.has(no_threads));
     }
 
   private:

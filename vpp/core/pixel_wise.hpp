@@ -106,13 +106,13 @@ namespace vpp
       !options_.has(serial); // user did not specify serial
 
     const int bs = std::min(options_.get(block_size, 32), p2[1] - p1[1]);
-    block_wise(vint2{1 + p2[0] - p1[0], bs}, ranges_)(s::tie_arguments)
-      << [this, &fun] (auto& b)
+    block_wise(vint2{1 + p2[0] - p1[0], bs}, ranges_)(s::tie_arguments) |
+      [this, &fun] (auto& b)
     {
       if (options_.has(col_backward))
-        pixel_wise(b)(col_backward) < fun;
+        pixel_wise(b)(col_backward, no_threads) | fun;
       else
-        pixel_wise(b) < fun;
+        pixel_wise(b)(no_threads) | fun;
     };
 
   }

@@ -111,7 +111,7 @@ namespace vpp
               typename X = std::enable_if_t<std::is_same<kernel_return_type<F>, void>::value>>
     void operator|(F fun) 
     {
-      run(fun, true);
+      run(fun, !options_.has(no_threads));
     }
 
     // if fun -> something != void.
@@ -131,18 +131,6 @@ namespace vpp
       { o = fun(ps...); };
 
       return out;
-    }
-
-    template <typename F>
-    void operator<<(F fun)
-    {
-      run(fun, true);
-    }
-
-    template <typename F>
-    void operator<(F fun)
-    {
-      run(fun, false);
     }
 
   private:

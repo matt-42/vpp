@@ -13,7 +13,7 @@ namespace vpp
   {
     typedef plus_promotion<V> S;
     S res = zero<S>();
-    pixel_wise(img) < [&res] (const V& v) { res += v; };
+    pixel_wise(img)(no_threads) | [&res] (const V& v) { res += v; };
     return res;
 
   }

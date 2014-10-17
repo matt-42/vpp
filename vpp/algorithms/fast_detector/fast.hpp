@@ -444,7 +444,7 @@ namespace vpp
       int pitch = A.pitch();
 
       auto n = box_nbh2d<V, 7, 7>(A);
-      pixel_wise(B, n) << [&] (U& b, auto& n)
+      pixel_wise(B, n) | [&] (U& b, auto& n)
       {
         V v = n(0, 0);
 
@@ -486,7 +486,7 @@ namespace vpp
   {
     auto nbh = box_nbh2d<V, 3, 3>(A);
 
-    pixel_wise(A, nbh) << [] (V& a, auto& nn)
+    pixel_wise(A, nbh) | [] (V& a, auto& nn)
     {
       V v = a;
       int is_max = 1;

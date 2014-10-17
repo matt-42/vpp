@@ -10,13 +10,13 @@ int main()
   //image2d<int> img2(50, 300, border(1));
   image2d<int> img2(10, 10, border(1));
 
-  vpp::pixel_wise(img2) << [&] (auto& p) { p = 42; };
+  vpp::pixel_wise(img2) | [&] (auto& p) { p = 42; };
 
   for (auto p : img2.domain())
     assert(img2(p) == 42);
 
   fill(img2, 0);
-  vpp::pixel_wise(img2) << [&] (auto& p) { p = 43; };
+  vpp::pixel_wise(img2) | [&] (auto& p) { p = 43; };
   for (auto p : img2.domain()) { assert(img2(p) == 43); }
 
   // One domain.

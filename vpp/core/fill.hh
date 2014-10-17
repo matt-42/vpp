@@ -11,20 +11,20 @@ namespace vpp
   template <typename V, typename U, unsigned N>
   void fill(imageNd<V, N>& img, U value)
   {
-    pixel_wise(img) << [=] (auto& pix) { pix = value; };
+    pixel_wise(img) | [=] (auto& pix) { pix = value; };
   }
 
   template <typename V, unsigned N>
   void fill(imageNd<V, N>& img, V value, const boxNd<N>& box)
   {
-    pixel_wise(box, img) << [=] (auto&, auto& pix) { pix = value; };
+    pixel_wise(box, img) | [=] (auto&, auto& pix) { pix = value; };
   }
 
   template <typename V, typename U, unsigned N>
   void fill_with_border(imageNd<V, N>& img, U value)
   {
     auto box = img.domain_with_border();
-    pixel_wise(box, img) << [=] (auto&, auto& pix) { pix = value; };
+    pixel_wise(box, img) | [=] (auto&, auto& pix) { pix = value; };
   }
 
 };
