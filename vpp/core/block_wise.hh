@@ -10,6 +10,7 @@ namespace vpp
 {
 
   using s::no_threads;
+
   template <typename OPTS, typename V, typename... Params>
   class block_wise_runner
   {
@@ -88,6 +89,26 @@ namespace vpp
   auto block_wise(V dims, std::tuple<PS...> params)
   {
     return block_wise_runner<iod::iod_object<>, V, PS...>(dims, params, iod::D());
+  }
+
+  template <typename V, typename P, typename... PS>
+  auto row_wise(P&& p, PS&&... params)
+  {
+    auto p1 = p.first_point_coordinates();
+    auto p2 = p.last_point_coordinates();
+
+    return block_wise_runner<iod::iod_object<>, V, PS...>(vint2{1, p2[1] - p1[1]},
+                                                          std::forward_as_tuple(p, params...), iod::D());
+  }
+
+  template <typename V, typename P, typename... PS>
+  auto col_wise(P&& p, PS&&... params)
+  {
+    auto p1 = p.first_point_coordinates();
+    auto p2 = p.last_point_coordinates();
+
+    return block_wise_runner<iod::iod_object<>, V, PS...>(vint2{p2[0] - p1[0], 1},
+                                                          std::forward_as_tuple(p, params...), iod::D());
   }
 
 };
