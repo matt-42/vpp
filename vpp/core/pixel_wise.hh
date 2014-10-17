@@ -3,7 +3,6 @@
 #include <iostream>
 #include <tuple>
 #include <iod/iod.hh>
-#include <iod/callable_traits.hh>
 #include <iod/symbol.hh>
 
 #include <vpp/core/imageNd.hh>
