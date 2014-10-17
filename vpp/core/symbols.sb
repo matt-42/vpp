@@ -13,3 +13,4 @@ mem_forward
 mem_backward
 serial
 block_size
+no_threads

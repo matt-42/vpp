@@ -46,6 +46,7 @@ namespace vpp
   using s::mem_backward;
   using s::serial;
   using s::block_size;
+  using s::no_threads;
 
   // Pixel wise takes a variable number of 2d ranges. (Todo: implement Nd version).
   // A range should respect this interface:
@@ -91,6 +92,27 @@ namespace vpp
       auto new_options = iod::D(_options...);
       return parallel_for_pixel_wise_runner<openmp, decltype(new_options), Params...>
         (ranges_, new_options);
+    }
+
+
+    template <typename F>
+    void operator|(F fun) // if fun -> void.
+    {
+      run(fun, true);
+    }
+
+    template <typename F>
+    auto operator|(F fun) // if fun -> something != void.
+    {
+      auto p1 = std::get<0>(ranges_).first_point_coordinates();
+      auto p2 = std::get<0>(ranges_).last_point_coordinates();
+
+      // fixme fun_return_type.
+      image2d<fun_return_type> out(box2d(p1, p2));
+      pixel_wise(std::tuple_cat(out, ranges_))(options_) | [] (auto& o, Params... ps)
+      { o = fun(ps...); }
+
+      return out;
     }
 
     template <typename F>

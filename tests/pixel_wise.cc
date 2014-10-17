@@ -22,7 +22,7 @@ int main()
   // One domain.
   box2d domain = vpp::make_box2d(10, 10);
   auto it = domain.begin();
-  vpp::pixel_wise(domain)(row_forward, col_forward) < [&] (auto& p) {
+  vpp::pixel_wise(domain)(row_forward, col_forward), [&] (auto& p) {
     assert(*it == p);
     it.next();
   };
