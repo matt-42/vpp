@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <tuple>
-#include <iod/iod.hh>
+#include <iod/sio.hh>
 #include <iod/symbol.hh>
 
 #include <vpp/core/imageNd.hh>
@@ -95,7 +95,7 @@ namespace vpp
     }
 
     template <typename ...A>
-    auto operator()(iod::iod_object<A...> _options)
+    auto operator()(iod::sio<A...> _options)
     {
       auto new_options = _options;
       return parallel_for_pixel_wise_runner<openmp, decltype(new_options), Params...>
@@ -141,13 +141,13 @@ namespace vpp
   template <typename... PS>
   auto pixel_wise(PS&&... params)
   {
-    return parallel_for_pixel_wise_runner<openmp, iod::iod_object<>, PS...>(std::forward_as_tuple(params...));
+    return parallel_for_pixel_wise_runner<openmp, iod::sio<>, PS...>(std::forward_as_tuple(params...));
   }
 
   template <typename... PS>
   auto pixel_wise(std::tuple<PS...>& params)
   {
-    return parallel_for_pixel_wise_runner<openmp, iod::iod_object<>, PS...>(params);
+    return parallel_for_pixel_wise_runner<openmp, iod::sio<>, PS...>(params);
   }
 
 };

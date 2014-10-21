@@ -3,7 +3,7 @@
 
 # include <tuple>
 # include <vpp/core/tuple_utils.hh>
-# include <iod/iod.hh>
+# include <iod/sio.hh>
 # include <iod/utils.hh>
 
 namespace vpp
@@ -82,13 +82,13 @@ namespace vpp
   template <typename V, typename... PS>
   auto block_wise(V dims, PS&&... params)
   {
-    return block_wise_runner<iod::iod_object<>, V, PS...>(dims, std::forward_as_tuple(params...));
+    return block_wise_runner<iod::sio<>, V, PS...>(dims, std::forward_as_tuple(params...));
   }
 
   template <typename V, typename... PS>
   auto block_wise(V dims, std::tuple<PS...> params)
   {
-    return block_wise_runner<iod::iod_object<>, V, PS...>(dims, params, iod::D());
+    return block_wise_runner<iod::sio<>, V, PS...>(dims, params, iod::D());
   }
 
   template <typename V, typename P, typename... PS>
@@ -97,7 +97,7 @@ namespace vpp
     auto p1 = p.first_point_coordinates();
     auto p2 = p.last_point_coordinates();
 
-    return block_wise_runner<iod::iod_object<>, V, PS...>(vint2{1, p2[1] - p1[1]},
+    return block_wise_runner<iod::sio<>, V, PS...>(vint2{1, p2[1] - p1[1]},
                                                           std::forward_as_tuple(p, params...), iod::D());
   }
 
@@ -107,7 +107,7 @@ namespace vpp
     auto p1 = p.first_point_coordinates();
     auto p2 = p.last_point_coordinates();
 
-    return block_wise_runner<iod::iod_object<>, V, PS...>(vint2{p2[0] - p1[0], 1},
+    return block_wise_runner<iod::sio<>, V, PS...>(vint2{p2[0] - p1[0], 1},
                                                           std::forward_as_tuple(p, params...), iod::D());
   }
 
