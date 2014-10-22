@@ -5,6 +5,7 @@
 # include <vpp/core/boxNd.hh>
 # include <vpp/core/imageNd_iterator.hh>
 # include <vpp/core/cast_to_float.hh>
+# include <iod/sio.hh>
 
 namespace vpp
 {
@@ -50,17 +51,26 @@ namespace vpp
     // Constructors.
     imageNd();
 
-    imageNd(const std::initializer_list<int>& dims, border b = 0);
-    imageNd(const std::vector<int>& dims, border b = 0);
+    template <typename... O>
+    imageNd(const std::initializer_list<int>& dims, const O&... opts_);
 
-    imageNd(int ncols, border b = 0); // 1D.
-    imageNd(int nrows, int ncols, border b = 0); // 2D.
-    imageNd(int nslices, int nrows, int ncols, border b = 0); // 3D.
+    template <typename... O>
+    imageNd(const std::vector<int>& dims, const O&... opts_);
 
-    //imageNd(const boxNd<N>& domain, border b = 0);
-    imageNd(const boxNd<N>& domain, border b = 0, align_on a = 64);
+    template <typename... O>
+    imageNd(int ncols, const O&... opts_); // 1D.
 
-    imageNd(std::vector<int> dims, border b, V* data, int pitch);
+    template <typename... O>
+    imageNd(int nrows, int ncols, const O&... opts_); // 2D.
+
+    template <typename... O>
+    imageNd(int nslices, int nrows, int ncols, const O&... opts_); // 3D.
+
+    template <typename... O>
+    imageNd(const boxNd<N>& domain, const O&... opts_);
+
+    template <typename... O>
+    imageNd(const boxNd<N>& domain, V* data, int pitch, const O&... opts_);
 
     // Copy constructor. Share the data.
     imageNd(const imageNd<V, N>& other);
@@ -143,7 +153,8 @@ namespace vpp
     inline void swap(imageNd<V, N>& o) { o.ptr_.swap(ptr_); }
 
   protected:
-    void allocate(const std::vector<int>& dims, vpp::border b, align_on align = 256);
+    template <typename... O>
+    void allocate(const std::vector<int>& dims, const iod::sio<O...>& options);
 
     std::shared_ptr<imageNd_data<V, N> > ptr_;
   };

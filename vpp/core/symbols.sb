@@ -1,12 +1,6 @@
-#pragma once
-
-#include <iod/symbol.hh>
-
-// iod symbols for video++.
-
 //  Convert the symbol file into a C++ header using sed, or another text processing tool
 //  with the equivalent command:
-//  sed -e 's/^\([a-zA-Z1-9_]\+\)/#ifndef IOD_SYMBOL_\1\n\#define IOD_SYMBOL_\1\n    iod_define_symbol(\1)\n#endif/' symbols.sb > symbols.hh
+//  sed -e 's/^\([a-zA-Z1-9_]\)\([a-zA-Z1-9_]*\)/#ifndef IOD_SYMBOL__\U\1\L\2\n\#define IOD_SYMBOL__\U\1\L\2\n    iod_define_symbol(\1\2, _\U\1\L\2)\n#endif/' symbols.sb > symbols_definitions.hh
 
 tie_arguments
 row_forward
@@ -18,3 +12,5 @@ mem_backward
 serial
 block_size
 no_threads
+aligned
+border

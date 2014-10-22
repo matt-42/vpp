@@ -14,52 +14,56 @@ namespace vpp
   }
 
   template <typename V, unsigned N>
-  imageNd<V, N>::imageNd(const std::initializer_list<int>& dims, vpp::border b)
+  template <typename... O>
+  imageNd<V, N>::imageNd(const std::initializer_list<int>& dims, const O&... options)
   {
-    allocate(dims, b);
+    allocate(dims, iod::D(options));
   }
 
   template <typename V, unsigned N>
-  imageNd<V, N>::imageNd(const std::vector<int>& dims, vpp::border b)
+  template <typename... O>
+  imageNd<V, N>::imageNd(const std::vector<int>& dims, const O&... options)
   {
-    allocate(dims, b);
+    allocate(dims, iod::D(options));
   }
 
 
   template <typename V, unsigned N>
-  imageNd<V, N>::imageNd(int ncols, vpp::border b)
-    : imageNd({ncols}, b)
+  template <typename... O>
+  imageNd<V, N>::imageNd(int ncols, const O&... options)
+    : imageNd(make_box1d(ncols), iod::D(options))
   {
     static_assert(N == 1, "ImageNd constructor: bad dimension.");
   }
 
   template <typename V, unsigned N>
-  imageNd<V, N>::imageNd(int nrows, int ncols, vpp::border b)
-    : imageNd({nrows, ncols}, b)
+  template <typename... O>
+  imageNd<V, N>::imageNd(int nrows, int ncols, const O&... options)
+    : imageNd(make_box2d(nrows, ncols), iod::D(options))
   {
     static_assert(N == 2, "ImageNd constructor: bad dimension.");
   }
 
   template <typename V, unsigned N>
-  imageNd<V, N>::imageNd(int nslices, int nrows, int ncols, vpp::border b)
-    : imageNd({nslices, nrows, ncols}, b)
+  template <typename... O>
+  imageNd<V, N>::imageNd(int nslices, int nrows, int ncols, const O&... options)
+    : imageNd(make_box3d(nslices, nrows, ncols), iod::D(options))
   {
     static_assert(N == 3, "ImageNd constructor: bad dimension.");
   }
 
   template <typename V, unsigned N>
-  imageNd<V, N>::imageNd(std::vector<int> dims, vpp::border b, V* data, int pitch)
+  template <typename... O>
+  imageNd<V, N>::imageNd(const boxNd<N>& domain, V* data, int pitch, const O&... _options)
   {
+    auto options = iod::D(_options);
     ptr_ = std::shared_ptr<imageNd_data<V, N>>(new imageNd_data<V, N>());
 
     ptr_->data_ = data;
     ptr_->begin_ = ptr_->data_;
     ptr_->pitch_ = pitch;
-    ptr_->domain_.p1() = vint<N>::Zero();
-    for (unsigned i = 0; i < N; i++)
-      ptr_->domain_.p2()[i] = dims[i] - 1;
-
-    ptr_->border_ = b.size();
+    ptr_->domain_ = domain;
+    ptr_->border_ = options.get(_Border, 0);
 
     int size = ptr_->pitch_;
     for (int n = 0; n < N - 1; n++)
@@ -97,7 +101,8 @@ namespace vpp
   }
 
   template <typename V, unsigned N>
-  imageNd<V, N>::imageNd(const boxNd<N>& domain, vpp::border b, align_on a)
+  template <typename... O>
+  imageNd<V, N>::imageNd(const boxNd<N>& domain, const O&... options)
   {
     std::vector<int> dims(N);
 
@@ -114,14 +119,15 @@ namespace vpp
   }
 
   template <typename V, unsigned N>
-  void imageNd<V, N>::allocate(const std::vector<int>& dims, vpp::border b, align_on a)
+  template <typename... O>
+  void imageNd<V, N>::allocate(const std::vector<int>& dims, const iod::sio<O...>& options)
   {
-    const int align_size = a.n(); // Align rows addresses on multiples of a.n() bytes.
+    const int align_size = options.get(_Aligned, 16); // Memory alignment of rows.
 
     typedef unsigned long long ULL;
     ptr_ = std::make_shared<imageNd_data<V, N>>();
     auto& d = *ptr_;
-    d.border_ = b.size();
+    d.border_ = options.get(_Border, 0);
 
     int border_size = d.border_ * sizeof(V);
     int border_padding = 0;
