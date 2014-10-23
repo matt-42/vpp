@@ -91,23 +91,23 @@ namespace vpp
     return block_wise_runner<iod::sio<>, V, PS...>(dims, params, iod::D());
   }
 
-  template <typename V, typename P, typename... PS>
+  template <typename P, typename... PS>
   auto row_wise(P&& p, PS&&... params)
   {
     auto p1 = p.first_point_coordinates();
     auto p2 = p.last_point_coordinates();
 
-    return block_wise_runner<iod::sio<>, V, PS...>(vint2{1, p2[1] - p1[1]},
+    return block_wise_runner<iod::sio<>, vint2, P, PS...>(vint2{1, p2[1] - p1[1]},
                                                           std::forward_as_tuple(p, params...), iod::D());
   }
 
-  template <typename V, typename P, typename... PS>
+  template <typename P, typename... PS>
   auto col_wise(P&& p, PS&&... params)
   {
     auto p1 = p.first_point_coordinates();
     auto p2 = p.last_point_coordinates();
 
-    return block_wise_runner<iod::sio<>, V, PS...>(vint2{p2[0] - p1[0], 1},
+    return block_wise_runner<iod::sio<>, vint2, P, PS...>(vint2{p2[0] - p1[0], 1},
                                                           std::forward_as_tuple(p, params...), iod::D());
   }
 

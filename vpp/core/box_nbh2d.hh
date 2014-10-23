@@ -52,7 +52,8 @@ namespace vpp
 
     inline box_nbh2d_(Const<image2d<V>>& img, vint2 p)
       : pitch_(img.pitch()),
-        begin_(&img(0,0))
+        begin_(&img(0,0)),
+        domain_(img.domain())
     {
       for (int r = -nrows / 2; r <= nrows / 2; r++)
         rows_[r + nrows / 2] = (Const<V>*)((char*)begin_ + pitch_ * (p[0] + r) + p[1] * sizeof(V));
@@ -72,15 +73,19 @@ namespace vpp
 
     Const<V>& north() const { return (*this)(-1, 0); }
     Const<V>& south() const { return (*this)( 1, 0); }
-    Const<V>& east() const { return (*this)( 0, -1); }
-    Const<V>& west() const { return (*this)( 0, 1); }
+    Const<V>& east() const { return (*this)( 0, 1); }
+    Const<V>& west() const { return (*this)( 0, -1); }
 
     void next() { for (int i = 0; i < nrows; i++)  rows_[i]++; }
     void prev() { for (int i = 0; i < nrows; i++)  rows_[i]--; }
 
+    auto first_point_coordinates() const { return domain_.first_point_coordinates(); }
+    auto last_point_coordinates() const { return domain_.last_point_coordinates(); }
+    
     int pitch_;
     Const<V>* begin_;
     Const<V>* rows_[nrows];
+    box2d domain_;
   };
 
   template <typename V, int nrows, int ncols>
@@ -117,13 +122,25 @@ namespace vpp
     void next() { nbh_.next(); }
     void prev() { nbh_.prev(); }
     
-    nbh_type& operator*()
-    {
-      return nbh_;
-    }
+    nbh_type& operator*() { return nbh_; }
+    const nbh_type& operator*() const { return nbh_; }
 
     nbh_type nbh_;
   };
+ 
+  template <typename V, template <class> class Const, int nrows, int ncols>
+  bool operator==(const box_nbh2d_row_iterator<V, Const, nrows, ncols>& a,
+                  const box_nbh2d_row_iterator<V, Const, nrows, ncols>& b)
+  {
+    return &(*a)(0,0) == &(*b)(0,0);
+  }
+
+  template <typename V, template <class> class Const, int nrows, int ncols>
+  bool operator!=(const box_nbh2d_row_iterator<V, Const, nrows, ncols>& a,
+                  const box_nbh2d_row_iterator<V, Const, nrows, ncols>& b)
+  {
+    return !(a == b);
+  }
 
 }
 
