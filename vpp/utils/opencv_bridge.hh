@@ -50,16 +50,20 @@ namespace vpp
   template <typename V>
   image2d<V> from_opencv(cv::Mat m)
   {
-    image2d<V> res({ m.rows, m.cols }, 0, (V*) m.data, m.step);
+    image2d<V> res(make_box2d(m.rows, m.cols), _Data = m.data, _Pitch = m.step);
     res.set_external_data_holder(new opencv_data_holder{m.refcount, m.data}, opencv_data_deleter);
     m.addref();
     return res;
   }
 
   template <typename V>
-  cv::Mat to_opencv(image2d<V>& m)
+  cv::Mat to_opencv(image2d<V>& v)
   {
-    return cv::Mat(m.nrows(), m.ncols(), opencv_typeof<V>::ret, (void*) m.address_of(vint2(0,0)), m.pitch());
+    cv::Mat m(v.nrows(), v.ncols(), opencv_typeof<V>::ret, (void*) v.address_of(vint2(0,0)), v.pitch());
+    m.refcount = new int(2);
+    v.set_external_data_holder(new opencv_data_holder{m.refcount, m.data}, opencv_data_deleter);
+    return m;
+
   }
 
 };

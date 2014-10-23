@@ -6,8 +6,9 @@ int main()
 {
   using vpp::image2d;
   using vpp::vint2;
+  using vpp::make_box2d;
 
-  // From opencv
+  // from_opencv, opencv releases memory.
   {
     cv::Mat_<int> m(100, 200);
 
@@ -23,6 +24,7 @@ int main()
     assert(*(m.refcount) == 1);
   }
 
+  // from_opencv, vpp releases memory.
   {
     image2d<int> v;
 
@@ -42,7 +44,7 @@ int main()
     for (auto& p : v) assert(p == 42);
   }
 
-  // To opencv
+  // To opencv, vpp releases memory.
   {
     image2d<int> v(100, 200);
 
@@ -59,5 +61,29 @@ int main()
     for (auto& p : v) assert(p == 42);
   }
 
+  // To opencv, opencv releases memory.
+  {
+    cv::Mat_<int> m;
+
+    {
+      image2d<int> v(100, 200);
+      m = vpp::to_opencv(v);
+
+      assert(m.rows == 100);
+      assert(m.cols == 200);
+      m.at<int>(50, 50) = 41;
+
+      assert(v(50, 50) == 41);
+
+      for (auto& p : v) p = 42;
+      for (auto& p : v) assert(p == 42);
+
+    }
+
+    for (auto& p : make_box2d(100, 200)) m.at<int>(p[0], p[1]) = 42;
+    for (auto& p : make_box2d(100, 200)) assert(m.at<int>(p[0], p[1]) == 42);
+    
+    assert(*(m.refcount) == 1);
+  }
 
 }
