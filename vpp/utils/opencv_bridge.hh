@@ -45,6 +45,7 @@ namespace vpp
       *(d->refcount) -= 1;
     else if (d->refcount and *(d->refcount) == 1)
       cv::fastFree(d->data);
+    delete d;
   }
 
   template <typename V>
@@ -60,10 +61,7 @@ namespace vpp
   cv::Mat to_opencv(image2d<V>& v)
   {
     cv::Mat m(v.nrows(), v.ncols(), opencv_typeof<V>::ret, (void*) v.address_of(vint2(0,0)), v.pitch());
-    m.refcount = new int(2);
-    v.set_external_data_holder(new opencv_data_holder{m.refcount, m.data}, opencv_data_deleter);
     return m;
-
   }
 
 };

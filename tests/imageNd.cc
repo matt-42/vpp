@@ -42,7 +42,7 @@ int main()
   // Test with border.
 
   int align_size = 256;
-  imageNd<int, 2> img2(dims, _Border = 1);
+  imageNd<int, 2> img2(dims, _Border = 1, _Aligned = align_size);
   assert(!(long(&img2(0,0)) % align_size));
   assert(!(img2.pitch() % align_size));
   assert((char*)(&img2(vint2(99,199))) == ((char*)&img2(0,0) + 99 * img2.pitch() + 199 * sizeof(int)));

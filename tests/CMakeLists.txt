@@ -5,7 +5,7 @@ find_package(OpenCV REQUIRED)
 enable_testing()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/.. /usr/include/eigen3 $ENV{HOME}/projects/iod)
-add_definitions(-std=c++14 -fopenmp)
+add_definitions(-std=c++14 -g)
 
 add_executable(imageNd imageNd.cc)
 add_test(imageNd imageNd)
@@ -33,6 +33,7 @@ add_executable(sandbox sandbox.cc)
 add_test(sandbox sandbox)
 
 add_executable(window window.cc)
+target_link_libraries(window gomp)
 add_test(window window)
 
 add_executable(opencv_bridge opencv_bridge.cc)
@@ -54,6 +55,7 @@ add_executable(tuple_utils tuple_utils.cc)
 add_test(tuple_utils tuple_utils)
 
 add_executable(block_wise block_wise.cc)
+target_link_libraries(block_wise gomp)
 add_test(block_wise block_wise)
 
 

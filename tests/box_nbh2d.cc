@@ -12,9 +12,9 @@ int main()
 
   nbh.for_all([] (auto& p) { p = 2; });
   nbh.north() = 3;
-  nbh.west() = 4;
+  nbh.east() = 4;
   nbh.south() = 5;
-  nbh.east() = 6;
+  nbh.west() = 6;
 
   assert(A(0,0) == 2);
   assert(A(0,1) == 3);
