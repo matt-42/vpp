@@ -4,6 +4,7 @@
 # include <vpp/core/imageNd.hh>
 # include <vpp/core/boxNd.hh>
 # include <vpp/core/copy.hh>
+# include <vpp/core/symbols.hh>
 
 namespace vpp
 {
@@ -17,21 +18,21 @@ namespace vpp
   template <typename... O>
   imageNd<V, N>::imageNd(const std::initializer_list<int>& dims, const O&... options)
   {
-    allocate(dims, iod::D(options));
+    allocate(dims, iod::D(options...));
   }
 
   template <typename V, unsigned N>
   template <typename... O>
   imageNd<V, N>::imageNd(const std::vector<int>& dims, const O&... options)
   {
-    allocate(dims, iod::D(options));
+    allocate(dims, iod::D(options...));
   }
 
 
   template <typename V, unsigned N>
   template <typename... O>
   imageNd<V, N>::imageNd(int ncols, const O&... options)
-    : imageNd(make_box1d(ncols), iod::D(options))
+    : imageNd(make_box1d(ncols), options...)
   {
     static_assert(N == 1, "ImageNd constructor: bad dimension.");
   }
@@ -39,7 +40,7 @@ namespace vpp
   template <typename V, unsigned N>
   template <typename... O>
   imageNd<V, N>::imageNd(int nrows, int ncols, const O&... options)
-    : imageNd(make_box2d(nrows, ncols), iod::D(options))
+    : imageNd(make_box2d(nrows, ncols), options...)
   {
     static_assert(N == 2, "ImageNd constructor: bad dimension.");
   }
@@ -47,29 +48,9 @@ namespace vpp
   template <typename V, unsigned N>
   template <typename... O>
   imageNd<V, N>::imageNd(int nslices, int nrows, int ncols, const O&... options)
-    : imageNd(make_box3d(nslices, nrows, ncols), iod::D(options))
+    : imageNd(make_box3d(nslices, nrows, ncols), options...)
   {
     static_assert(N == 3, "ImageNd constructor: bad dimension.");
-  }
-
-  template <typename V, unsigned N>
-  template <typename... O>
-  imageNd<V, N>::imageNd(const boxNd<N>& domain, V* data, int pitch, const O&... _options)
-  {
-    auto options = iod::D(_options);
-    ptr_ = std::shared_ptr<imageNd_data<V, N>>(new imageNd_data<V, N>());
-
-    ptr_->data_ = data;
-    ptr_->begin_ = ptr_->data_;
-    ptr_->pitch_ = pitch;
-    ptr_->domain_ = domain;
-    ptr_->border_ = options.get(_Border, 0);
-
-    int size = ptr_->pitch_;
-    for (int n = 0; n < N - 1; n++)
-      size *= ptr_->domain_.size(n);
-
-    ptr_->data_end_ = (V*)((char*) ptr_->data_ + size);
   }
 
   template <typename V, unsigned N>
@@ -102,14 +83,37 @@ namespace vpp
 
   template <typename V, unsigned N>
   template <typename... O>
-  imageNd<V, N>::imageNd(const boxNd<N>& domain, const O&... options)
+  imageNd<V, N>::imageNd(const boxNd<N>& domain, const O&... _options)
   {
     std::vector<int> dims(N);
 
     for (int i = 0; i < int(N); i++)
       dims[i] = domain.size(i);
 
-    allocate(dims, b, a);
+    const auto options = iod::D(_options...);
+
+    static_assert(
+      !options.has(_Data) or options.has(_Pitch),
+      "You must provide the pitch (Number of bits between the begining of to successive lines when providing a data pointer the image constructor.");
+
+    if (options.has(_Data))
+    {
+      ptr_ = std::shared_ptr<imageNd_data<V, N>>(new imageNd_data<V, N>());
+
+      ptr_->data_ = (V*) options.get(_Data, (V*)0);
+      ptr_->begin_ = ptr_->data_;
+      ptr_->pitch_ = options.get(_Pitch, 0);
+      ptr_->domain_ = domain;
+      ptr_->border_ = options.get(_Border, 0);
+
+      int size = ptr_->pitch_;
+      for (int n = 0; n < N - 1; n++)
+        size *= ptr_->domain_.size(n);
+
+      ptr_->data_end_ = (V*)((char*) ptr_->data_ + size);
+    }
+    else
+      allocate(dims, options);
   }
 
   template <typename V, unsigned N>
@@ -142,7 +146,7 @@ namespace vpp
 
     int size = 1;
     for (int i = 0; i < N - 1; i++)
-      size *= (dims[i] + b.size() * 2);
+      size *= (dims[i] + border_size * 2);
     size *= d.pitch_;
     
     d.data_ = (V*) malloc(align_size + size);
@@ -273,19 +277,10 @@ namespace vpp
     return res;
   }
 
-  template <typename I>
-  I clone(I img)
+  template <typename I, typename... O>
+  I clone(I img, const O&... options)
   {
-    I n(img.domain(), img.border());
-    copy(img, n);
-    return n;
-  }
-
-
-  template <typename I>
-  I clone_with_border(I img, vpp::border b)
-  {
-    I n(img.domain(), b);
+    I n(img.domain(), options...);
     copy(img, n);
     return n;
   }

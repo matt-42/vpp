@@ -11,7 +11,7 @@ namespace vpp
   template <typename V>
   void antialiasing_lowpass_filter(const image2d<V>& in, image2d<V>& out)
   {
-    image2d<V> tmp(in.domain(), border(2));
+    image2d<V> tmp(in.domain(), _Border = 2);
     int nr = in.nrows();
     int nc = in.ncols();
     typedef plus_promotion<V> S;
@@ -92,13 +92,14 @@ namespace vpp
 
     typedef imageNd<V, N> image_type;
 
-    pyramid(boxNd<N> d, int nlevels, int factor, border b = 0)
+    template <typename... O>
+    pyramid(boxNd<N> d, int nlevels, int factor, const O&... image_options)
       : levels_(nlevels),
         factor_(factor)
     {
       for (int i = 0; i < nlevels; i++)
       {
-        levels_[i] = imageNd<V, N>(d, b);
+        levels_[i] = imageNd<V, N>(d, image_options...);
         d = make_box2d(d.nrows() / factor, d.ncols() / factor);
       }
     }
@@ -119,7 +120,7 @@ namespace vpp
       {
         if (factor_ == 2)
         {
-          image_type tmp(levels_[i - 1].domain(), border(3));
+          image_type tmp(levels_[i - 1].domain(), _Border = 3);
           antialiasing_lowpass_filter(levels_[i - 1], tmp);
           subsample2(tmp, levels_[i]);
         }

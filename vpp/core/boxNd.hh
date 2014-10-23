@@ -84,6 +84,13 @@ namespace vpp
   typedef boxNd<3> box3d;
   typedef boxNd<4> box4d;
 
+  inline box1d make_box1d(int nc)
+  {
+    vint1 a; a[0] = 0;
+    vint1 b; b[0] = nc - 1;
+    return box1d(a, b);
+  }
+
   inline box2d make_box2d(int nr, int nc)
   {
     return box2d(vint2(0, 0), vint2(nr - 1, nc - 1));

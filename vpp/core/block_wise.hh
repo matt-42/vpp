@@ -9,7 +9,7 @@
 namespace vpp
 {
 
-  using s::no_threads;
+  using s::_No_threads;
 
   template <typename OPTS, typename V, typename... Params>
   class block_wise_runner
@@ -44,7 +44,7 @@ namespace vpp
                   vint2{std::min(rstart + (r + 1) * dims_[0] - 1, rend),
                       std::min(cstart + (c + 1) * dims_[1] - 1, cend)});
 
-          iod::static_if<OPTS::has(s::tie_arguments)>
+          iod::static_if<OPTS::has(s::_Tie_arguments)>
             ([this, b] (auto& fun) { // tie arguments into a tuple and pass it to fun.
               auto t = internals::tuple_transform(this->ranges_, [&b] (auto& i) { return i | b; });
               fun(t);
@@ -70,7 +70,7 @@ namespace vpp
     template <typename F>
     void operator|(F fun)
     {
-      run(fun, !options_.has(no_threads));
+      run(fun, !options_.has(_No_threads));
     }
 
   private:

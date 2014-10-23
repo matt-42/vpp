@@ -1,6 +1,6 @@
 //  Convert the symbol file into a C++ header using sed, or another text processing tool
 //  with the equivalent command:
-//  sed -e 's/^\([a-zA-Z1-9_]\)\([a-zA-Z1-9_]*\)/#ifndef IOD_SYMBOL__\U\1\L\2\n\#define IOD_SYMBOL__\U\1\L\2\n    iod_define_symbol(\1\2, _\U\1\L\2)\n#endif/' symbols.sb > symbols_definitions.hh
+//  sed -e 's/^\([a-zA-Z1-9_]\)\([a-zA-Z1-9_]*\)/#ifndef IOD_SYMBOL__\U\1\L\2\n\#define IOD_SYMBOL__\U\1\L\2\n    iod_define_symbol(\1\2, _\U\1\L\2)\n#endif/' symbols.sb > symbol_definitions.hh
 
 #ifndef IOD_SYMBOL__Tie_arguments
 #define iod_symbol__Tie_arguments
@@ -41,4 +41,20 @@
 #ifndef IOD_SYMBOL__No_threads
 #define iod_symbol__No_threads
     iod_define_symbol(no_threads, _No_threads)
+#endif
+#ifndef IOD_SYMBOL__Aligned
+#define iod_symbol__Aligned
+    iod_define_symbol(aligned, _Aligned)
+#endif
+#ifndef IOD_SYMBOL__Border
+#define iod_symbol__Border
+    iod_define_symbol(border, _Border)
+#endif
+#ifndef IOD_SYMBOL__Data
+#define iod_symbol__Data
+    iod_define_symbol(data, _Data)
+#endif
+#ifndef IOD_SYMBOL__Pitch
+#define iod_symbol__Pitch
+    iod_define_symbol(pitch, _Pitch)
 #endif

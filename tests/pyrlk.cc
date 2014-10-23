@@ -37,9 +37,9 @@ int main(int argc, char* argv[])
 
   int nscales = 4;
 
-  pyramid2d<vuchar1> pyramid1(i1.domain(), nscales, 2, border(3));
-  pyramid2d<vuchar1> pyramid2(i1.domain(), nscales, 2, border(3));
-  pyramid2d<vfloat2> pyramid1_grad(i1.domain(), nscales, 2, border(3));
+  pyramid2d<vuchar1> pyramid1(i1.domain(), nscales, 2, _Border = 3);
+  pyramid2d<vuchar1> pyramid2(i1.domain(), nscales, 2, _Border = 3);
+  pyramid2d<vfloat2> pyramid1_grad(i1.domain(), nscales, 2, _Border = 3);
 
   copy(i1_blur, pyramid1[0]);
   copy(i2_blur, pyramid2[0]);

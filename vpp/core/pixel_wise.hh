@@ -38,16 +38,6 @@ namespace vpp
   template <typename B, typename... Params>
   class parallel_for_pixel_wise_runner;
 
-  using s::row_forward;
-  using s::row_backward;
-  using s::col_forward;
-  using s::col_backward;
-  using s::mem_forward;
-  using s::mem_backward;
-  using s::serial;
-  using s::block_size;
-  using s::no_threads;
-
   // Pixel wise takes a variable number of 2d ranges. (Todo: implement Nd version).
   // A range should respect this interface:
 
@@ -77,10 +67,10 @@ namespace vpp
     template <typename F>
     void run(F fun, bool parallel)
     {
-      if (!options_.has(col_backward) and !options_.has(col_forward))
+      if (!options_.has(_Col_backward) and !options_.has(_Col_forward))
         run_row_first(fun);
       else
-        if (parallel and !options_.has(row_backward) and !options_.has(row_forward))
+        if (parallel and !options_.has(_Row_backward) and !options_.has(_Row_forward))
           run_col_first_parallel(fun);
         else
           run_row_first(fun);
@@ -111,7 +101,7 @@ namespace vpp
               typename X = std::enable_if_t<std::is_same<kernel_return_type<F>, void>::value>>
     void operator|(F fun) 
     {
-      run(fun, !options_.has(no_threads));
+      run(fun, !options_.has(_No_threads));
     }
 
     // if fun -> something != void.

@@ -4,7 +4,7 @@ project (vpp)
 
 include_directories(/usr/include/eigen3)
 
-add_definitions(-std=c++14 -g)
+add_definitions(-std=c++14)
 add_subdirectory(tests)
 
 install(DIRECTORY vpp DESTINATION include

@@ -5,7 +5,7 @@ int main()
 {
   using namespace vpp;
 
-  image2d<int> img(3, 3, border(1));
+  image2d<int> img(3, 3, _Border = 1);
 
   vint2 ref[] = {
     vint2(0, 0),

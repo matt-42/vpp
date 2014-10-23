@@ -44,15 +44,15 @@ namespace vpp
     int row_start = p1[0];
     int row_end = p2[0];
 
-    constexpr bool row_reverse = OPTS::has(row_backward) || OPTS::has(mem_backward);
-    constexpr bool col_reverse = OPTS::has(col_backward) || OPTS::has(mem_backward);
-    const int config[4] = { options_.has(row_backward), options_.has(row_forward),
-                            options_.has(col_backward), options_.has(col_forward) };
+    constexpr bool row_reverse = OPTS::has(_Row_backward) || OPTS::has(_Mem_backward);
+    constexpr bool col_reverse = OPTS::has(_Col_backward) || OPTS::has(_Mem_backward);
+    const int config[4] = { options_.has(_Row_backward), options_.has(_Row_forward),
+                            options_.has(_Col_backward), options_.has(_Col_forward) };
     const int config_sum = config[0] + config[1] + config[2] + config[3];
     const bool parallel =
       (config_sum == 0 || !((config[0] || config[1]) && 
                             (config[2] || config[3]))) && // no dependency or either row_* or col_* is activated (not both).
-      !options_.has(serial); // user did not specify serial
+      !options_.has(_No_threads); // user did not specify serial
 
     if (col_reverse)
       std::swap(row_start, row_end);
@@ -92,27 +92,27 @@ namespace vpp
     auto p1 = std::get<0>(ranges_).first_point_coordinates();
     auto p2 = std::get<0>(ranges_).last_point_coordinates();
 
-    int col_start = p1[1];
-    int col_end = p2[1];
+    // int col_start = p1[1];
+    // int col_end = p2[1];
 
-    const bool row_reverse = options_.has(row_backward) || options_.has(mem_backward);
-    const bool col_reverse = options_.has(col_backward) || options_.has(mem_backward);
-    const int config[4] = { options_.has(row_backward), options_.has(row_forward),
-                            options_.has(col_backward), options_.has(col_forward) };
-    const int config_sum = config[0] + config[1] + config[2] + config[3];
-    const bool parallel =
-      (config_sum == 0 || !((config[0] || config[1]) && 
-                            (config[2] || config[3]))) && // no dependency or either row_* or col_* is activated (not both).
-      !options_.has(serial); // user did not specify serial
+    // const bool row_reverse = options_.has(_Row_backward) || options_.has(_Mem_backward);
+    // const bool col_reverse = options_.has(_Col_backward) || options_.has(_Mem_backward);
+    // const int config[4] = { options_.has(_Row_backward), options_.has(_Row_forward),
+    //                         options_.has(_Col_backward), options_.has(_Col_forward) };
+    // const int config_sum = config[0] + config[1] + config[2] + config[3];
+    // const bool parallel =
+    //   (config_sum == 0 || !((config[0] || config[1]) && 
+    //                         (config[2] || config[3]))) && // no dependency or either row_* or col_* is activated (not both).
+    //   !options_.has(_No_threads); // user did not specify serial
 
-    const int bs = std::min(options_.get(block_size, 32), p2[1] - p1[1]);
-    block_wise(vint2{1 + p2[0] - p1[0], bs}, ranges_)(s::tie_arguments) |
+    const int bs = std::min(options_.get(_Block_size, 32), p2[1] - p1[1]);
+    block_wise(vint2{1 + p2[0] - p1[0], bs}, ranges_)(_Tie_arguments) |
       [this, &fun] (auto& b)
     {
-      if (options_.has(col_backward))
-        pixel_wise(b)(col_backward, no_threads) | fun;
+      if (options_.has(_Col_backward))
+        pixel_wise(b)(_Col_backward, _No_threads) | fun;
       else
-        pixel_wise(b)(no_threads) | fun;
+        pixel_wise(b)(_No_threads) | fun;
     };
 
   }

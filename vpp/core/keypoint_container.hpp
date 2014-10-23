@@ -9,7 +9,7 @@ namespace vpp
 
   template <typename P, typename F>
   keypoint_container<P, F>::keypoint_container(const box2d& d)
-    : index2d_(d, border(10))
+    : index2d_(d, _Border = 10)
   {
     fill_with_border(index2d_, -1);
     keypoint_vector_.reserve((d.nrows() * d.ncols()) / 10);

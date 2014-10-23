@@ -42,19 +42,19 @@ int main()
   // Test with border.
 
   int align_size = 256;
-  imageNd<int, 2> img2(dims, 1);
+  imageNd<int, 2> img2(dims, _Border = 1);
   assert(!(long(&img2(0,0)) % align_size));
   assert(!(img2.pitch() % align_size));
   assert((char*)(&img2(vint2(99,199))) == ((char*)&img2(0,0) + 99 * img2.pitch() + 199 * sizeof(int)));
 
   std::vector<int> dim3 = {100, 200, 300};
-  imageNd<int, 3> img3(dim3, 1);
+  imageNd<int, 3> img3(dim3, _Border = 1);
 
   int i = 0;
   for (auto& p : img) p = i++;
 
   auto img_clone = clone(img);
-  auto img_clone_border = clone_with_border(img, 3);
+  auto img_clone_border = clone(img, _Border = 3);
 
   assert(img.domain() == img_clone.domain());
   assert(img.domain() == img_clone_border.domain());
@@ -80,7 +80,7 @@ int main()
 
   // Linear interpolation.
   {
-    image2d<vuchar1> test(2,2, border(1));
+    image2d<vuchar1> test(2, 2, _Border = 1);
 
     {
       vuchar1 m; m << 2;
