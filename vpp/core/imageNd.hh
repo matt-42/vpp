@@ -6,6 +6,7 @@
 # include <vpp/core/imageNd_iterator.hh>
 # include <vpp/core/cast_to_float.hh>
 # include <iod/sio.hh>
+# include <iod/sio_utils.hh>
 
 namespace vpp
 {

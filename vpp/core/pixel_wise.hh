@@ -55,7 +55,7 @@ namespace vpp
     typedef parallel_for_pixel_wise_runner<openmp, OPTS, Params...> self;
 
     parallel_for_pixel_wise_runner(std::tuple<Params...> t, OPTS opts = iod::D())
-      : ranges_(t), options_(opts) {}
+      : options_(opts), ranges_(t) {}
 
 
     template <typename F>
@@ -93,12 +93,33 @@ namespace vpp
     }
 
     // Compute the return type of a given kernel function.
+    template <typename F, bool Tie>    
+    struct kernel_return_type;
+
+    template <typename F>    
+    struct kernel_return_type<F, false>
+    {
+      typedef decltype(std::declval<F>()(*std::declval<get_row_iterator_t<Params>>()...)) type;
+    };
+
+    template <typename F>    
+    struct kernel_return_type<F, true>
+    {
+      typedef decltype(std::make_tuple(*std::declval<get_row_iterator_t<Params>>()...))
+        tuple_t;
+
+      typedef decltype(std::declval<F>()(1)) type;
+    };
+
     template <typename F>
-    using kernel_return_type = decltype(std::declval<F>()(*std::declval<get_row_iterator_t<Params>>()...));
+    using kernel_return_type_t = typename kernel_return_type<F, OPTS::has(s::_Tie_arguments)>::type;
+
+    // template <typename F>
+    // using kernel_return_type = decltype(std::declval<F>()(*std::declval<get_row_iterator_t<Params>>()...));
 
     // if fun -> void.
     template <typename F,
-              typename X = std::enable_if_t<std::is_same<kernel_return_type<F>, void>::value>>
+              typename X = std::enable_if_t<std::is_same<kernel_return_type_t<F>, void>::value>>
     void operator|(F fun) 
     {
       run(fun, !options_.has(_No_threads));
@@ -106,13 +127,13 @@ namespace vpp
 
     // if fun -> something != void.
     template <typename F,
-              typename X = std::enable_if_t<!std::is_same<kernel_return_type<F>, void>::value>>
+              typename X = std::enable_if_t<!std::is_same<kernel_return_type_t<F>, void>::value>>
     auto operator|(F fun)
     {
       auto p1 = std::get<0>(ranges_).first_point_coordinates();
       auto p2 = std::get<0>(ranges_).last_point_coordinates();
 
-      typedef kernel_return_type<F> fun_return_type;
+      typedef kernel_return_type_t<F> fun_return_type;
       image2d<fun_return_type> out(box2d(p1, p2));
       auto ranges = std::tuple_cat(std::make_tuple(out), ranges_);
       pixel_wise(ranges)(options_) |
@@ -128,10 +149,11 @@ namespace vpp
     std::tuple<Params...> ranges_;
   };
 
-  template <typename... PS>
-  auto pixel_wise(PS&&... params)
+  template <typename P, typename... PS,
+            typename X>
+  auto pixel_wise(P&& p, PS&&... params)
   {
-    return parallel_for_pixel_wise_runner<openmp, iod::sio<>, PS...>(std::forward_as_tuple(params...));
+    return parallel_for_pixel_wise_runner<openmp, iod::sio<>, P, PS...>(std::forward_as_tuple(p, params...));
   }
 
   template <typename... PS>

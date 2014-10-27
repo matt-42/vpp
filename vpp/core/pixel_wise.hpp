@@ -75,7 +75,20 @@ namespace vpp
 
       while (cur0_ != end0_)
       {
-        internals::apply_args_star(cur_, fun);
+        iod::static_if<OPTS::has(s::_Tie_arguments)>
+          ([&cur_] (auto& fun) { // tie arguments into a tuple and pass it to fun.
+            auto t = internals::tuple_transform(cur_, [] (auto& i) { return *i; });
+            fun(t);
+            return 0;
+          },
+            [&cur_] (auto& fun) { // Directly apply arguments to fun.
+              internals::apply_args_star(cur_, fun);
+              return 0;
+            }, fun);
+
+        // internals::apply_args_star(cur_, fun);
+
+        
         internals::tuple_map(cur_, [this, row_reverse] (auto& it) { row_reverse ? it.prev() : it.next(); });
       }
     };

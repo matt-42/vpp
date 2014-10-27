@@ -58,3 +58,8 @@
 #define iod_symbol__Pitch
     iod_define_symbol(pitch, _Pitch)
 #endif
+
+#ifndef IOD_SYMBOL__V
+#define iod_symbol__V
+    iod_define_symbol(v, _V)
+#endif

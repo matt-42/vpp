@@ -3,7 +3,7 @@ project (vpp_benchmarks)
 
 find_package(OpenCV REQUIRED)
 
-include_directories(/usr/include/eigen3)
+include_directories(/usr/include/eigen3  $ENV{HOME}/projects/iod)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 add_definitions(-O3 -std=c++1y -march=native -DNDEBUG -fopenmp)
@@ -20,6 +20,7 @@ add_executable(box2d_filter box2d_filter.cc)
 add_executable(fast_detector fast_detector.cc)
 add_executable(for_fast for_fast.cc)
 add_executable(pyrlk_opencv_comparison pyrlk_opencv_comparison.cc)
+add_executable(liie liie.cc)
 
 target_link_libraries(image_iterations gomp)
 target_link_libraries(image_add gomp opencv_core)
@@ -29,3 +30,4 @@ target_link_libraries(box2d_filter gomp)
 target_link_libraries(fast_detector ${OpenCV_LIBS}  gomp)
 target_link_libraries(for_fast ${OpenCV_LIBS}  gomp)
 target_link_libraries(pyrlk_opencv_comparison ${OpenCV_LIBS} gomp)
+target_link_libraries(liie gomp)
