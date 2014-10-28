@@ -11,6 +11,12 @@ namespace vpp
 
   using s::_No_threads;
 
+
+  namespace pixel_wise_internals
+  {
+    template <bool COL_REVERSE> struct loop;
+  }
+ 
   template <typename OPTS, typename V, typename... Params>
   class block_wise_runner
   {
@@ -35,13 +41,22 @@ namespace vpp
       int nr = (rend - rstart) / dims_[0];
       int nc = (cend - cstart) / dims_[1];
 
-#pragma omp parallel for num_threads (parallel ? omp_get_num_procs() : 1)
-      for (int r = 0; r <= nr; r++)
-      {
+      constexpr bool row_reverse = OPTS::has(_Row_backward) || OPTS::has(_Mem_backward);
+      constexpr bool col_reverse = OPTS::has(_Col_backward) || OPTS::has(_Mem_backward);
+
+      int rdir = col_reverse ? -1 : 1;
+      if (col_reverse)
+        std::swap(rstart, rend);
+
+      auto border_check = iod::static_if<col_reverse>(
+        [] () { return [] (auto a, auto b) { return std::max(a, b); }; },
+        [] () { return [] (auto a, auto b) { return std::min(a, b); }; });
+      
+      auto f = [&] (int r) {
         for (int c = 0; c <= nc; c++)
         {
-          box2d b(vint2{rstart + r * dims_[0], cstart + c * dims_[1]},
-                  vint2{std::min(rstart + (r + 1) * dims_[0] - 1, rend),
+          box2d b(vint2{r * dims_[0], cstart + c * dims_[1]},
+                  vint2{border_check(((r + rdir) * dims_[0] - rdir), rend),
                       std::min(cstart + (c + 1) * dims_[1] - 1, cend)});
 
           iod::static_if<OPTS::has(s::_Tie_arguments)>
@@ -55,8 +70,8 @@ namespace vpp
                 return 0;
               }, fun);
         }
-      }
-
+      };
+      pixel_wise_internals::loop<col_reverse>::run(f, rstart, rend, false);
     }
 
     template <typename ...A>
@@ -97,7 +112,7 @@ namespace vpp
     auto p1 = p.first_point_coordinates();
     auto p2 = p.last_point_coordinates();
 
-    return block_wise_runner<iod::sio<>, vint2, P, PS...>(vint2{1, p2[1] - p1[1]},
+    return block_wise_runner<iod::sio<>, vint2, P, PS...>(vint2{1, p2[1] - p1[1] + 1},
                                                           std::forward_as_tuple(p, params...), iod::D());
   }
 
@@ -107,7 +122,7 @@ namespace vpp
     auto p1 = p.first_point_coordinates();
     auto p2 = p.last_point_coordinates();
 
-    return block_wise_runner<iod::sio<>, vint2, P, PS...>(vint2{p2[0] - p1[0], 1},
+    return block_wise_runner<iod::sio<>, vint2, P, PS...>(vint2{p2[0] - p1[0] + 1, 1},
                                                           std::forward_as_tuple(p, params...), iod::D());
   }
 

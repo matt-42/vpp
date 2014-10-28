@@ -46,7 +46,8 @@ namespace vpp
 
     inline box_nbh2d_(Const<image2d<V>>& img)
       : pitch_(img.pitch()),
-        begin_(&img(0,0))
+        begin_(&img(0,0)),
+        domain_(img.domain())
     {
     }
 

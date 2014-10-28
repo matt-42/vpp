@@ -66,11 +66,11 @@ namespace vpp
       const int inc = row_reverse ? -1 : 1;
       auto cur_ = internals::tuple_transform(ranges_, [&] (auto& range) {
           typedef get_row_iterator_t<decltype(range)> IT;
-          return IT(vint2(r, col_start), range);
+          return IT(vint2{r, col_start}, range);
         });
 
       typedef get_row_iterator_t<decltype(std::get<0>(ranges_))> IT1;
-      auto end0_ = IT1(vint2(r, col_end + inc), std::get<0>(ranges_));
+      auto end0_ = IT1(vint2{r, col_end + inc}, std::get<0>(ranges_));
       auto& cur0_ = std::get<0>(cur_);
 
       while (cur0_ != end0_)

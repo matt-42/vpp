@@ -15,6 +15,14 @@
 
 namespace vpp
 {
+  namespace liie {
+    template <typename E, typename C>
+    auto evaluate(E exp, C& ctx);
+
+    template <typename E, typename C>
+    auto evaluate_global_expressions(E exp, C&& ctx);    
+  }
+
   // Backends
   struct openmp {};
   struct pthreads {}; // Todo
@@ -114,13 +122,16 @@ namespace vpp
     template <typename F>
     using kernel_return_type_t = typename kernel_return_type<F, OPTS::has(s::_Tie_arguments)>::type;
 
+    template <typename P>
+    using to_pixel_wise_kernel_argument = decltype(*std::declval<get_row_iterator_t<P>>());
+
     // template <typename F>
     // using kernel_return_type = decltype(std::declval<F>()(*std::declval<get_row_iterator_t<Params>>()...));
 
     // if fun -> void.
     template <typename F,
               typename X = std::enable_if_t<std::is_same<kernel_return_type_t<F>, void>::value>>
-    void operator|(F fun) 
+    void run_function(F fun) 
     {
       run(fun, !options_.has(_No_threads));
     }
@@ -128,7 +139,7 @@ namespace vpp
     // if fun -> something != void.
     template <typename F,
               typename X = std::enable_if_t<!std::is_same<kernel_return_type_t<F>, void>::value>>
-    auto operator|(F fun)
+    auto run_function(F fun)
     {
       auto p1 = std::get<0>(ranges_).first_point_coordinates();
       auto p2 = std::get<0>(ranges_).last_point_coordinates();
@@ -144,6 +155,25 @@ namespace vpp
       return out;
     }
 
+    template <typename E>
+    auto run_exp(E&& exp) 
+    {
+      auto exp2 = liie::evaluate_global_expressions(exp, ranges_);
+      //void* x = exp2;
+      return (*this) | [&] (decltype(*std::declval<get_row_iterator_t<Params>>())... ps) {
+        auto tp = std::make_tuple(ps...);
+        return liie::evaluate(exp2, tp);
+      };
+    }
+
+    template <typename E,
+              typename X = std::enable_if_t<std::is_base_of<iod::Exp<E>, E>::value>>
+    auto operator|(E&& exp) { return run_exp(exp); }
+
+    template <typename F,
+              typename X = std::enable_if_t<!std::is_base_of<iod::Exp<F>, F>::value>>
+    auto operator|(F f) { return run_function(f); }
+      
   private:
     OPTS options_;
     std::tuple<Params...> ranges_;

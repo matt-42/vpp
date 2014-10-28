@@ -250,7 +250,6 @@ namespace vpp
   imageNd<V, N>::subimage(const boxNd<N>& d)
   {
     imageNd<V, N> res;
-
     res.ptr_ = std::shared_ptr<imageNd_data<V, N>>(new imageNd_data<V, N>());
     *res.ptr_.get() = *this->ptr_.get(); // Copy the whole image data.
     res.ptr_->begin_ = address_of(d.p1());
