@@ -12,147 +12,131 @@ namespace vpp
 {
   namespace liie
   {
-    using s::_V_t;
-    using s::_V;
-
-    // 1/ extend grammar to handle plain images: A + B -> plus_exp<image2d, image2d>
-    //    Not possible. Would cause to many ambiguities when overloading.
-    // 2/ iod::exp_map_reduce(exp, map_fun, reduce_fun); -> get_exp_images.
-    // 2/ iod::exp_map_ctx(exp, map_fun, reduce_fun); -> images_to_tuple_accessors.
+    struct empty_visitor
+    {
+    };
     
-    template <int N>
-    struct getter
-    {};
-
-    template <typename T>
-    auto get_exp_images(image2d<T>& img) { return std::forward_as_tuple(img); }
-    template <typename T>
-    auto get_exp_images(const image2d<T>& img) { return std::forward_as_tuple(img); }
-
-    template <typename T>
-    auto get_exp_images(T& terminal) {
-      return std::make_tuple();
-    }
-
-    template <typename T>
-    auto get_exp_images(iod::function_call_exp<_V_t, T>& call) {
-      return get_exp_images(std::get<0>(call.args));
-    }
-
-    template <typename T, typename U>
-    auto get_exp_images(iod::plus_exp<T, U>& node)
-    {
-      auto lhs = get_exp_images(node.lhs);
-      auto rhs = get_exp_images(node.rhs);
-
-      return std::tuple_cat(lhs, rhs);
-    }
-
-    struct get_exp_ranges_visitor
-    {
-      template <typename T>
-      auto operator()(image2d<T>& img) const { return std::make_tuple(img); }
-      template <typename T>
-      auto operator()(const image2d<T>& img) const { return std::make_tuple(img); }
-    };
-
-    struct tuple_exp_reduce
-    {
-      template <typename... T>
-      auto operator()(T... t) { return std::tuple_cat(t...); }
-    };
-
-    template <typename E>
-    auto get_exp_ranges(E& exp)
-    {
-      return iod::exp_map_reduce(exp, std::tuple<>(),
-                                 get_exp_ranges_visitor(),
-                                 tuple_exp_reduce());
-    }
-
-    // images_to_tuple_accessors;
-    //   Transform an ast such as ranges are replaced with getter<N>,
-    //   N is the position of the range in the expression numbered from
-    //   left to right.
-    struct images_to_tuple_accessors_visitor
-    {
-      template <typename T, int N>
-      auto operator()(image2d<T>& node, std::integral_constant<int, N>)
-      {
-        return make_pair(getter<N>(), std::integral_constant<int, N + 1>());
-      }
-    };
-
-    template <typename T>
-    auto images_to_tuple_accessors(T& node)
-    {
-      auto res = iod::exp_transform_iterate(node, images_to_tuple_accessors_visitor(),
-                                            std::integral_constant<int, 0>());
-      return res.first;
-    }
-
     // Evaluate an expression against a context.
     struct evaluate_visitor
     {
-      // _V(getter<N>) -> getter<N>
-      template <typename T, typename M, typename C>
-      inline auto& operator()(iod::function_call_exp<_V_t, T>& read, M eval, C& ctx) const
-      {
-        return iod::exp_evaluate(std::get<0>(read.args), eval, ctx);
-      }
-
-      // getter<N> -> ctx[N]
       template <int N, typename M, typename C>
-      inline auto& operator()(const getter<N>& read, M eval, C& ctx) const
+      inline auto& operator()(iod::int_symbol<N>, M eval, C& ctx) const
       {
-        return std::get<N>(ctx);
+        return std::get<N - 1>(ctx);
       }
-      
     };
 
     template <typename E, typename C>
-    auto evaluate(E&& exp, C&& ctx)
+    auto evaluate(E exp, C& ctx)
     {
       return iod::exp_evaluate(exp, evaluate_visitor(), ctx);
     }
 
-    struct run_liie_pixel_wise
+    using s::_Sum; using s::_Sum_t;
+    using s::_Avg; using s::_Avg_t;
+    using s::_Min; using s::_Min_t;
+    using s::_Max; using s::_Max_t;
+    using s::_Argmax; using s::_Argmax_t;
+    using s::_Argmin; using s::_Argmin_t;
+
+    template <typename P>
+    using to_pixel_wise_kernel_argument = decltype(*std::declval<get_row_iterator_t<P>>());
+
+    // Evaluate global expressions such as _Sum, _Avg, _Min, _Max, _Argmin ...
+    struct evaluate_global_visitor
     {
-      template <typename E, typename... A>
-      auto operator()(E& exp, A&&... args) const
+      // Sum.
+      template <typename I, typename... PS>
+      inline auto operator()(const iod::function_call_exp<_Sum_t, I>& n, std::tuple<PS...>& ctx) const
       {
-        return pixel_wise(args...) | [&exp] (decltype(*std::declval<get_row_iterator_t<A>>())... t)
-        {
-          return evaluate(exp, std::forward_as_tuple(t...));
-        };
+        float sum = 0;
+        pixel_wise(ctx)(_No_threads) | [&] (to_pixel_wise_kernel_argument<PS>&&... t)
+        { auto tp = std::make_tuple(t...); sum += evaluate(std::get<0>(n.args), tp); };
+        return sum;
       }
+
+      // Avg.
+      template <typename I, typename... PS>
+      inline auto operator()(const iod::function_call_exp<_Avg_t, I>& n, std::tuple<PS...>& ctx) const
+      {
+        float sum = 0;
+        int i = 0;
+        pixel_wise(ctx)(_No_threads) | [&] (to_pixel_wise_kernel_argument<PS>&&... t)
+        { auto tp = std::make_tuple(t...); sum += evaluate(std::get<0>(n.args), tp); i++; };
+        return sum / i;
+      }
+
+      // Min.
+      template <typename I, typename... PS>
+      inline auto operator()(const iod::function_call_exp<_Min_t, I>& n, std::tuple<PS...>& ctx) const
+      {
+        typedef decltype(std::make_tuple(std::declval<to_pixel_wise_kernel_argument<PS>>()...))
+          eval_args_tuple;
+        typedef decltype(evaluate(std::get<0>(n.args), std::declval<eval_args_tuple&>())) min_type;
+        min_type min_value = std::numeric_limits<min_type>::max();
+
+        pixel_wise(ctx)(_No_threads) | [&] (to_pixel_wise_kernel_argument<PS>&&... t)
+        {
+          auto tp = std::make_tuple(t...);
+          min_value = std::min(min_value, evaluate(std::get<0>(n.args), tp));
+        };
+
+        return min_value;
+      }
+
+      // Max.
+      template <typename I, typename... PS>
+      inline auto operator()(const iod::function_call_exp<_Max_t, I>& n, std::tuple<PS...>& ctx) const
+      {
+        typedef decltype(std::make_tuple(std::declval<to_pixel_wise_kernel_argument<PS>>()...))
+          eval_args_tuple;
+        typedef decltype(evaluate(std::get<0>(n.args), std::declval<eval_args_tuple&>())) min_type;
+        min_type max_value = std::numeric_limits<min_type>::min();
+
+        pixel_wise(ctx)(_No_threads) | [&] (to_pixel_wise_kernel_argument<PS>&&... t)
+        {
+          auto tp = std::make_tuple(t...);
+          max_value = std::max(max_value, evaluate(std::get<0>(n.args), tp));
+        };
+
+        return max_value;
+      }
+
+      // Argmin.
+      template <typename I, typename... PS>
+      inline auto operator()(const iod::function_call_exp<_Argmin_t, I>& n, std::tuple<PS...>& ctx) const
+      {
+        typedef decltype(std::make_tuple(std::declval<to_pixel_wise_kernel_argument<PS>>()...))
+          eval_args_tuple;
+        typedef decltype(evaluate(std::get<0>(n.args), std::declval<eval_args_tuple&>())) min_type;
+        min_type min_value = std::numeric_limits<min_type>::max();
+        vint2 min_p(0,0);
+
+        auto fr = std::get<0>(ctx);
+        box2d domain(fr.first_point_coordinates(), fr.last_point_coordinates());
+        auto ctx2 = std::tuple_cat(ctx, std::make_tuple(domain));
+        pixel_wise(ctx2)(_No_threads) | [&] (to_pixel_wise_kernel_argument<PS>&&... t, vint2 p)
+        {
+          auto tp = std::make_tuple(t...);
+          auto v = evaluate(std::get<0>(n.args), tp);
+          if (v < min_value)
+          {
+            min_value = v;
+            min_p = p;
+          }
+         };
+        return min_p;
+      }
+      
     };
     
-    // Evaluate image expression such as _V(A) + _V(B).
-    template <typename V>
-    auto run_liie(iod::Exp<V>&& _exp)
+    template <typename E, typename C>
+    auto evaluate_global_expressions(E exp, C&& ctx)
     {
-      V& exp = *(V*) &_exp;
-      // 1/ Find images in expression.
-      auto images = get_exp_ranges(exp);
-
-      // 2/ Transform images in tuple accessors:
-      //      _V(I1) + _V(I2) -> _V(getter<0>) + _V(getter<1>)
-      auto kernel_exp = images_to_tuple_accessors(exp);
-      //void* x = kernel_exp;
-
-      // Pack arguments for run_liie_pixel_wise.
-      auto args = std::tuple_cat(std::make_tuple(kernel_exp), images);
-
-      // 3/ Run the expression.
-      return iod::apply(args, run_liie_pixel_wise());
+      auto e1 = iod::exp_transform(exp, evaluate_global_visitor(), ctx);
+      return iod::exp_evaluate(e1, empty_visitor(), ctx);
     }
-  }
 
-  template <typename E>
-  auto pixel_wise(iod::Exp<E>&& e)
-  {
-    return liie::run_liie(std::forward<iod::Exp<E>>(e));
   }
 
 }

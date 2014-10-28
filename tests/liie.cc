@@ -6,12 +6,14 @@
 #include <iod/foreach.hh>
 #include <iod/grammar.hh>
 #include <iod/grammar_utils.hh>
+#include <iod/symbols.hh>
 
 #include <vpp/core/liie.hh>
 
 
 using namespace vpp;
 using namespace vpp::liie;
+using namespace s;
 
 // void operator+(const image2d<int>& l, const image2d<int>& r)
 // {
@@ -30,15 +32,28 @@ int main()
   fill(A, 1);
   fill(B, 2);
 
+  A(5,5) = 0;
   
-  auto X = pixel_wise(_V(B) + _V(A));
-  pixel_wise(X.domain(), X)(_No_threads) | [] (vint2 p, int x) {
-    if (x != 3) std::cout << p.transpose() << " " << x << std::endl;
-  };
+  auto X = pixel_wise(A, B) | (_Sum(_1 + _2 * 2) + _Avg(_2) + _Max(_1) + _Argmin(_1)[0]);
 
-  //pixel_wise((_V(X)) = (_V(A)));
-  //pixel_wise(X) | [] (int x) { assert(x == 1); };
+  // auto t = std::make_tuple(A);
+  // auto e = _Argmin(_1)[0];
+  // auto v = evaluate_global_expressions(e, t);
+  //void* x = v;
+  //std::cout << v << std::endl;
+  //assert(v == 5);
 
-  pixel_wise(_V(X) = _V(A) + _V(B));
-  pixel_wise(X) | [] (int x) { assert(x == 3); };
+  std::cout << X(0,0) << std::endl;
+  //void* x = X;
+  // auto X = pixel_wise(A, B)
+  //   | (_S = _1 * 2,
+  //      _2 = _S + 1);
+
+  // pixel_wise(X.domain(), X)(_No_threads) | [] (vint2 p, int x) {
+  //   assert(x == 5);
+  // };
+  
+  // pixel_wise(X, A, B) | ( _1 = _2 + _3 * 3);
+
+  // pixel_wise(X) | [] (int x) { assert(x == 7); };
 }
