@@ -3,6 +3,7 @@
 #include <iod/sio.hh>
 #include <iod/grammar.hh>
 #include <iod/foreach.hh>
+#include <iod/symbols.hh>
 
 #include <iod/grammar_utils.hh>
 #include <iod/apply.hh>
@@ -10,20 +11,62 @@
 
 namespace vpp
 {
+
+  using s::_Sum; using s::_Sum_t;
+  using s::_Avg; using s::_Avg_t;
+  using s::_Min; using s::_Min_t;
+  using s::_Max; using s::_Max_t;
+  using s::_Argmax; using s::_Argmax_t;
+  using s::_Argmin; using s::_Argmin_t;
+  using s::_If; using s::_If_t;
+
+  using s::_1; using s::_2;
+  
   namespace liie
   {
     struct empty_visitor
     {
     };
-    
+
+    template <typename Test, typename Then>
+    using if_then_exp = iod::function_call_exp<iod::function_call_exp<_If_t, Test>, Then>;
+
+    template <typename Test, typename Then, typename Else>
+    using if_then_else_exp = iod::function_call_exp<iod::function_call_exp<
+                                                      iod::function_call_exp<
+                                                        _If_t, Test>, Then>, Else>;
+
     // Evaluate an expression against a context.
     struct evaluate_visitor
     {
+      template <typename V, typename T, typename E, typename M, typename C>
+      inline auto operator()(const if_then_else_exp<V, T, E>& e, M eval, C& ctx) const
+      {
+        auto _test = std::get<0>(e.method.method.args);
+        auto _then = std::get<0>(e.method.args);
+        auto _else = std::get<0>(e.args);
+
+        return iod::exp_evaluate(_test, eval, ctx) ?
+          iod::exp_evaluate(_then, eval, ctx) :
+          iod::exp_evaluate(_else, eval, ctx);
+      }
+
+      template <typename V, typename T, typename M, typename C>
+      inline void operator()(const if_then_exp<V, T>& e, M eval, C& ctx) const
+      {
+        auto _test = std::get<0>(e.method.method.args);
+        auto _then = std::get<0>(e.method.args);
+
+        if (iod::exp_evaluate(_test, eval, ctx))
+          iod::exp_evaluate(_then, eval, ctx);
+      }
+      
       template <int N, typename M, typename C>
       inline auto& operator()(iod::int_symbol<N>, M eval, C& ctx) const
       {
         return std::get<N - 1>(ctx);
       }
+      
     };
 
     template <typename E, typename C>
@@ -31,13 +74,6 @@ namespace vpp
     {
       return iod::exp_evaluate(exp, evaluate_visitor(), ctx);
     }
-
-    using s::_Sum; using s::_Sum_t;
-    using s::_Avg; using s::_Avg_t;
-    using s::_Min; using s::_Min_t;
-    using s::_Max; using s::_Max_t;
-    using s::_Argmax; using s::_Argmax_t;
-    using s::_Argmin; using s::_Argmin_t;
 
     template <typename P>
     using to_pixel_wise_kernel_argument = decltype(*std::declval<get_row_iterator_t<P>>());
@@ -51,7 +87,10 @@ namespace vpp
       {
         float sum = 0;
         pixel_wise(ctx)(_No_threads) | [&] (to_pixel_wise_kernel_argument<PS>&&... t)
-        { auto tp = std::make_tuple(t...); sum += evaluate(std::get<0>(n.args), tp); };
+        {
+          auto tp = std::forward_as_tuple(t...);
+          sum += evaluate(std::get<0>(n.args), tp);
+        };
         return sum;
       }
 

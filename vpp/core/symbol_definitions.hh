@@ -92,3 +92,7 @@
 #define IOD_SYMBOL__Argmax
     iod_define_symbol(argmax, _Argmax)
 #endif
+#ifndef IOD_SYMBOL__If
+#define IOD_SYMBOL__If
+    iod_define_symbol(_if, _If)
+#endif

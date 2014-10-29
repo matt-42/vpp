@@ -159,13 +159,22 @@ namespace vpp
     auto run_exp(E&& exp) 
     {
       auto exp2 = liie::evaluate_global_expressions(exp, ranges_);
-      //void* x = exp2;
       return (*this) | [&] (decltype(*std::declval<get_row_iterator_t<Params>>())... ps) {
-        auto tp = std::make_tuple(ps...);
-        return liie::evaluate(exp2, tp);
+        auto t = std::forward_as_tuple(ps...);
+        return liie::evaluate(exp2, t);
       };
     }
 
+    template <typename A, typename B>
+    auto run_exp(const iod::assign_exp<A, B>& exp)  // Assign expressions do not create images.
+    {
+      auto exp2 = liie::evaluate_global_expressions(exp, ranges_);
+      return (*this) | [&] (decltype(*std::declval<get_row_iterator_t<Params>>())... ps) {
+        auto t = std::forward_as_tuple(ps...);
+        liie::evaluate(exp2, t);
+      };
+    }
+    
     template <typename E,
               typename X = std::enable_if_t<std::is_base_of<iod::Exp<E>, E>::value>>
     auto operator|(E&& exp) { return run_exp(exp); }

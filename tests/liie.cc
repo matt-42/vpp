@@ -15,13 +15,6 @@ using namespace vpp;
 using namespace vpp::liie;
 using namespace s;
 
-// void operator+(const image2d<int>& l, const image2d<int>& r)
-// {
-//   std::cout << "A: " << l.data() << std::endl;
-//   std::cout << "B: " << r.data() << std::endl;
-  
-// }
-
 int main()
 {
   image2d<int> A(10,10);
@@ -33,7 +26,8 @@ int main()
   fill(B, 2);
 
   A(5,5) = 0;
-  
+
+  // Test compilation.
   auto X = pixel_wise(A, B) | (_Sum(_1 + _2 * 2) + _Avg(_2) + _Max(_1) + _Argmin(_1)[0]);
 
   // auto t = std::make_tuple(A);
@@ -44,16 +38,15 @@ int main()
   //assert(v == 5);
 
   std::cout << X(0,0) << std::endl;
-  //void* x = X;
-  // auto X = pixel_wise(A, B)
-  //   | (_S = _1 * 2,
-  //      _2 = _S + 1);
+  fill(A, 1); fill(B, 2);
+  auto Y = pixel_wise(A, B) | (_1 + _2 * 2);
 
-  // pixel_wise(X.domain(), X)(_No_threads) | [] (vint2 p, int x) {
-  //   assert(x == 5);
-  // };
+  pixel_wise(Y) | [] (int y) { assert(y == 5); };
   
-  // pixel_wise(X, A, B) | ( _1 = _2 + _3 * 3);
-
-  // pixel_wise(X) | [] (int x) { assert(x == 7); };
+  fill(A, 1);
+  fill(B, 2);
+  auto x = pixel_wise(X, A, B) | (_1 = _2 + _3 * 3);
+  std::cout << X(0,0) << std::endl;
+  
+  pixel_wise(X) | [] (int x) { assert(x == 7); };
 }
