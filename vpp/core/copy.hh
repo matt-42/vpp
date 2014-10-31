@@ -3,10 +3,8 @@
 
 namespace vpp
 {
-
-  template <typename P, typename... PS,
-            typename X = typename std::remove_reference_t<P>::row_iterator>
-  auto pixel_wise(P&& p, PS&&... params);
+  //struct pixel_wise_functor;
+  //pixel_wise_functor pixel_wise;
 
   template <typename I, typename J>
   void copy(const I& src, J& dst)

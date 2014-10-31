@@ -77,13 +77,11 @@ namespace vpp
       {
         iod::static_if<OPTS::has(s::_Tie_arguments)>
           ([&cur_] (auto& fun) { // tie arguments into a tuple and pass it to fun.
-            auto t = internals::tuple_transform(cur_, [] (auto& i) { return *i; });
+            auto t = internals::tuple_transform(cur_, [] (auto& i) -> auto&& { return *i; });
             fun(t);
-            return 0;
           },
             [&cur_] (auto& fun) { // Directly apply arguments to fun.
               internals::apply_args_star(cur_, fun);
-              return 0;
             }, fun);
 
         // internals::apply_args_star(cur_, fun);
@@ -123,9 +121,13 @@ namespace vpp
       [this, &fun] (auto& b)
     {
       if (options_.has(_Col_backward))
-        pixel_wise(b)(_Col_backward, _No_threads) | fun;
+        iod::static_if<OPTS().has(_Tie_arguments)>(
+          [&b] (auto& fun) { return pixel_wise(b)(_Col_backward, _No_threads, _Tie_arguments) | fun; }, 
+          [&b] (auto& fun) { return pixel_wise(b)(_Col_backward, _No_threads) | fun; }, fun);
       else
-        pixel_wise(b)(_No_threads) | fun;
+        iod::static_if<OPTS().has(_Tie_arguments)>(
+          [&b] (auto& fun) { return pixel_wise(b)(_No_threads, _Tie_arguments) | fun; }, 
+          [&b] (auto& fun) { return pixel_wise(b)(_No_threads) | fun; }, fun);
     };
 
   }

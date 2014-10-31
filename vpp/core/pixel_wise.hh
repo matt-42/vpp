@@ -23,10 +23,31 @@ namespace vpp
     auto evaluate_global_expressions(E exp, C&& ctx);    
   }
 
+  template <typename B, typename... Params>
+  class parallel_for_pixel_wise_runner;
+  
   // Backends
   struct openmp {};
   struct pthreads {}; // Todo
   struct cpp_amp {}; // Todo
+  
+  struct pixel_wise_functor
+  {
+    template <typename P, typename... PS>
+    auto operator()(P&& p, PS&&... params) const
+    {
+      return parallel_for_pixel_wise_runner<openmp, iod::sio<>, P, PS...>(std::forward_as_tuple(p, params...));
+    }
+
+    template <typename... PS>
+    auto operator()(std::tuple<PS...>& params) const
+    {
+      return parallel_for_pixel_wise_runner<openmp, iod::sio<>, PS...>(params);
+    }
+
+  };
+
+  static const pixel_wise_functor pixel_wise;
 
   template <typename T>
   struct get_row_iterator
@@ -116,7 +137,7 @@ namespace vpp
       typedef decltype(std::make_tuple(*std::declval<get_row_iterator_t<Params>>()...))
         tuple_t;
 
-      typedef decltype(std::declval<F>()(1)) type;
+      typedef decltype(std::declval<F>()(std::declval<tuple_t&>())) type;
     };
 
     template <typename F>
@@ -187,19 +208,6 @@ namespace vpp
     OPTS options_;
     std::tuple<Params...> ranges_;
   };
-
-  template <typename P, typename... PS,
-            typename X>
-  auto pixel_wise(P&& p, PS&&... params)
-  {
-    return parallel_for_pixel_wise_runner<openmp, iod::sio<>, P, PS...>(std::forward_as_tuple(p, params...));
-  }
-
-  template <typename... PS>
-  auto pixel_wise(std::tuple<PS...>& params)
-  {
-    return parallel_for_pixel_wise_runner<openmp, iod::sio<>, PS...>(params);
-  }
 
 };
 
