@@ -2,9 +2,15 @@ Video++
 =============
 
 Video++ is a video and image processing library that takes advantage
-of the C++14 standard to ease the writing of fast parallel
-real-time video and image processing.
+of the C++14 standard to ease the writing of fast parallel real-time
+video and image processing. The idea behind Video++ performance is to
+generate via meta-programming the most static code possible such that the
+compiler enable optimizations like loop vectorizing. Its main features are:
 
+  - Basic generic N-dimentional image containers.
+  - A growing set of image processing algorithms.
+  - Tools to write code.
+  - An embeded language to evalute image expressions.
 
 ```c++
 // A fast parallel implementation of a 3x3 box_filter using Video++.
@@ -26,32 +32,8 @@ pixel_wise(A, BN) << [&] (auto& a, auto& b_nbh) {
 
 Tested compilers : **G++ 4.9.1, Clang++ 3.5.0**
 
-**Since Video++ relies on C++14 features, only compilers supporting this standard are able to
+**Since Video++ relies on C++14 features, only compilers fully supporting this standard are able to
 compile the library.**
-
-## Higher perfomances with a simpler code
-
-Video++ generates code running up to one order of magnitude faster
-than naive implementations.
-
-Naive example, 1.79ms:
-```c++
-image2d<int> img(1000,1000);
-for (int r = 0; r < img.nrows(); r++)
-for (int c = 0; c < img.ncols(); c++)
-{
-  img(r, c) = r + c;
-}
-```
-
-Video++ example, 0.108ms, **x16.6 speedup on a 4-cores processor**:
-```c++
-image2d<int> img(1000,1000);
-vpp::pixel_wise(img, img.domain()) << [] (auto& p, auto& c)
-{
-  p = c[0] + c[1];
-};
-```
 
 
 ## Getting Started
@@ -73,11 +55,10 @@ Then, tell the compiler where to find the folder vpp by setting the include sear
 gcc -I __path_to_vpp__ main.cc
 ```
 
-If you use the parallel constructs of Video++, you also want to activate the OpenMP optimizations :
+If you use the parallel constructs of Video++ and need to target multiple cores, activate the OpenMP optimizations :
 ```sh
 gcc -I __path_to_vpp__ main.cc -fopenmp -lgomp
 ```
-
 
 ## Overview of the Library
 
@@ -110,7 +91,6 @@ int main()
   image2d<int> img3 = clone(img);
   // img3 holds its own separate buffer.
 
-
   // The two allocated buffers are automatically freed at the end of the scope.
 }
 
@@ -129,91 +109,84 @@ For exemple, the type ```image2d<vuchar4>``` can handle an image of RGBA 8-bit.
 
 ### Sequential and parallel Kernels
 
-The ```pixel_wise```, ```row_wise```, and ```col_wise``` constructs
-allow to run kernel on pixel, rows, and columns.
+The ```pixel_wise```, ```block_wise```, ```row_wise```, and ```col_wise``` constructs
+allow to run kernel on pixel, rows, and columns. They take three kind of inputs:
+
+```c++
+pixel_wise(R1, ..., RN)(O1, ..., ON) | F
+```
+   - RX: The ranges
+     images, sub images, set of coordinates or views on neighborhs.
+
+   - OX: Dependencies and multithreading
+     Their is 4 possible dependencies between computation of pixel
+       - Row forward: the computation of the i th pixel of row X depend
+         on the computation of the i-1 th pixel of the same row
+       - Row backward: the computation of the i-1th pixel of row X depend
+         on the computation of the i th pixel of the same row
+       - Col forward: the computation of the i th pixel of col X depend
+         on the computation of the i-1 th pixel of the same col
+       - Col backward: the computation of the i-1th pixel of col X depend
+         on the computation of the i th pixel of the same col
+
+      To satisfy dependencies, video++ iterates on the appropriate direction, and
+      disable multithreading if the combination of dependencies (for example row forward
+      + col forward) does not allows it.
+
+      You can also explicitely disable multithreading by adding _No_thread to the
+      list.
+
+      Note: the program must be compiled with ```-fopenmp -lgomp``` to enable the
+      multi-threading optimizations.
+
+   - F: The kernel
+     The kernel is a lambda function taking as argument the elements of each range RX.
+     If F returns a value, pixel_wise create a new image and fill it with those values.
+
 
 The following snippet uses pixel_wise to add two images:
 
 ```c++
-pixel_wise(A, B, C) < // Mono-thread.
-  [] (int& a, int& b, int& c) { a = b + c; };;
+pixel_wise(A, B, C) | [] (int& a, int& b, int& c) { a = b + c; };
 ```
 
-If there is no dependencies between the computations of two pixels,
+When there is no dependencies between the computations of two pixels,
 the parallel version can speedup the execution of kernel on multi-core
-architectures. Note: this code must be compiled with ```-fopenmp -lgomp```
-to enable the multi-threading optimizations.
+architectures. 
+
+The ```row_wise```, ```col_wise``` and ```block_wise``` routines
+execute kernel working on an entire sub division of the image domain.
 
 ```c++
-pixel_wise(A, B, C) << // Multi-thread.
-  [] (int& a, int& b, int& c) { a = b + c; };;
-```
-
-
-The ```row_wise``` routine execute kernel working on an entire row of
-the image domain. The kernel takes as argument the first pixel of the
-row it should compute.
-
-```c++
-// Compute the sum of each row of A into the sums, such as
-// sums[i] is the sum of the ith row;
+// Compute the sum of each row of A in its first column.
 image2d<int> A(100, 100);
-std::vector<int> sums(A.nrows(), 0);
-int ncols = A.ncols();
 
-row_wise(A, A.domain()) << [&] (int& row_start, vint2 coord) {
-  int sum = 0;
-  int* cur = &row_start; // Iterator.
-  int* end = &row_start + ncols; // End of row.
-
-  while (cur != end) counter += *(cur++); // Loop over the row.
-
-  sums[coord[0]] = sum; // Write the result.
-};
-
+row_wise(A) | [&] (auto& row) { row(0,0) = sum(row); };
 ```
-
-Finally, like ```row_wise``` for rows, ```col_wise``` allows to
-process columns.
 
 
 ### Accessing Rectangular Neighborhood
 
-Video++ provide a fast access to rectangular pixel neighboors when the
-size of the neighborhood is known at compile time:
+Video++ provide a fast access to rectangular pixel neighboors:
 
 ```c++
-// A parallel implementation of a box_filter using Video++.
+// A parallel implementation of a 3x3 box_filter using Video++.
 
 image2d<int> A(1000, 1000);
 image2d<int> B(A.domain());
 
-auto nbh = box_nbh2d<int, 3, 3>(A);
+auto BN = box_nbh2d<int, 3, 3>(A);
 
 // Parallel Loop over pixels of in and out.
-pixel_wise(A, B) << [&] (int& a, int& b) {
-  int sum = int;
+pixel_wise(A, BN) | [&] (int& a, auto& b_nbh) {
+  int sum = 0;
 
   // Loop over neighbors wrt nbh to compute a sum.
-  nbh(a) < [&] (int& n) sum += n;
+  b_nbh.forall([&] (int& n) { sum += n; });
 
   // Write the sum to the output image.
-  b = (sum / 3);
+  b = sum / 3;
 };
-```
-
-### Accessing arbitrary shaped windows
-
-Video++ also provide access to arbitrary shaped windows. By
-precomputing the offset of a neighborhood expressed in 2D coordinates,
-it suppresses the need of 2d coordinate arithmetic inside the kernel
-loop. Instead, it uses a fast pointer arithmetic to iterate on the
-neighborhood.
-
-The syntax is exactly like ```box_nbh```, except its creation:
-
-```
-auto win = make_window(image, {{0, -3}, {4, 1}, {1, 3} });
 ```
 
 ### Interoperability with OpenCV images
@@ -233,6 +206,8 @@ image2d<vuchar3> img = from_opencv<vuchar3>(cv::imread("image.jpg"));
 cv::imwrite("in.jpg", to_opencv(img));
 ```
 
+Note: Since it is not possible to opencv to free video++ images, an
+opencv image must not be the last one to hold a video++ image.
 
 ## Contributing
 
