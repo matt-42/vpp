@@ -20,7 +20,14 @@ namespace vpp
     auto evaluate(E exp, C& ctx);
 
     template <typename E, typename C>
-    auto evaluate_global_expressions(E exp, C&& ctx);    
+    auto evaluate_global_expressions(E exp, C&& ctx);
+
+    template <typename T, int S>
+    auto images_to_placeholders(T& node, std::integral_constant<int, S> N);
+
+    template <typename E, typename C>
+    auto get_exp_ranges(E& exp, C& ctx);
+    
   }
 
   template <typename B, typename... Params>
@@ -33,6 +40,7 @@ namespace vpp
   
   struct pixel_wise_functor
   {
+    pixel_wise_functor() {}
     template <typename P, typename... PS>
     auto operator()(P&& p, PS&&... params) const
     {
@@ -177,17 +185,27 @@ namespace vpp
     }
 
     template <typename E>
-    auto run_exp(E&& exp) 
+    auto eval(E&& _exp) 
     {
-      auto exp2 = liie::evaluate_global_expressions(exp, ranges_);
-      return (*this) | [&] (decltype(*std::declval<get_row_iterator_t<Params>>())... ps) {
-        auto t = std::forward_as_tuple(ps...);
-        return liie::evaluate(exp2, t);
-      };
+      auto exp = liie::images_to_placeholders(_exp, std::integral_constant<int, 1 + std::tuple_size<std::remove_reference_t<decltype(ranges_)>>::value>());
+      auto ctx = liie::get_exp_ranges(_exp, ranges_);
+      auto exp2 = liie::evaluate_global_expressions(exp, ctx);
+
+      return iod::static_if<std::tuple_size<std::remove_reference_t<decltype(ctx)>>::value ==
+                            std::tuple_size<std::remove_reference_t<decltype(ranges_)>>::value>
+        (
+          [&] (auto& ctx, auto& exp2) {
+            return (*this) | [&] (decltype(*std::declval<get_row_iterator_t<Params>>())... ps) {
+              auto t = std::forward_as_tuple(ps...);
+              return liie::evaluate(exp2, t);
+            }; },
+          [&] (auto& ctx, auto& exp2) {
+            return pixel_wise(ctx)(options_).eval(exp2); },
+          ctx, exp2);
     }
 
     template <typename A, typename B>
-    auto run_exp(const iod::assign_exp<A, B>& exp)  // Assign expressions do not create images.
+    auto eval(const iod::assign_exp<A, B>& exp)  // Assign expressions do not create images.
     {
       auto exp2 = liie::evaluate_global_expressions(exp, ranges_);
       return (*this) | [&] (decltype(*std::declval<get_row_iterator_t<Params>>())... ps) {
@@ -198,7 +216,7 @@ namespace vpp
     
     template <typename E,
               typename X = std::enable_if_t<std::is_base_of<iod::Exp<E>, E>::value>>
-    auto operator|(E&& exp) { return run_exp(exp); }
+    auto operator|(E&& exp) { return eval(exp); }
 
     template <typename F,
               typename X = std::enable_if_t<!std::is_base_of<iod::Exp<F>, F>::value>>

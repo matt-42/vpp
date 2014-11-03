@@ -110,7 +110,7 @@ namespace vpp
     struct count_placeholders_visitor
     {
       template <int N, int S>
-      auto operator()(iod::int_symbol<N>& n, std::integral_constant<int, S>)
+      auto operator()(iod::int_symbol<N> n, std::integral_constant<int, S>)
       { return make_pair(n, std::integral_constant<int, N + 1>()); }
     };
 
@@ -131,7 +131,7 @@ namespace vpp
     struct images_to_tuple_accessors_visitor
     {
       template <typename T, int N>
-      auto operator()(image2d<T>& node, std::integral_constant<int, N>)
+      auto operator()(image2d<T> node, std::integral_constant<int, N>)
       {
         return make_pair(iod::int_symbol<N>(), std::integral_constant<int, N + 1>());
       }
@@ -147,6 +147,9 @@ namespace vpp
     template <typename P>
     using to_pixel_wise_kernel_argument = decltype(*std::declval<get_row_iterator_t<P>>());
 
+    template <typename E, typename C>
+    auto evaluate_global_expressions(E _exp, C&& _ctx);
+    
     // Evaluate global expressions such as _Sum, _Avg, _Min, _Max, _Argmin ...
     struct evaluate_global_visitor
     {
@@ -203,14 +206,15 @@ namespace vpp
         };
       }
 
-      // Min 2.
+      // Min.
       template <typename I, typename... PS>
       inline auto operator()(const iod::function_call_exp<_Min_t, I>& n, std::tuple<PS...>& ctx) const
       {
-        typedef decltype(exp_return_type(std::get<0>(n.args), ctx)) min_type;
+        auto exp = evaluate_global_expressions(std::get<0>(n.args), ctx);
+        typedef decltype(exp_return_type(exp, ctx)) min_type;
         min_type min_value = std::numeric_limits<min_type>::max();
         
-        run_pixel_wise(std::get<0>(n.args), ctx,
+        run_pixel_wise(exp, ctx,
                        [&] (auto&& v) { min_value = std::min(min_value, v); });
 
         return min_value;
@@ -220,10 +224,11 @@ namespace vpp
       template <typename I, typename... PS>
       inline auto operator()(const iod::function_call_exp<_Max_t, I>& n, std::tuple<PS...>& ctx) const
       {
-        typedef decltype(exp_return_type(std::get<0>(n.args), ctx)) max_type;
+        auto exp = evaluate_global_expressions(std::get<0>(n.args), ctx);
+        typedef decltype(exp_return_type(exp, ctx)) max_type;
         max_type max_value = std::numeric_limits<max_type>::min();
         
-        run_pixel_wise(std::get<0>(n.args), ctx,
+        run_pixel_wise(exp, ctx,
                        [&] (auto&& v) { max_value = std::max(max_value, v); });
 
         return max_value;
@@ -233,11 +238,12 @@ namespace vpp
       template <typename I, typename... PS>
       inline auto operator()(const iod::function_call_exp<_Sum_t, I>& n, std::tuple<PS...>& ctx) const
       {
-        typedef decltype(exp_return_type(std::get<0>(n.args), ctx)) elt_type;
+        auto exp = evaluate_global_expressions(std::get<0>(n.args), ctx);
+        typedef decltype(exp_return_type(exp, ctx)) elt_type;
         typedef decltype(elt_type() + elt_type()) sum_type;
         sum_type sum = zero<sum_type>();
         
-        run_pixel_wise(std::get<0>(n.args), ctx,
+        run_pixel_wise(exp, ctx,
                        [&] (auto&& v) { sum += v; });
         return sum;
       }
@@ -246,11 +252,12 @@ namespace vpp
       template <typename I, typename... PS>
       inline auto operator()(const iod::function_call_exp<_Avg_t, I>& n, std::tuple<PS...>& ctx) const
       {
-        typedef decltype(exp_return_type(std::get<0>(n.args), ctx)) elt_type;
+        auto exp = evaluate_global_expressions(std::get<0>(n.args), ctx);
+        typedef decltype(exp_return_type(exp, ctx)) elt_type;
         typedef decltype(elt_type() + elt_type()) sum_type;
         sum_type sum = zero<sum_type>();
         int i = 0;
-        run_pixel_wise(std::get<0>(n.args), ctx,
+        run_pixel_wise(exp, ctx,
                        [&] (auto&& v) { sum += v; i++; });
         return sum / float(i);
       }
@@ -259,11 +266,12 @@ namespace vpp
       template <typename I, typename... PS>
       inline auto operator()(iod::function_call_exp<_Argmin_t, I>& n, std::tuple<PS...>& ctx) const
       {
-        typedef decltype(exp_return_type(std::get<0>(n.args), ctx)) min_type;
+        auto exp = evaluate_global_expressions(std::get<0>(n.args), ctx);
+        typedef decltype(exp_return_type(exp, ctx)) min_type;
         min_type min_value = std::numeric_limits<min_type>::max();
         vint2 min_p(0,0);
         
-        run_pixel_wise_with_coordinates(std::get<0>(n.args), ctx, [&] (auto&& v, vint2 p) {
+        run_pixel_wise_with_coordinates(exp, ctx, [&] (auto&& v, vint2 p) {
             if (v < min_value)
             {
               min_value = v; min_p = p;
@@ -277,11 +285,12 @@ namespace vpp
       template <typename I, typename... PS>
       inline auto operator()(iod::function_call_exp<_Argmax_t, I>& n, std::tuple<PS...>& ctx) const
       {
-        typedef decltype(exp_return_type(std::get<0>(n.args), ctx)) max_type;
+        auto exp = evaluate_global_expressions(std::get<0>(n.args), ctx);
+        typedef decltype(exp_return_type(exp, ctx)) max_type;
         max_type max_value = std::numeric_limits<max_type>::min();
         vint2 max_p(0,0);
         
-        run_pixel_wise_with_coordinates(std::get<0>(n.args), ctx, [&] (auto&& v, vint2 p) {
+        run_pixel_wise_with_coordinates(exp, ctx, [&] (auto&& v, vint2 p) {
             if (v > max_value)
             {
               max_value = v; max_p = p;
@@ -296,6 +305,8 @@ namespace vpp
     template <typename E, typename C>
     auto evaluate_global_expressions(E exp, C&& ctx)
     {
+      static_assert(std::tuple_size<std::remove_reference_t<decltype(liie::get_exp_ranges(exp, ctx))>>::value ==
+                    std::tuple_size<std::remove_reference_t<C>>::value, "Expressions passed to evaluate_global_expressions must not contain any reference to images. Use get_exp_ranges and images_to_placeholders to replace images by placeholders.");
       auto e1 = iod::exp_transform(exp, evaluate_global_visitor(), ctx);
       return iod::exp_evaluate(e1, empty_visitor(), ctx);
     }
@@ -304,9 +315,9 @@ namespace vpp
     template <typename E, typename C>
     auto evaluate(E _exp, C& _ctx)
     {
-      auto exp = images_to_placeholders(_exp, std::integral_constant<int, 1 + std::tuple_size<C>::value>());
-      auto ctx = get_exp_ranges(exp, _ctx);
-      return iod::exp_evaluate(exp, evaluate_visitor(), ctx);
+      // auto exp = images_to_placeholders(_exp, std::integral_constant<int, 1 + std::tuple_size<C>::value>());
+      // auto ctx = get_exp_ranges(exp, _ctx);
+      return iod::exp_evaluate(_exp, evaluate_visitor(), _ctx);
     }
     
     // auto eval(E&& exp)
@@ -315,22 +326,54 @@ namespace vpp
   }
 
   template <typename... PS, typename E>
-  auto eval(PS&&... params, E&& exp)
+  auto eval_(std::tuple<PS...> tp, E&& _exp)
   {
-    auto tp = std::forward_as_tuple(params...);
-    auto x = liie::evaluate_global_expressions(exp, tp);
+    //auto tp = std::forward_as_tuple(params...);
 
+    auto exp = liie::images_to_placeholders(_exp, std::integral_constant<int, 1 + std::tuple_size<std::remove_reference_t<decltype(tp)>>::value>());
+    auto ctx = liie::get_exp_ranges(_exp, tp);
     
-    return iod::static_if<std::is_base_of<iod::Exp<decltype(x)>, decltype(x)>::value>(
-      [&] (auto& x, auto& tp) {
-        auto x2 = liie::images_to_placeholders(x, std::integral_constant<int, 1 + std::tuple_size<std::remove_reference_t<decltype(tp)>>::value>());
-        auto ctx = liie::get_exp_ranges(x, tp);
-        return pixel_wise(ctx).run_exp(x2);
+    auto exp2 = liie::evaluate_global_expressions(exp, ctx);
+    
+    return iod::static_if<std::is_base_of<iod::Exp<decltype(exp2)>, decltype(exp2)>::value>(
+      [&] (auto& exp2, auto& ctx) {
+        return pixel_wise(ctx).eval(exp2);
       },
-      [] (auto& x, auto& tp) { return x; },
-      x, tp);
+      [] (auto& exp2, auto& ctx) { return exp2; },
+      exp2, ctx);
   }
 
+  // Eval proxy to let eval_ accessing the expression at the end of the parameter list.
+  template <typename P1, typename E>
+  auto eval(P1&& p1, E&& e) // One expression and one range
+  {
+    return eval_(std::forward_as_tuple(p1), std::forward<E>(e));
+  }
+
+  template <typename... PS, typename E>
+  auto eval(std::tuple<PS...> t, E&& e)
+  {
+    return eval_(t, std::forward<E>(e));
+  }
+
+  template <typename... PS, typename P, typename... PS2>
+  auto eval(std::tuple<PS...> t, P&& p, PS2&&... tail)
+  {
+    return eval(std::tuple_cat(t, std::forward_as_tuple(p)), std::forward<PS2>(tail)...);
+  }
+
+  template <typename P, typename... PS>
+  auto eval(P&& p, PS&&... params)
+  {
+    return eval(std::forward_as_tuple(p), std::forward<PS>(params)...);
+  }
+  
+  template <typename E>
+  auto eval(E&& e) // Just one expression as argument.
+  {
+    return eval_(std::make_tuple(), std::forward<E>(e));
+  }
+  
   // template <typename E, typename C>
   // auto evaluate(E _exp, C& _ctx)
   // {

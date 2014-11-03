@@ -28,42 +28,18 @@ int main()
 
   A(5,5) = 1000;
 
-  // Test compilation.
-  auto X = pixel_wise(A, B) | (_Sum(_1 + _2 * 2) + _Avg(_2) + _Min(_1) + _Argmin(A)[0]);
-  //auto X = pixel_wise(A, B) | (_Sum(_1 + _2 * 2) + _Avg(_2) + _Min(_1) + _Argmin(_1)[0]);
+  auto X = pixel_wise(A, B).eval(_V(A) + _V(_1));
 
-  auto t = std::make_tuple(A, B);
-  auto e = _Argmax(_V(A) + _V(B));
+  assert(eval(A, B, A, _Argmax(_V(A))) == vint2(5,5));
+  assert(eval(_Argmax(_V(A))) == vint2(5,5));
+  assert(eval(A, _Argmax(_V(_1))) == vint2(5,5));
 
-  // auto e2 = _V(_2);
-  // auto t2 = std::make_tuple(1, 2);
-  // auto ranges = get_exp_ranges(e, t);
-  // void* x = ranges;
-  
-  //auto v = evaluate(e2, t2);
-  //void* x = v;
-  //std::cout << v << std::endl;
-  auto v = evaluate_global_expressions(e, t);
-  std::cout << v.transpose() << std::endl;
-  std::cout << eval(_Argmax(A)).transpose() << std::endl;
-  //assert(v == 5);
+  X = eval(_V(A) + _V(B));
+  assert(X(0,0) == 3);
 
-  std::cout << X(0,0) << std::endl;
+  eval(_V(X) = _V(B) * 2);
+  assert(X(0,0) == 4);
 
-  //auto Y = eval(_V(A) + _V(B));
-  //std::cout << Y(0,0) << std::endl;
-  
-  // fill(A, 1); fill(B, 2);
-  //auto Y = pixel_wise(A, B) | (_1 + _2 * 2);
-
-  // pixel_wise(Y) | [] (int y) { assert(y == 5); };
-  
-  // fill(A, 1);
-  // fill(B, 2);
-  // auto x = pixel_wise(X, A, B) | (_1 = _2 + _3 * 3);
-  // std::cout << X(0,0) << std::endl;
-  
-  // pixel_wise(X) | [] (int x) { assert(x == 7); };
-
-  //eval(_Argmin(A) + vint2(1,1))
+  assert(eval(_Max(A)) == 1000);
+  assert(eval(_Min(A)) == 1);
 }
