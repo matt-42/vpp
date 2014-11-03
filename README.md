@@ -2,29 +2,29 @@ Video++
 =============
 
 Video++ is a video and image processing library that takes advantage
-of the C++11 and C++14 standard to ease the writing of fast parallel
+of the C++14 standard to ease the writing of fast parallel
 real-time video and image processing.
 
 
 ```c++
 // A fast parallel implementation of a 3x3 box_filter using Video++.
 
-image2d<int> A(1000, 1000, 1); // A 1000x1000 image with a border of 1 pixel.
-image2d<int> B(A.domain(), 1);
+image2d<int> A(1000, 1000, _Border = 1); // A 1000x1000 image with a border of 1 pixel.
+image2d<int> B(A.domain(), _Border = 1);
 
-auto nbh = box_nbh<int, 3, 3>(A);
-pixel_wise(A, B) << [&] (auto& a, auto& b) {
-  int sum = vint3::Zero();
+auto BN = box_nbh<int, 3, 3>(A);
+pixel_wise(A, BN) << [&] (auto& a, auto& b_nbh) {
+  int sum = 0;
 
   // Sum the pixel of the window.
-  nbh(a) < [&] (int& n) sum += n;
+  b_nbh.forall([&] (int& n) { sum += n; });
 
-  // Write the sum to the output image.
-  b = (sum / 3);
+  // Write the sum to B.
+  b_nbh(0,0) = (sum / 3);
 };
 ```
 
-Supported compiler : **GCC 4.9**
+Tested compilers : **G++ 4.9.1, Clang++ 3.5.0**
 
 **Since Video++ relies on C++14 features, only compilers supporting this standard are able to
 compile the library.**

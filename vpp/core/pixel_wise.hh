@@ -165,7 +165,8 @@ namespace vpp
       run(fun, !options_.has(_No_threads));
     }
 
-    // if fun -> something != void.
+    // if fun -> something != void. Create an image an fill it with the result values
+    // of the function.
     template <typename F,
               typename X = std::enable_if_t<!std::is_same<kernel_return_type_t<F>, void>::value>>
     auto run_function(F fun)
@@ -184,6 +185,9 @@ namespace vpp
       return out;
     }
 
+    template <typename F>
+    auto operator|(F f) { return run_function(f); }
+    
     template <typename E>
     auto eval(E&& _exp) 
     {
@@ -213,14 +217,6 @@ namespace vpp
         liie::evaluate(exp2, t);
       };
     }
-    
-    template <typename E,
-              typename X = std::enable_if_t<std::is_base_of<iod::Exp<E>, E>::value>>
-    auto operator|(E&& exp) { return eval(exp); }
-
-    template <typename F,
-              typename X = std::enable_if_t<!std::is_base_of<iod::Exp<F>, F>::value>>
-    auto operator|(F f) { return run_function(f); }
       
   private:
     OPTS options_;

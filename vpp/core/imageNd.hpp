@@ -3,7 +3,6 @@
 
 # include <vpp/core/imageNd.hh>
 # include <vpp/core/boxNd.hh>
-# include <vpp/core/copy.hh>
 # include <vpp/core/symbols.hh>
 
 namespace vpp
@@ -274,14 +273,6 @@ namespace vpp
     domain.p1() -= domain.p1();
     res.ptr_->domain_ = domain;
     return res;
-  }
-
-  template <typename I, typename... O>
-  I clone(I img, const O&... options)
-  {
-    I n(img.domain(), options...);
-    copy(img, n);
-    return n;
   }
 
 };

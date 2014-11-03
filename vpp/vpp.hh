@@ -18,6 +18,8 @@
 # include <vpp/core/box_nbh2d.hh>
 # include <vpp/core/pixel_wise.hh>
 # include <vpp/core/block_wise.hh>
+# include <vpp/core/copy.hh>
+# include <vpp/core/clone.hh>
 
 # include <vpp/core/fill.hh>
 # include <vpp/core/draw.hh>

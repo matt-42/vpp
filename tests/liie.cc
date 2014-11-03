@@ -28,7 +28,7 @@ int main()
 
   A(5,5) = 1000;
 
-  auto X = pixel_wise(A, B).eval(_V(A) + _V(_1));
+  auto X = pixel_wise(A, B).eval(_V(A) = _V(A) + _V(_2));
 
   assert(eval(A, B, A, _Argmax(_V(A))) == vint2(5,5));
   assert(eval(_Argmax(_V(A))) == vint2(5,5));
@@ -40,6 +40,9 @@ int main()
   eval(_V(X) = _V(B) * 2);
   assert(X(0,0) == 4);
 
+  eval(X, _V(_1) = _V(B) * 2);
+  assert(X(0,0) == 4);
+  
   assert(eval(_Max(A)) == 1000);
   assert(eval(_Min(A)) == 1);
 }

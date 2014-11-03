@@ -163,9 +163,6 @@ namespace vpp
   template <typename V, unsigned N>
   using shared_imageNd = std::shared_ptr<imageNd<V, N> >&;
 
-  template <typename I, typename... O>
-  I clone(I img, const O&... options);
-
   template <typename V, unsigned N>
   imageNd<V, N> operator|(imageNd<V, N>& img, const boxNd<N>& b) { return img.subimage(b); }
 
