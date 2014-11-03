@@ -69,7 +69,6 @@ T. Assigning A to B shares the A's data with B. ```clone``` clones images.
 An image buffer are automatically freed when no container references it anymore.
 
 ```c++
-
 int main()
 {
   using namespace vpp; // Skip the vpp:: prefix.
@@ -91,10 +90,34 @@ int main()
   image2d<int> img3 = clone(img);
   // img3 holds its own separate buffer.
 
-  // The two allocated buffers are automatically freed at the end of the scope.
+  image2d<int> img4(100, 100, _Aligned = 32); // The begining of each row is aligned on 128 bytes.
+  image2d<int> img5(100, 100, _Border = 10); // A border of 10 pixels surround the image pixels.
+
+  // The allocated images are automatically freed at the end of the scope.
 }
+```
 
+### Image Expressions
 
+One of the most powerful feature of the library is the ability to evaluate complex images expressions via the function ```eval```.
+
+```c++
+
+// evaluate A+B*2 pixel by pixels and store the result in a new image C.
+// A and B must have the same domain.
+auto C = eval(_V(A) + _V(B) * 2);
+
+// Or assign an existing image.
+eval(_V(C) = _V(A) * _V(B));
+
+// Compute statistics such as the minimum of an expression over all the domain of some images.
+auto min_value = eval(_Min(_V(A) + _V(B)));
+
+// Use statistics to generate a new normalized image.
+auto C_normalized = eval(_V(C) * 1.f / _Max(C));
+
+// Find the position of the minimum value of an expression.
+auto argmin = eval(_Argmin(_V(A) + _V(B)));
 ```
 
 ### Vector Types
