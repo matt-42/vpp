@@ -7,28 +7,10 @@ video and image processing. The idea behind Video++ performance is to
 generate via meta-programming the most static code possible such that the
 compiler enable optimizations like loop vectorizing. Its main features are:
 
-  - Basic generic N-dimentional image containers.
+  - Generic N-dimentional image containers.
   - A growing set of image processing algorithms.
-  - Tools to write code.
+  - Tools to write image processing algorithms for multicore SIMD CPU processors.
   - An embeded language to evalute image expressions.
-
-```c++
-// A fast parallel implementation of a 3x3 box_filter using Video++.
-
-image2d<int> A(1000, 1000, _Border = 1); // A 1000x1000 image with a border of 1 pixel.
-image2d<int> B(A.domain(), _Border = 1);
-
-auto BN = box_nbh<int, 3, 3>(A);
-pixel_wise(A, BN) << [&] (auto& a, auto& b_nbh) {
-  int sum = 0;
-
-  // Sum the pixel of the window.
-  b_nbh.forall([&] (int& n) { sum += n; });
-
-  // Write the sum to B.
-  b_nbh(0,0) = (sum / 3);
-};
-```
 
 Tested compilers : **G++ 4.9.1, Clang++ 3.5.0**
 
@@ -99,7 +81,11 @@ int main()
 
 ### Image Expressions
 
-One of the most powerful feature of the library is the ability to evaluate complex images expressions via the function ```eval```.
+One of the most powerful feature of the library is the ability to
+evaluate complex images expressions via the function ```eval```. The
+generated code spans one thread per processor core. Depending on your
+compiler, there is a good chance that the loops will be optimized with
+SIMD vector instructions.
 
 ```c++
 
