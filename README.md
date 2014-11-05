@@ -1,208 +1,97 @@
-Video++
+Video+++
 =============
 
-Video++ is a video and image processing library that takes advantage
-of the C++14 standard to ease the writing of fast parallel real-time
-video and image processing. The idea behind Video++ performance is to
-generate via meta-programming the most static code possible such that the
-compiler enable optimizations like loop vectorizing. Its main features are:
+Video++ is a video and image processing library taking advantage
+of the C++14 standard to ease the writing of fast video and image
+processing applications. The idea behind Video++ performance is to
+generate via meta-programming the simplest code possible such that
+the compiler enable optimizations like loop vectorizing. Its main
+features are:
 
   - Generic N-dimentional image containers.
   - A growing set of image processing algorithms.
-  - Tools to write image processing algorithms for multicore SIMD CPU processors.
+  - Zero-cost abstractions to easily write image processing algorithms for multicore SIMD CPU processors.
   - An embeded language to evalute image expressions.
 
-Tested compilers : **G++ 4.9.1, Clang++ 3.5.0**
+Tested compilers: **G++ 4.9.1, Clang++ 3.5.0**
+Dependencies:
+  - [the iod library](https://github.com/matt-42/iod)
+  - Eigen 3
 
-**Since Video++ relies on C++14 features, only compilers fully supporting this standard are able to
+
+**Because Video++ relies on C++14 features, only compilers fully supporting this standard are able to
 compile the library.**
-
 
 ## Getting Started
 
-Video++ is a header-only library, To start coding, include the vpp.hh header to a C++ source file:
+Video++ is a header-only library, To start coding, include the vpp.hh
+header to access the core of the library:
 
 ```c++
 #include <vpp/vpp.hh>
-
-int main()
-{
-  using namespace vpp; // Optional
-}
 ```
 
-Then, tell the compiler where to find the folder vpp by setting the include search path :
-
+If you use the parallel constructs of Video++ and need to target multiple cores, activate the OpenMP optimizations:
 ```sh
-gcc -I __path_to_vpp__ main.cc
+g++ -I __path_to_vpp__ main.cc -fopenmp -lgomp
 ```
 
-If you use the parallel constructs of Video++ and need to target multiple cores, activate the OpenMP optimizations :
-```sh
-gcc -I __path_to_vpp__ main.cc -fopenmp -lgomp
-```
+## Image Containers
 
-## Overview of the Library
-
-### Image Containers
-
-```image2d<T>``` is a 2d image container with value of type
-T. Assigning A to B shares the A's data with B. ```clone``` clones images.
-An image buffer are automatically freed when no container references it anymore.
+The generic container imageNd<V, N> reprensents a dense N-dimentional
+rectangle set of pixels with values of type V. For convenience,
+image1d<V>, image2d<V>, image3d<V> are respectively aliasses to
+imageNd<V, 1>, imageNd<V, 2>, and imageNd<V, 3>.
 
 ```c++
-int main()
-{
-  using namespace vpp; // Skip the vpp:: prefix.
-
-  // Allocate an 100 rows x 200 cols image of int.
-  image2d<int> img(100, 200);
-
-  // Access to the value of the first pixel.
-  int pixel0 = img(0,0);
-
-  // Assignment shares the data between two containers.
-  image2d<int> img2 = img;
-
-  // img2 and img now share the same buffer :
-  img2(0,0) = 42;
-  assert(img(0,0) == 42);
-
-  // Clone a image to duplicate its data.
-  image2d<int> img3 = clone(img);
-  // img3 holds its own separate buffer.
-
-  image2d<int> img4(100, 100, _Aligned = 32); // The begining of each row is aligned on 128 bytes.
-  image2d<int> img5(100, 100, _Border = 10); // A border of 10 pixels surround the image pixels.
-
-  // The allocated images are automatically freed at the end of the scope.
-}
+image2d<int> A(100, 200); // Allocates a 100 rows x 200 columns 2d image of integers.
 ```
 
-### Image Expressions
-
-One of the most powerful feature of the library is the ability to
-evaluate complex images expressions via the function ```eval```. The
-generated code spans one thread per processor core. Depending on your
-compiler, there is a good chance that the loops will be optimized with
-SIMD vector instructions.
+These types provide accesses to the pixel buffer and to other piece of
+information usefull to process the image. In contrast to std::vector,
+assigning an image to the other does not copy the data, but share them
+so no accidental expensive deep copy happend.
 
 ```c++
-
-// evaluate A+B*2 pixel by pixels and store the result in a new image C.
-// A and B must have the same domain.
-auto C = eval(_V(A) + _V(B) * 2);
-
-// Or assign an existing image.
-eval(_V(C) = _V(A) * _V(B));
-
-// Compute statistics such as the minimum of an expression over all the domain of some images.
-auto min_value = eval(_Min(_V(A) + _V(B)));
-
-// Use statistics to generate a new normalized image.
-auto C_normalized = eval(_V(C) * 1.f / _Max(C));
-
-// Find the position of the minimum value of an expression.
-auto argmin = eval(_Argmin(_V(A) + _V(B)));
+image2d<int> B = A; // B now points to A's data.
 ```
 
-### Vector Types
+### Image options
 
-Video++ vector types are aliases to eigen3 vectors, providing fast linear algebra. The syntax
-is ```v{T}{N}``` such as
+#### _Border and _Aligned
 
- - T is one the following : *char, short, int, float, double, uchar, ushort, uint*.
- - N is an integer in [0, 4].
-
-For exemple, the type ```image2d<vuchar4>``` can handle an image of RGBA 8-bit.
-
-### Sequential and parallel Kernels
-
-The ```pixel_wise```, ```block_wise```, ```row_wise```, and ```col_wise``` constructs
-allow to run kernel on pixel, rows, and columns. They take three kind of inputs:
+Image constructors also take special image options. ```_Border``` (default: 0) set
+the border surrounding the pixels so filter accessing neighborhood
+access to valid pixels when traversing image borders. ```_Aligned``` (default: 16 bytes)
+set the alignement in bytes of the begining of the first pixel of each row
+(border excluded) to enable aligned SIMD memory instructions.
 
 ```c++
-pixel_wise(R1, ..., RN)(O1, ..., ON) | F
+// Allocates a 100x100 image with a border of 3 pixels
+// and rows aligned on 32 bytes (256 bits)
+image2d<int> C(100, 100, _Border = 3, _Aligned = 128);
 ```
-   - RX: The ranges
-     images, sub images, set of coordinates or views on neighborhs.
 
-   - OX: Dependencies and multithreading
-     Their is 4 possible dependencies between computation of pixel
-       - Row forward: the computation of the i th pixel of row X depend
-         on the computation of the i-1 th pixel of the same row
-       - Row backward: the computation of the i-1th pixel of row X depend
-         on the computation of the i th pixel of the same row
-       - Col forward: the computation of the i th pixel of col X depend
-         on the computation of the i-1 th pixel of the same col
-       - Col backward: the computation of the i-1th pixel of col X depend
-         on the computation of the i th pixel of the same col
+#### _Data and _Pitch
 
-      To satisfy dependencies, video++ iterates on the appropriate direction, and
-      disable multithreading if the combination of dependencies (for example row forward
-      + col forward) does not allows it.
+To use image buffers allocated by external libraries, the ```_Data``` and
+```_Pitch``` options respectively pass the pointer to the first
+pixel of the image and the distance in bytes between the first pixels
+of two consecutive rows. When setting these options, video++ is not
+responsible of freeing the data buffer.
 
-      You can also explicitely disable multithreading by adding _No_thread to the
-      list.
-
-      Note: the program must be compiled with ```-fopenmp -lgomp``` to enable the
-      multi-threading optimizations.
-
-   - F: The kernel
-     The kernel is a lambda function taking as argument the elements of each range RX.
-     If F returns a value, pixel_wise create a new image and fill it with those values.
-
-
-The following snippet uses pixel_wise to add two images:
 
 ```c++
-pixel_wise(A, B, C) | [] (int& a, int& b, int& c) { a = b + c; };
+// Wraps an external images of 100x100 pixels, with a pitch
+// of 1000 bytes.
+image2d<int> C(100, 100, _Data = my_data_ptr, _Pitch = 1000);
 ```
 
-When there is no dependencies between the computations of two pixels,
-the parallel version can speedup the execution of kernel on multi-core
-architectures. 
+### OpenCV interoperability
 
-The ```row_wise```, ```col_wise``` and ```block_wise``` routines
-execute kernel working on an entire sub division of the image domain.
-
-```c++
-// Compute the sum of each row of A in its first column.
-image2d<int> A(100, 100);
-
-row_wise(A) | [&] (auto& row) { row(0,0) = sum(row); };
-```
-
-
-### Accessing Rectangular Neighborhood
-
-Video++ provide a fast access to rectangular pixel neighboors:
-
-```c++
-// A parallel implementation of a 3x3 box_filter using Video++.
-
-image2d<int> A(1000, 1000);
-image2d<int> B(A.domain());
-
-auto BN = box_nbh2d<int, 3, 3>(A);
-
-// Parallel Loop over pixels of in and out.
-pixel_wise(A, BN) | [&] (int& a, auto& b_nbh) {
-  int sum = 0;
-
-  // Loop over neighbors wrt nbh to compute a sum.
-  b_nbh.forall([&] (int& n) { sum += n; });
-
-  // Write the sum to the output image.
-  b = sum / 3;
-};
-```
-
-### Interoperability with OpenCV images
-
-The header ```#include <vpp/opencv_bridge.hh>``` (not included by
-default) provides conversions to and from OpenCV image types. It
-allows to run video++ code on OpenCV images and to run OpenCV code on
+The header ```vpp/utils/opencv_bridge.hh``` (not included by
+```vpp/vpp.hh```) provides explicit conversions to and from OpenCV image types. It
+allows to run video++ algorithms on OpenCV images and to run OpenCV algorithms on
 video++ images, without cloning the pixel buffer.  Ownership of the buffer
 will switch to OpenCV or Video++ depending of the order of the
 destructor calls.
@@ -218,7 +107,270 @@ cv::imwrite("in.jpg", to_opencv(img));
 Note: Since it is not possible to opencv to free video++ images, an
 opencv image must not be the last one to hold a video++ image.
 
+
+## Vector Types
+
+Video++ vector types are aliases to eigen3 vectors, providing fast linear algebra. The syntax
+is ```v{T}{N}``` such as
+
+ - T is one the following : *char, short, int, float, double, uchar, ushort, uint*.
+ - N is an integer in [0, 4].
+
+For exemple, the type ```image2d<vuchar4>``` can handle an image of RGBA 8-bit.
+
+
+
+## 2D Image Expressions
+
+Video++ embeds into C++14 a domain specific language allowing to build
+image expressions that will be evaluated using ```eval```. While
+leveraging the power of multi-core SIMD architectures, it enable the developper
+to shorten tens of lines of code into one line, easy to write and to
+read.
+
+For example, the following expression formulates the an operation on the
+pixels of two images using the ```_V``` accessor:
+
+```c++
+_V(A) + _V(B) * 2
+```
+
+The ```eval``` routine actually runs this expression against each
+pixels of A and B and returns the resulting image such that, given two
+images A and B with same dimensions and pixels with type ```pixel_type```:
+
+```c++
+auto C = eval(_V(A) + _V(B) * 2);
+```
+is equivalent to
+
+```c++
+image2d<pixel_type> C(A.domain());
+for (int r = 0; r < A.nrows(); r++)
+for (int c = 0; c < A.ncols(); c++)
+  C(r, c) = A(r, c) + B(r, c) * 2;
+```
+
+Placeholders can also be used to refer to images passed as arguments
+to eval. Using placeholders, the use of _V to access pixels is not required:
+
+```c++
+auto C = eval(A, B, _1 + _2 * 2);
+```
+
+```eval``` generates code spanning one thread per processor
+core. Depending on your compiler, there is a good chance that the
+loops will be optimized with SIMD vector instructions.
+
+Note that no technical challenge but some time constraints prevented
+us to implement N-dimentional image expressions.
+
+The following explains the different types of valid expressions.
+
+### Assignments
+
+In many cases, creating new images when evaluating an expresion is not
+needed and can affect the performances of an algorithm. To avoid this
+extra image creation, assignments allows to store the result of an
+expression in an existing image as in the following. Given A, B and C
+three images of the same dimensions:
+
+```c++
+// No image allocation here:
+eval(_V(C) = _V(A) + _V(B) * 2);
+```
+
+### Conditional branching
+
+The language of image expression support conditional branching with a
+construct similar to the ?: ternary operator of C++:
+
+```c++
+eval(_V(C) = _If(_V(A) > _V(B))
+                (_V(A))
+                (_V(B))
+   );
+```
+
+### Global expressions
+
+Image expressions are not limited to pixel wise operations. Global
+expressions integrate information over the whole definition domain.
+
+#### Sum
+
+Sum an expression over the whole definition domain:
+
+```c++
+int sum = eval(_Sum(_V(A) + _V(B)));
+```
+
+#### Min, Max
+
+Find the minimum/maximum value of an expression:
+
+```c++
+auto min_value = eval(_Min(_V(A) + _V(B)));
+auto max_value = eval(_Max(_V(A) + _V(B)));
+```
+
+#### Argmin, Argmax
+
+Find the position (row, colunm) of the minimum/maximum value of an expression:
+
+```c++
+vint2 argmin = eval(_Argmin(_V(A) + _V(B)));
+vint2 argmax = eval(_Argmax(_V(A) + _V(B)));
+```
+
+### Mixing global expression in pixel wise image expressions
+
+In oposition to pixel wise image expressions, global expressions are
+evaluated only once per expression. However, it is possible to include
+them in pixel wise image expression without sacrifying
+performances. The eval function first traverses the expression
+abstract syntax tree (AST), replace them with their actual value and
+then finally launch the pixel wise evaluation. As a result, the global
+expressions are still evaluated once:
+
+```c++
+
+// Normalize pixel values and generate an image of float.
+auto C_normalized = eval(_V(C) * 1.f / _Max(C));
+
+// Note: The multiplication with 1.f allows to force convertion from int
+// pixel to float pixel values.
+```
+
+### Limitations
+
+Because embeded domain specific languages such as image expressions involve
+heavy C++ meta-programming, compilation time and compiler memory
+consumption can increase significantly with the use of long and
+complex image expressions.
+
+
+## Pixel Wise Kernels
+
+The ```pixel_wise``` construct allows to easily and efficiently map a
+kernel function on all the pixels of a set of images. If the kernel
+function returns a value, ```pixel_wise``` will return a newly allocated image
+filled with the results of the kernel. Given A and B two 2d images of integers:
+
+```c++
+// Compute C, the parallel pixel wise sum of A and B.
+auto C = pixel_wise(A, B) | [] (int& a, int& b) { return a + b; };
+```
+while being much shorter, runs as fast as the following OpenMP optimized code:
+
+```c++
+image2d<int> C(A.domain());
+int nr = A.nrows();
+int nc = A.nrows();
+
+#pragma omp parallel for
+for (int r = 0; r < nr; r++)
+{
+  int* curA = &A(r, 0);
+  int* curB = &B(r, 0);
+  int* curC = &C(r, 0);
+
+  for (int i = 0; i < nc; i++)
+    curA[i] = curB[i] + curC[i];
+}
+```
+
+### Kernel arguments
+
+Given ```pixel_wise(I_0, ..., I_N) | my_kernel```, ```pixel_wise``` will
+traverse the definition domain and for every pixel location P call
+```my_kernel(I_0(P), ..., I_N(P))``` with ```I_N(P)``` a reference to the
+pixel of I_N located at location P.
+
+### Parallelism and computational dependencies
+
+By default, ```pixel_wise``` generates a parallel execution of the
+kernel processing a batch of image row per processor core. However,
+some recursive pixel wise kernels imply a dependency between the
+computation of neighbor pixels. The ```pixel_wise``` construct let you
+express these constraints. For example, the following set the
+```_Col_backward``` dependency to integrate pixel values along the
+columns, from the bottom to the top of the image:
+
+```c++
+pixel_wise(A_nbh)(_Col_backward) |
+  [] (auto& nbh) { nbh(0,0) += nbh(1, 0); }
+```
+
+The following are valid options:
+
+  - **_Row_forward**: the computation of the i th pixel of row X depends
+    on the computation of the i-1 th pixel of the same row.
+
+  - **_Row_backward**: the computation of the i-1th pixel of row X depends
+    on the computation of the i th pixel of the same row.
+
+  - **_Col_forward**: the computation of the i th pixel of col X depends
+    on the computation of the i-1 th pixel of the same col.
+
+  - **_Col_backward**: the computation of the i-1th pixel of col X depends
+    on the computation of the i th pixel of the same col.
+
+  - **_No_thread**: disable the parallelism without specifying a dependency.
+
+To take these constraints into account, video++ change the way
+pixel_wise iterate on images while keeping as much parallelism as
+possible. For example, if **_Col_backward** is specified, each thread
+will process a batch of consecutive rows, in order to leverage
+multiple cores and SIMD instructions.
+
+### Accessing Neighborhood
+
+Video++ provides fast access to rectangular pixel neighbors inside
+pixel_wise kernels. The speed of access mainly comes from the direct
+2d indexing of the neighborhood, and the ability of the compiler to
+vectorize these accesses using SIMD vector extensions. To stay
+portable, no explicit SIMD optimization is done by video++. On the
+other hand, the generated code was designed to be trivial for the
+compiler to vectorize if the kernel does not contain conditional
+branching.
+
+The accesses are expressed in relative coordinates. For example,
+```nbh(1,1)``` accesses the bottom right neighbor of the current
+pixel, and ```nbh(0,0)``` refers to the current pixel.
+
+```c++
+// Define a 3x3 neighborhood accessor on image B.
+// Note that for performance reasons, the boundaries
+// of the neighborhood are static.
+
+auto BN = box_nbh2d<int, 3, 3>(B);
+
+pixel_wise(S, BN) | [&] (auto& s, auto& b_nbh) {
+
+  // Average the pixels in the c4 neigborhood.
+  s = (b_nbh(-1,0) + b_nbh(0, -1) +
+      b_nbh(1,0) + b_nbh(0,1)) / 4;
+};
+```
+
+
+## Block Wise Kernels
+
+The```block_wise``` construct allows to map a function on every cell
+of a given grid. This construct is similar to pixel_wise, but the block_wise kernel
+process a list of subimages representing the cell to process:
+
+```c++
+// Given a grid with cell of size 10x10 pixels.
+block_wise(vint2{10, 10}, A, B, C) | [] (auto& a, auto& b, auto& c) { ... };
+```
+
+### Row Wise and Col Wise Kernels
+
+Todo.
+
 ## Contributing
 
 Contributions are welcome. Do not hesitate to fill issues, send pull
-requests, or discuss by email at matthieu.garrigues@gmail.com.
+requests, or send me emails at matthieu.garrigues@gmail.com.
