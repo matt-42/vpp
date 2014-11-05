@@ -70,9 +70,6 @@ namespace vpp
     template <typename... O>
     imageNd(const boxNd<N>& domain, const O&... opts_);
 
-    template <typename... O>
-    imageNd(const boxNd<N>& domain, V* data, int pitch, const O&... opts_);
-
     // Copy constructor. Share the data.
     imageNd(const imageNd<V, N>& other);
 
