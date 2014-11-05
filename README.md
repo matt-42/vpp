@@ -1,4 +1,4 @@
-Video+++
+Video++
 =============
 
 Video++ is a video and image processing library taking advantage
