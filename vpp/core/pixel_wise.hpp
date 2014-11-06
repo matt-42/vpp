@@ -26,7 +26,7 @@ namespace vpp
       static void run(F f, int row_start, int row_end, bool parallel)
       {
 #pragma omp parallel for num_threads (parallel ? omp_get_num_procs() : 1)
-        for (int r = row_start; r >= row_end; r--)
+        for (int r = row_end; r >= row_start; r--)
           f(r);
       }
     };
@@ -54,8 +54,8 @@ namespace vpp
                             (config[2] || config[3]))) && // no dependency or either row_* or col_* is activated (not both).
       !options_.has(_No_threads); // user did not specify serial
 
-    if (col_reverse)
-      std::swap(row_start, row_end);
+    // if (col_reverse)
+    //   std::swap(row_start, row_end);
 
     auto process_row = [&] (int r)
     {

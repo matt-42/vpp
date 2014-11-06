@@ -44,34 +44,39 @@ namespace vpp
       constexpr bool row_reverse = OPTS::has(_Row_backward) || OPTS::has(_Mem_backward);
       constexpr bool col_reverse = OPTS::has(_Col_backward) || OPTS::has(_Mem_backward);
 
-      int rdir = col_reverse ? -1 : 1;
-      if (col_reverse)
-        std::swap(rstart, rend);
-
       auto border_check = iod::static_if<col_reverse>(
         [] () { return [] (auto a, auto b) { return std::max(a, b); }; },
         [] () { return [] (auto a, auto b) { return std::min(a, b); }; });
-      
-      auto f = [&] (int r) {
-        for (int c = 0; c <= nc; c++)
-        {
-          box2d b(vint2{r * dims_[0], cstart + c * dims_[1]},
-                  vint2{border_check(((r + rdir) * dims_[0] - rdir), rend),
-                      std::min(cstart + (c + 1) * dims_[1] - 1, cend)});
 
-          iod::static_if<OPTS::has(s::_Tie_arguments)>
-            ([this, b] (auto& fun) { // tie arguments into a tuple and pass it to fun.
-              auto t = internals::tuple_transform(this->ranges_, [&b] (auto& i) { return i | b; });
-              fun(t);
-              return 0;
-            },
-              [this, b] (auto& fun) { // Directly apply arguments to fun.
-                internals::apply_args_transform(this->ranges_, fun, [&b] (auto& i) { return i | b; });
-                return 0;
-              }, fun);
-        }
+      auto process_col = [&] (int r, int c)
+      {
+        int r1 = r * dims_[0];
+        int r2 = std::min((r + 1) * dims_[0] - 1, rend);
+          
+        int c1 = cstart + c * dims_[1];
+        int c2 = std::min(cstart + (c + 1) * dims_[1] - 1, cend);
+
+        box2d b(vint2{std::min(r1, r2), std::min(c1, c2)},
+                vint2{std::max(r1, r2), std::max(c1, c2)});
+
+        iod::static_if<OPTS::has(s::_Tie_arguments)>
+        ([this, b] (auto& fun) { // tie arguments into a tuple and pass it to fun.
+          auto t = internals::tuple_transform(this->ranges_, [&b] (auto& i) { return i | b; });
+          fun(t);
+          return 0;
+        },
+          [this, b] (auto& fun) { // Directly apply arguments to fun.
+            internals::apply_args_transform(this->ranges_, fun, [&b] (auto& i) { return i | b; });
+            return 0;
+          }, fun);
       };
-      pixel_wise_internals::loop<col_reverse>::run(f, rstart, rend, false);
+
+      auto process_row = [&] (int r) {
+        pixel_wise_internals::loop<row_reverse>::run([&] (int c) { process_col(r, c); },
+                                                     cstart / dims_[1], cend / dims_[1],
+                                                     false);
+      };
+      pixel_wise_internals::loop<col_reverse>::run(process_row, rstart / dims_[0], rend / dims_[0], false);
     }
 
     template <typename ...A>
