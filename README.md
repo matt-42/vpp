@@ -358,17 +358,32 @@ pixel_wise(S, BN) | [&] (auto& s, auto& b_nbh) {
 ## Block Wise Kernels
 
 The```block_wise``` construct allows to map a function on every cell
-of a given grid. This construct is similar to pixel_wise, but the block_wise kernel
-process a list of subimages representing the cell to process:
+of a given grid. This construct is similar to pixel_wise, but instead
+of processing one pixel, the block_wise kernel processes a given cell.
 
 ```c++
 // Given a grid with cell of size 10x10 pixels.
-block_wise(vint2{10, 10}, A, B, C) | [] (auto& a, auto& b, auto& c) { ... };
+block_wise(vint2{10, 10}, A, B, C, A.domain()) | [] (auto a, auto b, auto c, box2d box) {
+  
+  // a, b and c are sub images representing A, B and C at the current cell.
+  // All the algorithms of the library work on sub images.
+
+  // The box argument is the cell representation of A.domain() and hold the coordinates
+  // of the current cell. box.p1() and box.p2() are respectively the first and the last
+  // pixel of the cell.
+
+};
 ```
 
 ### Row Wise and Col Wise Kernels
 
-Todo.
+```row_wise``` and ```col_wise``` are shorcuts to process the image by row or by column.
+For example, the following compute a serie of row wise sums:
+
+```c++
+std::vector<int> sums(A.nrows(), 0);
+row_wise(A, A.domain()) | [] (auto& a, vint2 coord) { sums[coord[0]] += a; };
+```
 
 ## Contributing
 
