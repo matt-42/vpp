@@ -34,6 +34,7 @@ int main()
   assert(eval(_Argmax(_V(A))) == vint2(5,5));
   assert(eval(A, _Argmax(_V(_1))) == vint2(5,5));
 
+  fill(A, 1); fill(B, 2);
   X = eval(_V(A) + _V(B));
   assert(X(0,0) == 3);
 
@@ -42,7 +43,9 @@ int main()
 
   eval(X, _V(_1) = _V(B) * 2);
   assert(X(0,0) == 4);
-  
+
+  A(5,5) = 1000;  
+  A(2,5) = -11;  
   assert(eval(_Max(A)) == 1000);
-  assert(eval(_Min(A)) == 1);
+  assert(eval(_Min(A)) == -11);
 }
