@@ -44,7 +44,8 @@ image1d<V>, image2d<V>, image3d<V> are respectively aliasses to
 imageNd<V, 1>, imageNd<V, 2>, and imageNd<V, 3>.
 
 ```c++
-image2d<int> A(100, 200); // Allocates a 100 rows x 200 columns 2d image of integers.
+// Allocates a 100 rows x 200 columns 2d image of integers.
+image2d<int> A(100, 200);
 ```
 
 These types provide accesses to the pixel buffer and to other piece of
@@ -363,15 +364,17 @@ of processing one pixel, the block_wise kernel processes a given cell.
 
 ```c++
 // Given a grid with cell of size 10x10 pixels.
-block_wise(vint2{10, 10}, A, B, C, A.domain()) | [] (auto a, auto b, auto c, box2d box) {
+block_wise(vint2{10, 10}, A, B, C, A.domain()) |
+  [] (auto a, auto b, auto c, box2d box)
+  {
   
-  // a, b and c are sub images representing A, B and C at the current cell.
-  // All the algorithms of the library work on sub images.
+    // a, b and c are sub images representing A, B
+    // and C at the current cell.
+    // All the algorithms of the library work on sub images.
 
-  // The box argument is the cell representation of A.domain() and hold the coordinates
-  // of the current cell. box.p1() and box.p2() are respectively the first and the last
-  // pixel of the cell.
-
+    // The box argument is the cell representation of A.domain() and holds
+    // the coordinates of the current cell. box.p1() and box.p2() are
+    // respectively the first and the last pixel of the cell.
 };
 ```
 
@@ -382,7 +385,10 @@ For example, the following compute a serie of row wise sums:
 
 ```c++
 std::vector<int> sums(A.nrows(), 0);
-row_wise(A, A.domain()) | [] (auto& a, vint2 coord) { sums[coord[0]] += a; };
+row_wise(A, A.domain()) | [] (auto& a, vint2 coord)
+{
+  sums[coord[0]] += a;
+};
 ```
 
 ## Contributing
