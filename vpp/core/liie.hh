@@ -5,7 +5,6 @@
 #include <iod/foreach.hh>
 #include <iod/symbols.hh>
 
-#include <iod/grammar_utils.hh>
 #include <iod/apply.hh>
 #include <iod/callable_traits.hh>
 

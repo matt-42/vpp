@@ -5,7 +5,6 @@
 #include <iod/sio_utils.hh>
 #include <iod/foreach.hh>
 #include <iod/grammar.hh>
-#include <iod/grammar_utils.hh>
 #include <iod/symbols.hh>
 
 #include <vpp/core/pixel_wise.hh>
