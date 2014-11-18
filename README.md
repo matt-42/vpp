@@ -1,22 +1,21 @@
 Video++
 =============
 
-Video++ is a video and image processing library taking advantage
-of the C++14 standard to ease the writing of fast video and image
+Video++ is a video and image processing library taking advantage of
+the C++14 standard to ease the writing of fast video and image
 processing applications. The idea behind Video++ performance is to
-generate via meta-programming the simplest code possible such that
-the compiler enable optimizations like loop vectorizing. Its main
-features are:
+generate via meta-programming code that the compiler can easily 
+optimize. Its main features are:
 
-  - Generic N-dimentional image containers.
+  - Generic N-dimensional image containers.
   - A growing set of image processing algorithms.
-  - Zero-cost abstractions to easily write image processing algorithms for multicore SIMD CPU processors.
-  - An embeded language to evalute image expressions.
+  - Zero-cost abstractions to easily write image processing algorithms for multicore SIMD processors.
+  - An embedded language to evaluate image expressions.
 
 Tested compilers: **G++ 4.9.1, Clang++ 3.5.0**
 Dependencies:
-  - [the iod library](https://github.com/matt-42/iod)
-  - Eigen 3
+  - [the iod library](http://github.com/matt-42/iod)
+  - [Eigen 3](http://eigen.tuxfamily.org)
 
 
 **Because Video++ relies on C++14 features, only compilers fully supporting this standard are able to
@@ -38,9 +37,9 @@ g++ -I __path_to_vpp__ main.cc -fopenmp -lgomp
 
 ## Image Containers
 
-The generic container imageNd<V, N> reprensents a dense N-dimentional
+The generic container imageNd<V, N> represents a dense N-dimensional
 rectangle set of pixels with values of type V. For convenience,
-image1d<V>, image2d<V>, image3d<V> are respectively aliasses to
+image1d<V>, image2d<V>, image3d<V> are respectively aliases to
 imageNd<V, 1>, imageNd<V, 2>, and imageNd<V, 3>.
 
 ```c++
@@ -49,9 +48,9 @@ image2d<int> A(100, 200);
 ```
 
 These types provide accesses to the pixel buffer and to other piece of
-information usefull to process the image. In contrast to std::vector,
+information useful to process the image. In contrast to std::vector,
 assigning an image to the other does not copy the data, but share them
-so no accidental expensive deep copy happend.
+so no accidental expensive deep copy happen.
 
 ```c++
 image2d<int> B = A; // B now points to A's data.
@@ -64,7 +63,7 @@ image2d<int> B = A; // B now points to A's data.
 Image constructors also take special image options. ```_Border``` (default: 0) set
 the border surrounding the pixels so filter accessing neighborhood
 access to valid pixels when traversing image borders. ```_Aligned``` (default: 16 bytes)
-set the alignement in bytes of the begining of the first pixel of each row
+set the alignment in bytes of the beginning of the first pixel of each row
 (border excluded) to enable aligned SIMD memory instructions.
 
 ```c++
@@ -106,7 +105,7 @@ cv::imwrite("in.jpg", to_opencv(img));
 ```
 
 Note: Since it is not possible to opencv to free video++ images, an
-opencv image must not be the last one to hold a video++ image.
+OpenCV image must not be the last one to hold a video++ image.
 
 
 ## Vector Types
@@ -117,7 +116,7 @@ is ```v{T}{N}``` such as
  - T is one the following : *char, short, int, float, double, uchar, ushort, uint*.
  - N is an integer in [0, 4].
 
-For exemple, the type ```image2d<vuchar4>``` can handle an image of RGBA 8-bit.
+For example, the type ```image2d<vuchar4>``` can handle an image of RGBA 8-bit.
 
 
 
@@ -125,7 +124,7 @@ For exemple, the type ```image2d<vuchar4>``` can handle an image of RGBA 8-bit.
 
 Video++ embeds into C++14 a domain specific language allowing to build
 image expressions that will be evaluated using ```eval```. While
-leveraging the power of multi-core SIMD architectures, it enable the developper
+leveraging the power of multi-core SIMD architectures, it enables the developer
 to shorten tens of lines of code into one line, easy to write and to
 read.
 
@@ -164,13 +163,13 @@ core. Depending on your compiler, there is a good chance that the
 loops will be optimized with SIMD vector instructions.
 
 Note that no technical challenge but some time constraints prevented
-us to implement N-dimentional image expressions.
+us to implement N-dimensional image expressions.
 
 The following explains the different types of valid expressions.
 
 ### Assignments
 
-In many cases, creating new images when evaluating an expresion is not
+In many cases, creating new images when evaluating an expression is not
 needed and can affect the performances of an algorithm. To avoid this
 extra image creation, assignments allows to store the result of an
 expression in an existing image as in the following. Given A, B and C
@@ -217,7 +216,7 @@ auto max_value = eval(_Max(_V(A) + _V(B)));
 
 #### Argmin, Argmax
 
-Find the position (row, colunm) of the minimum/maximum value of an expression:
+Find the position (row, column) of the minimum/maximum value of an expression:
 
 ```c++
 vint2 argmin = eval(_Argmin(_V(A) + _V(B)));
@@ -226,9 +225,9 @@ vint2 argmax = eval(_Argmax(_V(A) + _V(B)));
 
 ### Mixing global expression in pixel wise image expressions
 
-In oposition to pixel wise image expressions, global expressions are
+In opposition to pixel wise image expressions, global expressions are
 evaluated only once per expression. However, it is possible to include
-them in pixel wise image expression without sacrifying
+them in pixel wise image expression without impacting
 performances. The eval function first traverses the expression
 abstract syntax tree (AST), replace them with their actual value and
 then finally launch the pixel wise evaluation. As a result, the global
@@ -239,13 +238,13 @@ expressions are still evaluated once:
 // Normalize pixel values and generate an image of float.
 auto C_normalized = eval(_V(C) * 1.f / _Max(C));
 
-// Note: The multiplication with 1.f allows to force convertion from int
+// Note: The multiplication with 1.f allows to force conversion from int
 // pixel to float pixel values.
 ```
 
 ### Limitations
 
-Because embeded domain specific languages such as image expressions involve
+Because embedded domain specific languages such as image expressions involve
 heavy C++ meta-programming, compilation time and compiler memory
 consumption can increase significantly with the use of long and
 complex image expressions.
@@ -349,7 +348,7 @@ auto BN = box_nbh2d<int, 3, 3>(B);
 
 pixel_wise(S, BN) | [&] (auto& s, auto& b_nbh) {
 
-  // Average the pixels in the c4 neigborhood.
+  // Average the pixels in the c4 neighborhood.
   s = (b_nbh(-1,0) + b_nbh(0, -1) +
       b_nbh(1,0) + b_nbh(0,1)) / 4;
 };
@@ -380,8 +379,8 @@ block_wise(vint2{10, 10}, A, B, C, A.domain()) |
 
 ### Row Wise and Col Wise Kernels
 
-```row_wise``` and ```col_wise``` are shorcuts to process the image by row or by column.
-For example, the following compute a serie of row wise sums:
+```row_wise``` and ```col_wise``` are shortcuts to process the image by row or by column.
+For example, the following compute row wise sums of a given image:
 
 ```c++
 std::vector<int> sums(A.nrows(), 0);
