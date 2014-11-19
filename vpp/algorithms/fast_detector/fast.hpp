@@ -1,7 +1,14 @@
 #ifndef VPP_FAST9_DETECTOR_HPP_
 # define VPP_FAST9_DETECTOR_HPP_
 
+#ifdef __ARM_NEON__
+#  include <arm_neon.h>
+#endif
+
+#if defined(__SSE4_1__) || defined(__AVX2__)
 # include "immintrin.h"
+#endif
+
 # include <omp.h>
 # include <bitset>
 # include <thread>
@@ -229,6 +236,7 @@ namespace vpp
 
         const unsigned char* m_row = mask.has_data() ? &mask(r, 0) : 0;
         typedef fast9_simd S;
+
         typedef typename S::V v;
         int c;
         for (c = 0; c < nc; c += S::size)

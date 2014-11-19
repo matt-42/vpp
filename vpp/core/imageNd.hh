@@ -2,11 +2,13 @@
 # define VPP_IMAGENd_HH__
 
 # include <memory>
+
+# include <iod/sio.hh>
+# include <iod/sio_utils.hh>
+
 # include <vpp/core/boxNd.hh>
 # include <vpp/core/imageNd_iterator.hh>
 # include <vpp/core/cast_to_float.hh>
-# include <iod/sio.hh>
-# include <iod/sio_utils.hh>
 
 namespace vpp
 {

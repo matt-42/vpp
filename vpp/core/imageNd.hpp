@@ -1,9 +1,20 @@
 #ifndef VPP_IMAGENd_HPP__
 # define VPP_IMAGENd_HPP__
 
+# include <iod/sio.hh>
 # include <vpp/core/imageNd.hh>
 # include <vpp/core/boxNd.hh>
 # include <vpp/core/symbols.hh>
+
+# ifndef VPP_DEFAULT_IMAGE_ALIGNMENT
+
+# ifdef __AVX2__
+#  define VPP_DEFAULT_IMAGE_ALIGNMENT 32
+# else
+#  define VPP_DEFAULT_IMAGE_ALIGNMENT 16
+# endif
+
+# endif
 
 namespace vpp
 {
@@ -125,7 +136,7 @@ namespace vpp
   template <typename... O>
   void imageNd<V, N>::allocate(const std::vector<int>& dims, const iod::sio<O...>& options)
   {
-    const int align_size = options.get(_Aligned, 16); // Memory alignment of rows.
+    const int align_size = options.get(_Aligned, VPP_DEFAULT_IMAGE_ALIGNMENT); // Memory alignment of rows.
 
     typedef unsigned long long ULL;
     ptr_ = std::make_shared<imageNd_data<V, N>>();
