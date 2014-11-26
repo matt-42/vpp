@@ -68,7 +68,8 @@ set the alignment in bytes of the beginning of the first pixel of each row
 
 ```c++
 // Allocates a 100x100 image with a border of 3 pixels
-// and rows aligned on 32 bytes (best for 256 bits SIMD units like AVX2)
+// and rows aligned on 32 bytes (best for 256 bits SIMD
+// units like AVX2).
 image2d<int> C(100, 100, _Border = 3, _Aligned = 32);
 ```
 
