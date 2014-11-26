@@ -2,11 +2,13 @@
 
 #include <vector>
 #include <tuple>
+#include <array>
 #include <Eigen/Dense>
 #include <iod/symbols.hh>
 #include <vpp/core/image2d.hh>
 #include <vpp/core/vector.hh>
 #include <vpp/core/liie.hh>
+#include <vpp/core/box_nbh2d.hh>
 
 namespace vpp
 {
@@ -77,43 +79,51 @@ namespace vpp
     run(backward4, _Col_backward, _Row_backward, _Row_forward, vint2{0, -1});
   }
 
-
-  template <typename D, typename T, typename U>
-  void generic_incremental_distance_transform(image2d<T>& input, image2d<U>& sedt)
+  template <typename T, typename U, typename F, typename FW, typename B, typename BW>
+  void generic_incremental_distance_transform(image2d<T>& input, image2d<U>& sedt,
+                                              F forward,
+                                              FW forward_ws,
+                                              B backward,
+                                              BW backward_ws)
   {
     pixel_wise(input, sedt).eval(_If(_1 > 0) (_2 = INT_MAX) (_2 = 0));
     
-    auto run = [&] (auto neighborhood, auto col_direction,
+    auto run = [&] (auto neighb, auto ws,
+                    auto col_direction,
                     auto row_direction) {
       auto sedt_nbh = box_nbh2d<int, 3, 3>(sedt);
-      pixel_wise(sedt_nbh)(col_direction, row_direction) | [&] (auto sn) {
+      pixel_wise(sedt_nbh)(col_direction, row_direction) | [neighb, ws] (auto sn) {
         int min_dist = sn(0,0);
-        for (auto nc : neighborhood) min_dist = sn(nc);
+        for (int i = 0; i < neighb().size(); i++)
+          min_dist = std::min(min_dist, ws()[i] + sn(neighb()[i]));
         sn(0,0) = min_dist;
       };
     };
 
-    run(D::forward(), _Col_forward, _Row_forward);
-    run(D::backward(), _Col_backward, _Row_backward);
+    run(forward, forward_ws, _Col_forward, _Row_forward);
+    run(backward, backward_ws, _Col_backward, _Row_backward);
   }
 
-  struct d4_distance_transform_info
+  template <typename... T>
+  decltype(auto) make_array(T&&... t)
   {
-    static const auto forward() { return std::vector<vint2>{vint2{-1, 0}, vint2{0, -1}}; };
-    static const auto backward() { return std::vector<vint2>{vint2{1, 0}, vint2{0, 1}}; };
-  };
+    return std::array<std::tuple_element_t<0, std::tuple<T...> >, sizeof...(t)>{std::forward<T>(t)...};
+  }
+  
   const auto d4_distance_transform = [] (auto& a, auto& b) {
-    generic_incremental_distance_transform<d4_distance_transform_info>(a, b);
+    generic_incremental_distance_transform(a, b,
+                                 [] () { return make_array(vint2{-1, 0}, vint2{0, -1}); },
+                                 [] () { return make_array(1, 1); },
+                                 [] () { return make_array(vint2{1, 0}, vint2{0, 1}); },
+                                 [] () { return make_array(1, 1); });
   };
 
-  struct d8_distance_transform_info
-  {
-    static const auto forward() { return std::vector<vint2>{vint2{-1, -1}, vint2{-1, 0}, vint2{-1, 1}, vint2{0, -1}}; };
-    static const auto backward() { return std::vector<vint2>{vint2{1, 1}, vint2{1, 0}, vint2{1, -1}, vint2{0, 1}}; };
-  };
-  
   const auto d8_distance_transform = [] (auto& a, auto& b) {
-    generic_incremental_distance_transform<d8_distance_transform_info>(a, b);
+    generic_incremental_distance_transform(a, b,
+                                 [] () { return make_array(vint2{-1, -1}, vint2{-1, 0}, vint2{-1, 1}, vint2{0, -1}); },
+                                 [] () { return make_array(1,1,1,1); },
+                                 [] () { return make_array(vint2{1, 1}, vint2{1, 0}, vint2{1, -1}, vint2{0, 1}); },
+                                 [] () { return make_array(1, 1); });
   };
   
 }
