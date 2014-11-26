@@ -4,7 +4,6 @@ project (vpp_benchmarks)
 find_package(OpenCV REQUIRED)
 
 include_directories(/usr/include/eigen3  $ENV{HOME}/projects/iod)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../inti/libs/vpp)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 add_definitions(-O3 -std=c++1y -march=native -DNDEBUG -fopenmp)
