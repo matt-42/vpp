@@ -18,7 +18,7 @@ namespace vpp
                    C& keypoints,
                    M matcher,
                    float min_ev, float max_err,
-                   float max_iteration, float convergence_delta)
+                   float max_iteration, float convergence_delta, int min_scale = 0)
   {
     keypoints.prepare_matching();
     #pragma omp parallel for
@@ -29,7 +29,7 @@ namespace vpp
       {
         vfloat2 tr = vfloat2{0.f,0.f};
         float dist = 0.f;
-        for(int S = pyramid_prev.size() - 1; S >= 0; S--)
+        for(int S = pyramid_prev.size() - 1; S >= min_scale; S--)
         {
           tr *= pyramid_prev.factor();
           auto match = matcher(kp.position / std::pow(2, S), tr, pyramid_prev[S], pyramid_next[S], pyramid_prev_grad[S], min_ev, max_iteration, convergence_delta);
