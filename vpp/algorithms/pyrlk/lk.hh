@@ -50,15 +50,13 @@ namespace vpp
     int ws = WS;
     int hws = ws/2;
 
-    int factor = 1;
-
     // Gradient matrix
     Eigen::Matrix2f G = Eigen::Matrix2f::Zero();
     int cpt = 0;
     for(int r = -hws; r <= hws; r++)
       for(int c = -hws; c <= hws; c++)
       {
-        vfloat2 n = p + vfloat2(r, c) * factor;
+        vfloat2 n = p + vfloat2(r, c);
         if (A.has(n.cast<int>()))
         {
           Eigen::Matrix2f m;
@@ -97,7 +95,7 @@ namespace vpp
       {
         for(int c = -hws; c <= hws; c++)
         {
-          vfloat2 n = p + vfloat2(r, c) * factor;
+          vfloat2 n = p + vfloat2(r, c);
           if (Ag.has(n.cast<int>()))
           {
             gs[i] = Ag.linear_interpolate(n);
@@ -107,36 +105,32 @@ namespace vpp
         }
       }
     }
-    auto domain = B.domain() - border(3);
+    auto domain = B.domain() - border(hws + 1);
 
     // Gradient descent
-    for (int k = 0; k < max_interations && nk.norm() >= convergence_delta; k++)
+    for (int k = 0; k <= max_interations && nk.norm() >= convergence_delta; k++)
     {
       Eigen::Vector2f bk = Eigen::Vector2f::Zero();
       // Temporal difference.
-      cpt = 0;
       int i = 0;
       for(int r = -hws; r <= hws; r++)
       {
         for(int c = -hws; c <= hws; c++)
         {
-          vfloat2 n2 = v + vfloat2(r, c) * factor;
-          {
-            auto g = gs[i];
-            float dt = (cast<float>(as[i]) - cast<float>(B.linear_interpolate(n2)));
-            bk += Eigen::Vector2f(g[0] * dt, g[1] * dt);
-            cpt++;
-          }
+          vfloat2 n2 = v + vfloat2(r, c);
+          auto g = gs[i];
+          float dt = (cast<float>(as[i]) - cast<float>(B.linear_interpolate(n2)));
+          bk += Eigen::Vector2f{g[0] * dt, g[1] * dt};
           i++;
         }
       }
 
       nk = G1 * bk;
-      if (nk.norm() > 1)
-      {
-        nk.normalize();
-        nk *= 1;
-      }
+      // if (nk.norm() > 1)
+      // {
+      //   nk.normalize();
+      //   nk *= 1;
+      // }
       v += vfloat2{nk[0], nk[1]};
 
       if (!domain.has(v.cast<int>()))
@@ -144,11 +138,22 @@ namespace vpp
     }
 
     // Compute matching error as the ssd.
+
+    float avg = 0;
+    float stddev = 0;
+    for (int i = 0; i < WS * WS; i++)
+      avg += cast<float>(as[i]);
+    avg /= WS * WS;
+
+    for (int i = 0; i < WS * WS; i++)
+      stddev += std::abs(avg - cast<float>(as[i]));
+    stddev /= WS * WS;
+    
     float err = 0;
     for(int r = -hws; r <= hws; r++)
       for(int c = -hws; c <= hws; c++)
       {
-        vfloat2 n2 = v + vfloat2(r, c) * factor;
+        vfloat2 n2 = v + vfloat2(r, c);
         int i = (r+hws) * ws + (c+hws);
         {
           err += fabs(cast<float>(as[i] - cast<S>(B.linear_interpolate(n2))));
@@ -156,7 +161,7 @@ namespace vpp
         }
       }
 
-    return std::pair<vfloat2, float>(v - p, err / cpt);
+    return std::pair<vfloat2, float>(v - p, err / (cpt * stddev));
 
   }
 
@@ -247,7 +252,6 @@ namespace vpp
     {
       Eigen::Vector2f bk = Eigen::Vector2f::Zero();
       // Temporal difference.
-      cpt = 0;
       int i = 0;
       for(int r = -hws; r <= hws; r++)
       {
@@ -258,7 +262,6 @@ namespace vpp
             auto g = gs[i];
             float dt = (cast<float>(as[i]) - cast<float>(B.linear_interpolate(n2)));
             bk += Eigen::Vector2f(g[0] * dt, g[1] * dt);
-            cpt++;
           }
           i++;
         }
@@ -277,6 +280,17 @@ namespace vpp
     }
 
     // Compute matching error as the ssd.
+
+    float avg = 0;
+    float stddev = 0;
+    for (int i = 0; i < WS * WS; i++)
+      avg += cast<float>(as[i]);
+    avg /= WS * WS;
+
+    for (int i = 0; i < WS * WS; i++)
+      stddev += std::abs(avg - cast<float>(as[i]));
+    stddev /= WS * WS;
+
     float err = 0;
     for(int r = -hws; r <= hws; r++)
       for(int c = -hws; c <= hws; c++)
@@ -289,7 +303,7 @@ namespace vpp
         }
       }
 
-    return std::pair<vfloat2, float>(v - p, err / cpt);
+    return std::pair<vfloat2, float>(v - p, err / (cpt * stddev));
 
   }
   

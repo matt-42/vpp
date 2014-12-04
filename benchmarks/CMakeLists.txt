@@ -6,6 +6,7 @@ find_package(OpenCV REQUIRED)
 include_directories(/usr/include/eigen3  $ENV{HOME}/projects/iod)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 
+#add_definitions(-O3 -std=c++1y -march=native -DNDEBUG -fopenmp -fprofile-use=./CMakeFiles/distance_transform.dir/distance_transform.cc.gcda)
 add_definitions(-O3 -std=c++1y -march=native -DNDEBUG -fopenmp)
 #add_definitions(-O3 -fno-tree-vectorize -std=c++1y -march=native -DNDEBUG -mno-avx -mno-avx2)
 
@@ -32,4 +33,4 @@ target_link_libraries(fast_detector ${OpenCV_LIBS}  gomp)
 target_link_libraries(for_fast ${OpenCV_LIBS}  gomp)
 target_link_libraries(pyrlk_opencv_comparison ${OpenCV_LIBS} gomp)
 target_link_libraries(liie gomp)
-target_link_libraries(distance_transform gomp)
+target_link_libraries(distance_transform gomp ${OpenCV_LIBS} gcov)

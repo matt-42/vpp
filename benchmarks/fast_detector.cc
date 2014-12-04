@@ -26,14 +26,14 @@ int main(int argc, char* argv[])
   int K = 1000;
 
   typedef image2d<vuchar3> I;
-  I A = clone_with_border(from_opencv<vuchar3>(cv::imread(argv[1])), 3);
-  I B(A.domain(), 1);
+  I A = clone(from_opencv<vuchar3>(cv::imread(argv[1])), _Border = 3);
+  I B(A.domain(), _Border = 1);
 
   image2d<unsigned char> big_image(10000,10000);
 
-  image2d<unsigned char> Agl(A.domain(), 3);
+  image2d<unsigned char> Agl(A.domain(), _Border = 3);
   image2d<unsigned char> Bgl(A.domain());
-  pixel_wise(Agl, A) << [] (unsigned char& gl, vuchar3& c)
+  pixel_wise(Agl, A) | [] (unsigned char& gl, vuchar3& c)
   {
     gl = (c[0] + c[1] + c[2]) / 3;
   };
@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
 
   image2d<vuchar3> vpp_out = clone(A);
   image2d<vuchar3> opencv_out = clone(A);
-  // pixel_wise(vpp_out, tmp, A) << [] (vuchar3& o, int& k, vuchar3& in)
+  // pixel_wise(vpp_out, tmp, A) | [] (vuchar3& o, int& k, vuchar3& in)
   // {
   //   o = k ? vuchar3(0,0, 255) : in;
   // };

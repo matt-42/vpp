@@ -13,18 +13,23 @@
 namespace vpp
 {
 
+  template <typename... T>
+  decltype(auto) make_array(T&&... t)
+  {
+    return std::array<std::tuple_element_t<0, std::tuple<T...> >, sizeof...(t)>{std::forward<T>(t)...};
+  }
+  
   template <typename T, typename U>
   void euclide_distance_transform(image2d<T>& input, image2d<U>& sedt)
   {
-    image2d<vint2> R(input.domain(), _Border = 1);
-    fill_with_border(R, vint2{0,0});
+    image2d<vshort2> R(input.domain(), _Border = 1);
+    fill_with_border(R, vshort2{0,0});
 
-    std::vector<vint2> forward4 = {vint2{-1, -1}, vint2{-1, 0}, vint2{-1, 1}, vint2{0, -1}};
-    std::vector<vint2> backward4 = {vint2{1, 1}, vint2{1, 0}, vint2{1, -1}, vint2{0, 1}};
+    auto forward4 = [] () { return make_array(vint2{-1, -1}, vint2{-1, 0}, vint2{-1, 1}, vint2{0, -1}); };
+    auto backward4 = [] () { return make_array(vint2{1, 1}, vint2{1, 0}, vint2{1, -1}, vint2{0, 1}); };
 
-    fill_with_border(sedt, INT_MAX / 2);
-
-    pixel_wise(input, sedt).eval(_If(_1 > 0) (_2 = INT_MAX) (_2 = 0));
+    fill_with_border(sedt, input.nrows() + input.ncols());
+    pixel_wise(input, sedt) | [] (auto& i, auto& s) { if (i == 0) s = 0; };
 
     auto run = [&] (auto neighborhood, auto col_direction,
                     auto row_direction1, auto row_direction2, auto spn) {
@@ -32,20 +37,20 @@ namespace vpp
       row_wise(sedt, R)(col_direction) | [&] (auto sedt_row, auto R_row)
       {
         // Forward pass
-        auto sedt_row_nbh = box_nbh2d<int, 3, 3>(sedt_row);
-        auto R_row_nbh = box_nbh2d<vint2, 3, 3>(R_row);
+        auto sedt_row_nbh = box_nbh2d<U, 3, 3>(sedt_row);
+        auto R_row_nbh = box_nbh2d<vshort2, 3, 3>(R_row);
       
         pixel_wise(sedt_row_nbh, R_row_nbh)(row_direction1)
         | [&] (auto& sedt_nbh, auto& R_nbh)
         {
-          vint2 min_rel_coord = neighborhood[0];
+          vint2 min_rel_coord = neighborhood()[0];
           int min_dist = INT_MAX;
-          for (vint2 nc : neighborhood)
+          for (vint2 nc : neighborhood())
           {
             int d = sedt_nbh(nc) + 2 * (std::abs(R_nbh(nc)[0] * nc[0]) +
                                         std::abs(R_nbh(nc)[1] * nc[1]))
               + nc.cwiseAbs().sum();
-
+            
             if (d < min_dist)
             {
               min_dist = d;
@@ -55,19 +60,19 @@ namespace vpp
 
           if (min_dist < sedt_nbh(0, 0))
           {
-            R_nbh(0, 0) = R_nbh(min_rel_coord) + min_rel_coord;
+            R_nbh(0, 0) = (R_nbh(min_rel_coord) + min_rel_coord.cast<short>()).template cast<short>();
             sedt_nbh(0, 0) = min_dist;
           }
         };
 
         // Backward pass
-        pixel_wise(sedt_row_nbh, R_row_nbh)(row_direction2) | [&] (auto& sedt_nbh, auto& R_nbh)
+        pixel_wise(sedt_row_nbh, R_row_nbh)(row_direction2, _No_threads) | [&] (auto& sedt_nbh, auto& R_nbh)
         {
-          int d = sedt_nbh(spn) + 2 * std::abs(R_nbh(spn)[1]) + 1;
+          int d = sedt_nbh(spn()) + 2 * std::abs(R_nbh(spn())[1]) + 1;
           if (d < sedt_nbh(0, 0))
           {
             sedt_nbh(0, 0) = d;
-            R_nbh(0, 0) = R_nbh(spn) + spn;
+            R_nbh(0, 0) = (R_nbh(spn()) + spn().template cast<short>()).template cast<short>();
           }
         };
 
@@ -75,39 +80,97 @@ namespace vpp
 
     };
 
-    run(forward4, _Col_forward, _Row_forward, _Row_backward, vint2{0, 1});
-    run(backward4, _Col_backward, _Row_backward, _Row_forward, vint2{0, -1});
+    run(forward4, _Col_forward, _Row_forward, _Row_backward, [] () { return vint2{0, 1}; });
+    run(backward4, _Col_backward, _Row_backward, _Row_forward, [] () { return vint2{0, -1}; });
+
+    // pixel_wise(sedt) | [] (auto& p) { p/=100; };
   }
 
-  template <typename T, typename U, typename F, typename FW, typename B, typename BW>
+  // template <typename T, typename U>
+  // void euclide_distance_transform(image2d<T>& input, image2d<U>& sedt)
+  // {
+  //   image2d<vshort2> R(input.domain(), _Border = 1);
+  //   fill_with_border(R, vshort2{0,0});
+
+  //   auto forward4 = [] () { return make_array(vint2{-1, -1}, vint2{-1, 0}, vint2{-1, 1}, vint2{0, -1}); };
+  //   auto backward4 = [] () { return make_array(vint2{1, 1}, vint2{1, 0}, vint2{1, -1}, vint2{0, 1}); };
+
+  //   fill_with_border(sedt, INT_MAX / 2);
+  //   pixel_wise(input, sedt) | [] (auto& i, auto& s) { if (i == 0) s = 0; };
+
+  //   auto run = [&] (auto neighborhood, auto col_direction,
+  //                   auto row_direction1, auto row_direction2, auto spn) {
+
+  //     row_wise(sedt, R)(col_direction) | [&] (auto sedt_row, auto R_row)
+  //     {
+  //       // Forward pass
+  //       auto sedt_row_nbh = box_nbh2d<int, 3, 3>(sedt_row);
+  //       auto R_row_nbh = box_nbh2d<vshort2, 3, 3>(R_row);
+      
+  //       pixel_wise(sedt_row_nbh, R_row_nbh)(row_direction1, _No_threads)
+  //       | [&] (auto& sedt_nbh, auto& R_nbh)
+  //       {
+  //         int min_dist = INT_MAX;
+  //         for (vint2 nc : neighborhood())
+  //         {
+  //           int d = sedt_nbh(nc) + 1;
+  //           if (d < min_dist)
+  //             min_dist = d;
+  //         }
+
+  //         if (min_dist < sedt_nbh(0, 0))
+  //           sedt_nbh(0, 0) = min_dist;
+  //       };
+
+  //     };
+
+  //   };
+
+  //   run(forward4, _Col_forward, _Row_forward, _Row_backward, [] () { return vint2{0, 1}; });
+  //   run(backward4, _Col_backward, _Row_backward, _Row_forward, [] () { return vint2{0, -1}; });
+
+  //   // pixel_wise(sedt) | [] (auto& p) { p/=100; };
+  // }
+
+  template <unsigned N, typename F>
+  void loop_unroll(F f, std::enable_if_t<N == 0>* = 0) { f(N); }
+
+  template <unsigned N, typename F>
+  void loop_unroll(F f, std::enable_if_t<N != 0>* = 0) { f(N); loop_unroll<N-1>(f); }
+  
+  template <typename T, typename U, typename F, typename FW, typename B, typename BW, int WS = 3>
   void generic_incremental_distance_transform(image2d<T>& input, image2d<U>& sedt,
                                               F forward,
                                               FW forward_ws,
                                               B backward,
-                                              BW backward_ws)
+                                              BW backward_ws,
+                                              std::integral_constant<int, WS> = std::integral_constant<int, WS>())
   {
-    pixel_wise(input, sedt).eval(_If(_1 > 0) (_2 = INT_MAX) (_2 = 0));
+    fill_with_border(sedt, input.nrows() + input.ncols());
+    pixel_wise(input, sedt) | [] (auto& i, auto& s) { if (i == 0) s = 0; };
     
     auto run = [&] (auto neighb, auto ws,
                     auto col_direction,
                     auto row_direction) {
-      auto sedt_nbh = box_nbh2d<int, 3, 3>(sedt);
+      auto sedt_nbh = box_nbh2d<int, WS, WS>(sedt);
       pixel_wise(sedt_nbh)(col_direction, row_direction) | [neighb, ws] (auto sn) {
         int min_dist = sn(0,0);
-        for (int i = 0; i < neighb().size(); i++)
+
+        auto nbh = neighb();
+        
+        // if (neighb().size() < 6)
+        auto it = [&] (int i) {
           min_dist = std::min(min_dist, ws()[i] + sn(neighb()[i]));
+        };
+
+        typedef decltype(nbh) NBH;
+        loop_unroll<std::tuple_size<NBH>::value - 1>(it);
         sn(0,0) = min_dist;
       };
     };
 
     run(forward, forward_ws, _Col_forward, _Row_forward);
     run(backward, backward_ws, _Col_backward, _Row_backward);
-  }
-
-  template <typename... T>
-  decltype(auto) make_array(T&&... t)
-  {
-    return std::array<std::tuple_element_t<0, std::tuple<T...> >, sizeof...(t)>{std::forward<T>(t)...};
   }
   
   const auto d4_distance_transform = [] (auto& a, auto& b) {
@@ -123,7 +186,25 @@ namespace vpp
                                  [] () { return make_array(vint2{-1, -1}, vint2{-1, 0}, vint2{-1, 1}, vint2{0, -1}); },
                                  [] () { return make_array(1,1,1,1); },
                                  [] () { return make_array(vint2{1, 1}, vint2{1, 0}, vint2{1, -1}, vint2{0, 1}); },
-                                 [] () { return make_array(1, 1); });
+                                           [] () { return make_array(1, 1, 1, 1); });
+  };
+
+  const auto d3_4_distance_transform = [] (auto& a, auto& b) {
+    generic_incremental_distance_transform(a, b,
+                                           [] () { return make_array(vint2{-1, -1}, vint2{-1, 0}, vint2{-1, 1}, vint2{0, -1}); },
+                                           [] () { return make_array(4,3,4,3); },
+                                           [] () { return make_array(vint2{1, 1}, vint2{1, 0}, vint2{1, -1}, vint2{0, 1}); },
+                                           [] () { return make_array(4, 3, 4, 3); }, std::integral_constant<int, 5>());
+  };
+
+  const auto d5_7_11_distance_transform = [] (auto& a, auto& b) {
+    generic_incremental_distance_transform(a, b,
+    
+                                           [] () { return make_array(vint2{-2, -1}, vint2{-2, 1}, vint2{-1, -2}, vint2{-1, -1}, vint2{-1, 0}, vint2{-1, 1}, vint2{-1, 2}, vint2{0, -1}); },
+                                           [] () { return make_array(11,11,11,7,5,7,11,5); },
+                                           [] () { return make_array(vint2{0, 1}, vint2{1, -2}, vint2{1, -1}, vint2{1, 0}, vint2{1, 1}, vint2{1, 2}, vint2{2, -1}, vint2{2, 1}); },
+                                           [] () { return make_array(5,11,7,5,7,11,11,11); },
+                                           std::integral_constant<int, 5>());
   };
   
 }
