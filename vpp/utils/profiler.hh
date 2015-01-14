@@ -98,7 +98,7 @@ namespace vpp
          it != n.childs.end(); it++)
       childs_sum += it->second.duration;
 
-    os << std::setw(50) << std::setfill(' ') << std::left << (indent + path + ":") << std::fixed << std::setprecision(2)
+    os << std::setw(50) << std::setfill(' ') << std::left << (indent + path + ":") << std::fixed << std::setprecision(3)
        << std::setw(15) << std::setfill(' ') << std::left << n.ncalls
        << std::setw(15) << std::setfill(' ') << std::left << (n.duration) / (n.ncalls * 1000.)
        << std::setw(15) << std::setfill(' ') << std::left << (n.duration) / 1000.
