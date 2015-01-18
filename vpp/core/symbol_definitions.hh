@@ -2,97 +2,97 @@
 //  with the equivalent command:
 //  sed -e 's/^\([a-zA-Z1-9_]\)\([a-zA-Z1-9_]*\)/#ifndef IOD_SYMBOL__\U\1\L\2\E\n\#define IOD_SYMBOL__\U\1\L\2\E\n    iod_define_symbol(\1\2, _\U\1\L\2\E)\n#endif/' symbols.sb > symbol_definitions.hh 
 
-#ifndef IOD_SYMBOL__Tie_arguments
-#define IOD_SYMBOL__Tie_arguments
-    iod_define_symbol(tie_arguments, _Tie_arguments)
+#ifndef IOD_SYMBOL__tie_arguments
+#define IOD_SYMBOL__tie_arguments
+    iod_define_symbol(tie_arguments, _tie_arguments)
 #endif
-#ifndef IOD_SYMBOL__Row_forward
-#define IOD_SYMBOL__Row_forward
-    iod_define_symbol(row_forward, _Row_forward)
+#ifndef IOD_SYMBOL__row_forward
+#define IOD_SYMBOL__row_forward
+    iod_define_symbol(row_forward, _row_forward)
 #endif
-#ifndef IOD_SYMBOL__Row_backward
-#define IOD_SYMBOL__Row_backward
-    iod_define_symbol(row_backward, _Row_backward)
+#ifndef IOD_SYMBOL__row_backward
+#define IOD_SYMBOL__row_backward
+    iod_define_symbol(row_backward, _row_backward)
 #endif
-#ifndef IOD_SYMBOL__Col_forward
-#define IOD_SYMBOL__Col_forward
-    iod_define_symbol(col_forward, _Col_forward)
+#ifndef IOD_SYMBOL__col_forward
+#define IOD_SYMBOL__col_forward
+    iod_define_symbol(col_forward, _col_forward)
 #endif
-#ifndef IOD_SYMBOL__Col_backward
-#define IOD_SYMBOL__Col_backward
-    iod_define_symbol(col_backward, _Col_backward)
+#ifndef IOD_SYMBOL__col_backward
+#define IOD_SYMBOL__col_backward
+    iod_define_symbol(col_backward, _col_backward)
 #endif
-#ifndef IOD_SYMBOL__Mem_forward
-#define IOD_SYMBOL__Mem_forward
-    iod_define_symbol(mem_forward, _Mem_forward)
+#ifndef IOD_SYMBOL__mem_forward
+#define IOD_SYMBOL__mem_forward
+    iod_define_symbol(mem_forward, _mem_forward)
 #endif
-#ifndef IOD_SYMBOL__Mem_backward
-#define IOD_SYMBOL__Mem_backward
-    iod_define_symbol(mem_backward, _Mem_backward)
+#ifndef IOD_SYMBOL__mem_backward
+#define IOD_SYMBOL__mem_backward
+    iod_define_symbol(mem_backward, _mem_backward)
 #endif
-#ifndef IOD_SYMBOL__Serial
-#define IOD_SYMBOL__Serial
-    iod_define_symbol(serial, _Serial)
+#ifndef IOD_SYMBOL__serial
+#define IOD_SYMBOL__serial
+    iod_define_symbol(serial, _serial)
 #endif
-#ifndef IOD_SYMBOL__Block_size
-#define IOD_SYMBOL__Block_size
-    iod_define_symbol(block_size, _Block_size)
+#ifndef IOD_SYMBOL__block_size
+#define IOD_SYMBOL__block_size
+    iod_define_symbol(block_size, _block_size)
 #endif
-#ifndef IOD_SYMBOL__No_threads
-#define IOD_SYMBOL__No_threads
-    iod_define_symbol(no_threads, _No_threads)
+#ifndef IOD_SYMBOL__no_threads
+#define IOD_SYMBOL__no_threads
+    iod_define_symbol(no_threads, _no_threads)
 #endif
-#ifndef IOD_SYMBOL__Aligned
-#define IOD_SYMBOL__Aligned
-    iod_define_symbol(aligned, _Aligned)
+#ifndef IOD_SYMBOL__aligned
+#define IOD_SYMBOL__aligned
+    iod_define_symbol(aligned, _aligned)
 #endif
-#ifndef IOD_SYMBOL__Border
-#define IOD_SYMBOL__Border
-    iod_define_symbol(border, _Border)
+#ifndef IOD_SYMBOL__border
+#define IOD_SYMBOL__border
+    iod_define_symbol(border, _border)
 #endif
-#ifndef IOD_SYMBOL__Data
-#define IOD_SYMBOL__Data
-    iod_define_symbol(data, _Data)
+#ifndef IOD_SYMBOL__data
+#define IOD_SYMBOL__data
+    iod_define_symbol(data, _data)
 #endif
-#ifndef IOD_SYMBOL__Pitch
-#define IOD_SYMBOL__Pitch
-    iod_define_symbol(pitch, _Pitch)
-#endif
-
-#ifndef IOD_SYMBOL__V
-#define IOD_SYMBOL__V
-    iod_define_symbol(V, _V)
+#ifndef IOD_SYMBOL__pitch
+#define IOD_SYMBOL__pitch
+    iod_define_symbol(pitch, _pitch)
 #endif
 
-#ifndef IOD_SYMBOL__Sum
-#define IOD_SYMBOL__Sum
-    iod_define_symbol(sum, _Sum)
+#ifndef IOD_SYMBOL__v
+#define IOD_SYMBOL__v
+    iod_define_symbol(V, _v)
 #endif
-#ifndef IOD_SYMBOL__Avg
-#define IOD_SYMBOL__Avg
-    iod_define_symbol(avg, _Avg)
+
+#ifndef IOD_SYMBOL__sum
+#define IOD_SYMBOL__sum
+    iod_define_symbol(sum, _sum)
 #endif
-#ifndef IOD_SYMBOL__Min
-#define IOD_SYMBOL__Min
-    iod_define_symbol(min, _Min)
+#ifndef IOD_SYMBOL__avg
+#define IOD_SYMBOL__avg
+    iod_define_symbol(avg, _avg)
 #endif
-#ifndef IOD_SYMBOL__Max
-#define IOD_SYMBOL__Max
-    iod_define_symbol(max, _Max)
+#ifndef IOD_SYMBOL__min
+#define IOD_SYMBOL__min
+    iod_define_symbol(min, _min)
 #endif
-#ifndef IOD_SYMBOL__Stddev
-#define IOD_SYMBOL__Stddev
-    iod_define_symbol(stddev, _Stddev)
+#ifndef IOD_SYMBOL__max
+#define IOD_SYMBOL__max
+    iod_define_symbol(max, _max)
 #endif
-#ifndef IOD_SYMBOL__Argmin
-#define IOD_SYMBOL__Argmin
-    iod_define_symbol(argmin, _Argmin)
+#ifndef IOD_SYMBOL__stddev
+#define IOD_SYMBOL__stddev
+    iod_define_symbol(stddev, _stddev)
 #endif
-#ifndef IOD_SYMBOL__Argmax
-#define IOD_SYMBOL__Argmax
-    iod_define_symbol(argmax, _Argmax)
+#ifndef IOD_SYMBOL__argmin
+#define IOD_SYMBOL__argmin
+    iod_define_symbol(argmin, _argmin)
 #endif
-#ifndef IOD_SYMBOL__If
-#define IOD_SYMBOL__If
-    iod_define_symbol(_if, _If)
+#ifndef IOD_SYMBOL__argmax
+#define IOD_SYMBOL__argmax
+    iod_define_symbol(argmax, _argmax)
+#endif
+#ifndef IOD_SYMBOL__if
+#define IOD_SYMBOL__if
+    iod_define_symbol(_if, _if)
 #endif

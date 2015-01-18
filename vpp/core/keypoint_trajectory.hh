@@ -10,7 +10,7 @@ namespace vpp
 
   struct keypoint_trajectory
   {
-    keypoint_trajectory() {}
+    keypoint_trajectory() : alive_(true) {}
     keypoint_trajectory(int frame_cpt)
       : start_frame_(frame_cpt),
         alive_(true)

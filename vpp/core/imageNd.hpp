@@ -103,18 +103,18 @@ namespace vpp
     const auto options = iod::D(_options...);
 
     static_assert(
-      !options.has(_Data) or options.has(_Pitch),
+      !options.has(_data) or options.has(_pitch),
       "You must provide the pitch (Number of bits between the begining of to successive lines when providing a data pointer the image constructor.");
 
-    if (options.has(_Data))
+    if (options.has(_data))
     {
       ptr_ = std::shared_ptr<imageNd_data<V, N>>(new imageNd_data<V, N>());
 
-      ptr_->data_ = (V*) options.get(_Data, (V*)0);
+      ptr_->data_ = (V*) options.get(_data, (V*)0);
       ptr_->begin_ = ptr_->data_;
-      ptr_->pitch_ = options.get(_Pitch, 0);
+      ptr_->pitch_ = options.get(_pitch, 0);
       ptr_->domain_ = domain;
-      ptr_->border_ = options.get(_Border, 0);
+      ptr_->border_ = options.get(_border, 0);
 
       int size = ptr_->pitch_;
       for (int n = 0; n < N - 1; n++)
@@ -136,12 +136,12 @@ namespace vpp
   template <typename... O>
   void imageNd<V, N>::allocate(const std::vector<int>& dims, const iod::sio<O...>& options)
   {
-    const int align_size = options.get(_Aligned, VPP_DEFAULT_IMAGE_ALIGNMENT); // Memory alignment of rows.
+    const int align_size = options.get(_aligned, VPP_DEFAULT_IMAGE_ALIGNMENT); // Memory alignment of rows.
 
     typedef unsigned long long ULL;
     ptr_ = std::make_shared<imageNd_data<V, N>>();
     auto& d = *ptr_;
-    d.border_ = options.get(_Border, 0);
+    d.border_ = options.get(_border, 0);
 
     int border_size = d.border_ * sizeof(V);
     int border_padding = 0;

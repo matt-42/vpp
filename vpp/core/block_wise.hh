@@ -9,7 +9,7 @@
 namespace vpp
 {
 
-  using s::_No_threads;
+  using s::_no_threads;
 
 
   namespace pixel_wise_internals
@@ -41,8 +41,8 @@ namespace vpp
       int nr = (rend - rstart) / dims_[0];
       int nc = (cend - cstart) / dims_[1];
 
-      constexpr bool row_reverse = OPTS::has(_Row_backward) || OPTS::has(_Mem_backward);
-      constexpr bool col_reverse = OPTS::has(_Col_backward) || OPTS::has(_Mem_backward);
+      constexpr bool row_reverse = OPTS::has(_row_backward) || OPTS::has(_mem_backward);
+      constexpr bool col_reverse = OPTS::has(_col_backward) || OPTS::has(_mem_backward);
 
       auto border_check = iod::static_if<col_reverse>(
         [] () { return [] (auto a, auto b) { return std::max(a, b); }; },
@@ -59,7 +59,7 @@ namespace vpp
         box2d b(vint2{std::min(r1, r2), std::min(c1, c2)},
                 vint2{std::max(r1, r2), std::max(c1, c2)});
 
-        iod::static_if<OPTS::has(s::_Tie_arguments)>
+        iod::static_if<OPTS::has(s::_tie_arguments)>
         ([this, b] (auto& fun) { // tie arguments into a tuple and pass it to fun.
           auto t = internals::tuple_transform(this->ranges_, [&b] (auto& i) { return i | b; });
           fun(t);
@@ -90,7 +90,7 @@ namespace vpp
     template <typename F>
     void operator|(F fun)
     {
-      run(fun, !options_.has(_No_threads));
+      run(fun, !options_.has(_no_threads));
     }
 
   private:

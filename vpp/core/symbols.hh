@@ -5,17 +5,17 @@
 
 namespace vpp
 {
-  using s::_Border;
-  using s::_Aligned;
-  using s::_Tie_arguments;
-  using s::_Row_forward;
-  using s::_Row_backward;
-  using s::_Col_forward;
-  using s::_Col_backward;
-  using s::_Mem_forward;
-  using s::_Mem_backward;
-  using s::_No_threads;
-  using s::_Block_size;
-  using s::_Data;
-  using s::_Pitch;
+  using s::_border;
+  using s::_aligned;
+  using s::_tie_arguments;
+  using s::_row_forward;
+  using s::_row_backward;
+  using s::_col_forward;
+  using s::_col_backward;
+  using s::_mem_forward;
+  using s::_mem_backward;
+  using s::_no_threads;
+  using s::_block_size;
+  using s::_data;
+  using s::_pitch;
 }

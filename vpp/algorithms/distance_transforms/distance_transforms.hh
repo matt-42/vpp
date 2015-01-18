@@ -22,7 +22,7 @@ namespace vpp
   template <typename T, typename U>
   void euclide_distance_transform(image2d<T>& input, image2d<U>& sedt)
   {
-    image2d<vshort2> R(input.domain(), _Border = 1);
+    image2d<vshort2> R(input.domain(), _border = 1);
     fill_with_border(R, vshort2{0,0});
 
     auto forward4 = [] () { return make_array(vint2{-1, -1}, vint2{-1, 0}, vint2{-1, 1}, vint2{0, -1}); };
@@ -66,7 +66,7 @@ namespace vpp
         };
 
         // Backward pass
-        pixel_wise(sedt_row_nbh, R_row_nbh)(row_direction2, _No_threads) | [&] (auto& sedt_nbh, auto& R_nbh)
+        pixel_wise(sedt_row_nbh, R_row_nbh)(row_direction2, _no_threads) | [&] (auto& sedt_nbh, auto& R_nbh)
         {
           int d = sedt_nbh(spn()) + 2 * std::abs(R_nbh(spn())[1]) + 1;
           if (d < sedt_nbh(0, 0))
@@ -80,8 +80,8 @@ namespace vpp
 
     };
 
-    run(forward4, _Col_forward, _Row_forward, _Row_backward, [] () { return vint2{0, 1}; });
-    run(backward4, _Col_backward, _Row_backward, _Row_forward, [] () { return vint2{0, -1}; });
+    run(forward4, _col_forward, _row_forward, _row_backward, [] () { return vint2{0, 1}; });
+    run(backward4, _col_backward, _row_backward, _row_forward, [] () { return vint2{0, -1}; });
 
     // pixel_wise(sedt) | [] (auto& p) { p/=100; };
   }
@@ -89,7 +89,7 @@ namespace vpp
   // template <typename T, typename U>
   // void euclide_distance_transform(image2d<T>& input, image2d<U>& sedt)
   // {
-  //   image2d<vshort2> R(input.domain(), _Border = 1);
+  //   image2d<vshort2> R(input.domain(), _border = 1);
   //   fill_with_border(R, vshort2{0,0});
 
   //   auto forward4 = [] () { return make_array(vint2{-1, -1}, vint2{-1, 0}, vint2{-1, 1}, vint2{0, -1}); };
@@ -107,7 +107,7 @@ namespace vpp
   //       auto sedt_row_nbh = box_nbh2d<int, 3, 3>(sedt_row);
   //       auto R_row_nbh = box_nbh2d<vshort2, 3, 3>(R_row);
       
-  //       pixel_wise(sedt_row_nbh, R_row_nbh)(row_direction1, _No_threads)
+  //       pixel_wise(sedt_row_nbh, R_row_nbh)(row_direction1, _no_threads)
   //       | [&] (auto& sedt_nbh, auto& R_nbh)
   //       {
   //         int min_dist = INT_MAX;
@@ -126,8 +126,8 @@ namespace vpp
 
   //   };
 
-  //   run(forward4, _Col_forward, _Row_forward, _Row_backward, [] () { return vint2{0, 1}; });
-  //   run(backward4, _Col_backward, _Row_backward, _Row_forward, [] () { return vint2{0, -1}; });
+  //   run(forward4, _col_forward, _row_forward, _row_backward, [] () { return vint2{0, 1}; });
+  //   run(backward4, _col_backward, _row_backward, _row_forward, [] () { return vint2{0, -1}; });
 
   //   // pixel_wise(sedt) | [] (auto& p) { p/=100; };
   // }
@@ -169,8 +169,8 @@ namespace vpp
       };
     };
 
-    run(forward, forward_ws, _Col_forward, _Row_forward);
-    run(backward, backward_ws, _Col_backward, _Row_backward);
+    run(forward, forward_ws, _col_forward, _row_forward);
+    run(backward, backward_ws, _col_backward, _row_backward);
   }
   
   const auto d4_distance_transform = [] (auto& a, auto& b) {

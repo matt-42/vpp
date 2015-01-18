@@ -51,7 +51,7 @@ namespace vpp
   template <typename V>
   image2d<V> from_opencv(cv::Mat m)
   {
-    image2d<V> res(make_box2d(m.rows, m.cols), _Data = m.data, _Pitch = m.step);
+    image2d<V> res(make_box2d(m.rows, m.cols), _data = m.data, _pitch = m.step);
     res.set_external_data_holder(new opencv_data_holder{m.refcount, m.data}, opencv_data_deleter);
     m.addref();
     return res;

@@ -44,15 +44,15 @@ namespace vpp
     int row_start = p1[0];
     int row_end = p2[0];
 
-    constexpr bool row_reverse = OPTS::has(_Row_backward) || OPTS::has(_Mem_backward);
-    constexpr bool col_reverse = OPTS::has(_Col_backward) || OPTS::has(_Mem_backward);
-    const int config[4] = { options_.has(_Row_backward), options_.has(_Row_forward),
-                            options_.has(_Col_backward), options_.has(_Col_forward) };
+    constexpr bool row_reverse = OPTS::has(_row_backward) || OPTS::has(_mem_backward);
+    constexpr bool col_reverse = OPTS::has(_col_backward) || OPTS::has(_mem_backward);
+    const int config[4] = { options_.has(_row_backward), options_.has(_row_forward),
+                            options_.has(_col_backward), options_.has(_col_forward) };
     const int config_sum = config[0] + config[1] + config[2] + config[3];
     const bool parallel =
       (config_sum == 0 || !((config[0] || config[1]) && 
                             (config[2] || config[3]))) && // no dependency or either row_* or col_* is activated (not both).
-      !options_.has(_No_threads); // user did not specify serial
+      !options_.has(_no_threads); // user did not specify serial
 
     // if (col_reverse)
     //   std::swap(row_start, row_end);
@@ -75,7 +75,7 @@ namespace vpp
 
       while (cur0_ != end0_)
       {
-        iod::static_if<OPTS::has(s::_Tie_arguments)>
+        iod::static_if<OPTS::has(s::_tie_arguments)>
           ([&cur_] (auto& fun) { // tie arguments into a tuple and pass it to fun.
             auto t = internals::tuple_transform(cur_, [] (auto& i) -> auto&& { return *i; });
             fun(t);
@@ -106,28 +106,28 @@ namespace vpp
     // int col_start = p1[1];
     // int col_end = p2[1];
 
-    // const bool row_reverse = options_.has(_Row_backward) || options_.has(_Mem_backward);
-    // const bool col_reverse = options_.has(_Col_backward) || options_.has(_Mem_backward);
-    // const int config[4] = { options_.has(_Row_backward), options_.has(_Row_forward),
-    //                         options_.has(_Col_backward), options_.has(_Col_forward) };
+    // const bool row_reverse = options_.has(_row_backward) || options_.has(_mem_backward);
+    // const bool col_reverse = options_.has(_col_backward) || options_.has(_mem_backward);
+    // const int config[4] = { options_.has(_row_backward), options_.has(_row_forward),
+    //                         options_.has(_col_backward), options_.has(_col_forward) };
     // const int config_sum = config[0] + config[1] + config[2] + config[3];
     // const bool parallel =
     //   (config_sum == 0 || !((config[0] || config[1]) && 
     //                         (config[2] || config[3]))) && // no dependency or either row_* or col_* is activated (not both).
-    //   !options_.has(_No_threads); // user did not specify serial
+    //   !options_.has(_no_threads); // user did not specify serial
 
-    const int bs = std::min(options_.get(_Block_size, 32), p2[1] - p1[1]);
-    block_wise(vint2{1 + p2[0] - p1[0], bs}, ranges_)(_Tie_arguments) |
+    const int bs = std::min(options_.get(_block_size, 32), p2[1] - p1[1]);
+    block_wise(vint2{1 + p2[0] - p1[0], bs}, ranges_)(_tie_arguments) |
       [this, &fun] (auto& b)
     {
-      if (options_.has(_Col_backward))
-        iod::static_if<OPTS().has(_Tie_arguments)>(
-          [&b] (auto& fun) { return pixel_wise(b)(_Col_backward, _No_threads, _Tie_arguments) | fun; }, 
-          [&b] (auto& fun) { return pixel_wise(b)(_Col_backward, _No_threads) | fun; }, fun);
+      if (options_.has(_col_backward))
+        iod::static_if<OPTS().has(_tie_arguments)>(
+          [&b] (auto& fun) { return pixel_wise(b)(_col_backward, _no_threads, _tie_arguments) | fun; }, 
+          [&b] (auto& fun) { return pixel_wise(b)(_col_backward, _no_threads) | fun; }, fun);
       else
-        iod::static_if<OPTS().has(_Tie_arguments)>(
-          [&b] (auto& fun) { return pixel_wise(b)(_No_threads, _Tie_arguments) | fun; }, 
-          [&b] (auto& fun) { return pixel_wise(b)(_No_threads) | fun; }, fun);
+        iod::static_if<OPTS().has(_tie_arguments)>(
+          [&b] (auto& fun) { return pixel_wise(b)(_no_threads, _tie_arguments) | fun; }, 
+          [&b] (auto& fun) { return pixel_wise(b)(_no_threads) | fun; }, fun);
     };
 
   }

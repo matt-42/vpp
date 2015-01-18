@@ -11,7 +11,7 @@ namespace vpp
   template <typename V>
   void antialiasing_lowpass_filter(const image2d<V>& in, image2d<V>& out)
   {
-    image2d<V> tmp(in.domain(), _Border = 2);
+    image2d<V> tmp(in.domain(), _border = 2);
     int nr = in.nrows();
     int nc = in.ncols();
     typedef plus_promotion<V> S;
@@ -120,7 +120,7 @@ namespace vpp
       {
         if (factor_ == 2)
         {
-          image_type tmp(levels_[i - 1].domain(), _Border = 3);
+          image_type tmp(levels_[i - 1].domain(), _border = 3);
           antialiasing_lowpass_filter(levels_[i - 1], tmp);
           subsample2(tmp, levels_[i]);
         }

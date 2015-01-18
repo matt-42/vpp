@@ -11,14 +11,14 @@
 namespace vpp
 {
 
-  using s::_Sum; using s::_Sum_t;
-  using s::_Avg; using s::_Avg_t;
-  using s::_Min; using s::_Min_t;
-  using s::_Max; using s::_Max_t;
-  using s::_Argmax; using s::_Argmax_t;
-  using s::_Argmin; using s::_Argmin_t;
-  using s::_If; using s::_If_t;
-  using s::_V; using s::_V_t;
+  using s::_sum; using s::_sum_t;
+  using s::_avg; using s::_avg_t;
+  using s::_min; using s::_min_t;
+  using s::_max; using s::_max_t;
+  using s::_argmax; using s::_argmax_t;
+  using s::_argmin; using s::_argmin_t;
+  using s::_if; using s::_if_t;
+  using s::_v; using s::_v_t;
 
   using s::_1; using s::_2;
   
@@ -29,12 +29,12 @@ namespace vpp
     };
 
     template <typename Test, typename Then>
-    using if_then_exp = iod::function_call_exp<iod::function_call_exp<_If_t, Test>, Then>;
+    using if_then_exp = iod::function_call_exp<iod::function_call_exp<_if_t, Test>, Then>;
 
     template <typename Test, typename Then, typename Else>
     using if_then_else_exp = iod::function_call_exp<iod::function_call_exp<
                                                       iod::function_call_exp<
-                                                        _If_t, Test>, Then>, Else>;
+                                                        _if_t, Test>, Then>, Else>;
 
     // Evaluate an expression against a context.
     struct evaluate_visitor
@@ -68,7 +68,7 @@ namespace vpp
       }
 
       template <typename T, typename M, typename C>
-      inline auto& operator()(const iod::function_call_exp<_V_t, T>& read, M eval, C& ctx) const
+      inline auto& operator()(const iod::function_call_exp<_v_t, T>& read, M eval, C& ctx) const
       {
         return iod::exp_evaluate(std::get<0>(read.args), eval, ctx);
       }
@@ -149,7 +149,7 @@ namespace vpp
     template <typename E, typename C>
     auto evaluate_global_expressions(E _exp, C&& _ctx);
     
-    // Evaluate global expressions such as _Sum, _Avg, _Min, _Max, _Argmin ...
+    // Evaluate global expressions such as _sum, _avg, _min, _max, _argmin ...
     struct evaluate_global_visitor
     {
       // Helpers
@@ -185,7 +185,7 @@ namespace vpp
         auto n = images_to_placeholders(e, std::integral_constant<int, 1 + std::tuple_size<C>::value>());
         auto ranges = get_exp_ranges(e, c);
         
-        pixel_wise(ranges)(_No_threads, _Tie_arguments) | [&] (auto& tp) {
+        pixel_wise(ranges)(_no_threads, _tie_arguments) | [&] (auto& tp) {
           f(evaluate(n, tp));
         };
       }
@@ -200,14 +200,14 @@ namespace vpp
         auto fr = std::get<0>(ranges);
         box2d domain(fr.first_point_coordinates(), fr.last_point_coordinates());
         auto ranges2 = std::tuple_cat(ranges, std::make_tuple(domain));
-        iod::apply(ranges2, pixel_wise)(_Tie_arguments, _No_threads) | [&] (auto tp) {
+        iod::apply(ranges2, pixel_wise)(_tie_arguments, _no_threads) | [&] (auto tp) {
           f(evaluate(n, tp), std::get<std::tuple_size<decltype(tp)>::value - 1>(tp));
         };
       }
 
       // Min.
       template <typename I, typename... PS>
-      inline auto operator()(const iod::function_call_exp<_Min_t, I>& n, std::tuple<PS...>& ctx) const
+      inline auto operator()(const iod::function_call_exp<_min_t, I>& n, std::tuple<PS...>& ctx) const
       {
         auto exp = evaluate_global_expressions(std::get<0>(n.args), ctx);
         typedef decltype(exp_return_type(exp, ctx)) min_type;
@@ -221,7 +221,7 @@ namespace vpp
       
       // Max.
       template <typename I, typename... PS>
-      inline auto operator()(const iod::function_call_exp<_Max_t, I>& n, std::tuple<PS...>& ctx) const
+      inline auto operator()(const iod::function_call_exp<_max_t, I>& n, std::tuple<PS...>& ctx) const
       {
         auto exp = evaluate_global_expressions(std::get<0>(n.args), ctx);
         typedef decltype(exp_return_type(exp, ctx)) max_type;
@@ -235,7 +235,7 @@ namespace vpp
 
       // Sum.
       template <typename I, typename... PS>
-      inline auto operator()(const iod::function_call_exp<_Sum_t, I>& n, std::tuple<PS...>& ctx) const
+      inline auto operator()(const iod::function_call_exp<_sum_t, I>& n, std::tuple<PS...>& ctx) const
       {
         auto exp = evaluate_global_expressions(std::get<0>(n.args), ctx);
         typedef decltype(exp_return_type(exp, ctx)) elt_type;
@@ -249,7 +249,7 @@ namespace vpp
 
       // Avg.
       template <typename I, typename... PS>
-      inline auto operator()(const iod::function_call_exp<_Avg_t, I>& n, std::tuple<PS...>& ctx) const
+      inline auto operator()(const iod::function_call_exp<_avg_t, I>& n, std::tuple<PS...>& ctx) const
       {
         auto exp = evaluate_global_expressions(std::get<0>(n.args), ctx);
         typedef decltype(exp_return_type(exp, ctx)) elt_type;
@@ -263,7 +263,7 @@ namespace vpp
 
       // Argmin.
       template <typename I, typename... PS>
-      inline auto operator()(iod::function_call_exp<_Argmin_t, I>& n, std::tuple<PS...>& ctx) const
+      inline auto operator()(iod::function_call_exp<_argmin_t, I>& n, std::tuple<PS...>& ctx) const
       {
         auto exp = evaluate_global_expressions(std::get<0>(n.args), ctx);
         typedef decltype(exp_return_type(exp, ctx)) min_type;
@@ -282,7 +282,7 @@ namespace vpp
 
       // Argmax.
       template <typename I, typename... PS>
-      inline auto operator()(iod::function_call_exp<_Argmax_t, I>& n, std::tuple<PS...>& ctx) const
+      inline auto operator()(iod::function_call_exp<_argmax_t, I>& n, std::tuple<PS...>& ctx) const
       {
         auto exp = evaluate_global_expressions(std::get<0>(n.args), ctx);
         typedef decltype(exp_return_type(exp, ctx)) max_type;

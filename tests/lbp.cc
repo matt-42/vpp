@@ -7,7 +7,7 @@ int main()
 {
   using namespace vpp;
   
-  image2d<unsigned char> V(3,3, _Border = 1);
+  image2d<unsigned char> V(3,3, _border = 1);
   image2d<unsigned char> lbp(3,3);
 
   V(1,1) = 1;

@@ -104,10 +104,10 @@ namespace vpp
     template <typename F>
     void run(F fun, bool parallel)
     {
-      if (!options_.has(_Col_backward) and !options_.has(_Col_forward))
+      if (!options_.has(_col_backward) and !options_.has(_col_forward))
         run_row_first(fun);
       else
-        if (parallel and !options_.has(_Row_backward) and !options_.has(_Row_forward))
+        if (parallel and !options_.has(_row_backward) and !options_.has(_row_forward))
           run_col_first_parallel(fun);
         else
           run_row_first(fun);
@@ -149,7 +149,7 @@ namespace vpp
     };
 
     template <typename F>
-    using kernel_return_type_t = typename kernel_return_type<F, OPTS::has(s::_Tie_arguments)>::type;
+    using kernel_return_type_t = typename kernel_return_type<F, OPTS::has(s::_tie_arguments)>::type;
 
     template <typename P>
     using to_pixel_wise_kernel_argument = decltype(*std::declval<get_row_iterator_t<P>>());
@@ -162,7 +162,7 @@ namespace vpp
               typename X = std::enable_if_t<std::is_same<kernel_return_type_t<F>, void>::value>>
     void run_function(F fun) 
     {
-      run(fun, !options_.has(_No_threads));
+      run(fun, !options_.has(_no_threads));
     }
 
     // if fun -> something != void. Create an image an fill it with the result values

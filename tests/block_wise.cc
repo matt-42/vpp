@@ -29,7 +29,7 @@ int main()
   image2d<int> img(4,4);
   vint2 b(2,2);
   int i = 0;
-  // block_wise(b, img, img, img.domain())//(_Col_backward)
+  // block_wise(b, img, img, img.domain())//(_col_backward)
   //   | [&] (image2d<int> I, image2d<int> J, box2d d)
   // {
   //   assert(I.nrows() == b[0]);
@@ -48,7 +48,7 @@ int main()
 
   auto test_dependency = [&] (int* ref_data, auto dep, int dim)
   {
-    image2d<int> ref(img.domain(), _Data = (int*)ref_data, _Pitch = 4 * sizeof(int));
+    image2d<int> ref(img.domain(), _data = (int*)ref_data, _pitch = 4 * sizeof(int));
     int cols[2] = {1,1};
     block_wise(b, img, img, img.domain())(dep)
       | [&] (image2d<int> I, image2d<int> J, box2d d)
@@ -73,7 +73,7 @@ int main()
       2,2,2,2,
     };
 
-    test_dependency(ref_data, _Col_forward, 1);
+    test_dependency(ref_data, _col_forward, 1);
   }
 
   fill(img, 9);
@@ -85,7 +85,7 @@ int main()
       1,1,1,1,
     };
 
-    test_dependency(ref_data, _Col_backward, 1);
+    test_dependency(ref_data, _col_backward, 1);
   }
 
   fill(img, 9);
@@ -97,7 +97,7 @@ int main()
       1,1,2,2,
     };
 
-    test_dependency(ref_data, _Row_forward, 0);
+    test_dependency(ref_data, _row_forward, 0);
   }
 
   fill(img, 9);
@@ -109,12 +109,12 @@ int main()
       2,2,1,1,
     };
 
-    test_dependency(ref_data, _Row_backward, 0);
+    test_dependency(ref_data, _row_backward, 0);
   }
   
-    // image2d<int> ref(img.domain(), _Data = (int*)ref_data, _Pitch = 4 * sizeof(int));
+    // image2d<int> ref(img.domain(), _data = (int*)ref_data, _pitch = 4 * sizeof(int));
     // int cols[2] = {1,1};
-    // block_wise(b, img, img, img.domain())(_Col_forward)
+    // block_wise(b, img, img, img.domain())(_col_forward)
     //   | [&] (image2d<int> I, image2d<int> J, box2d d)
     // {
     //   int& cpt = cols[d.p1()[1] / 2];

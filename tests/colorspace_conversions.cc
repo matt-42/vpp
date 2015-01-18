@@ -15,7 +15,7 @@ int main()
     i++;
   }
 
-  image2d<vuchar1> i2 = rgb_to_graylevel<unsigned char>(i1);
+  image2d<vuchar1> i2 = rgb_to_graylevel<vuchar1>(i1);
   i = 0;
   for (vint2 p : i1.domain())
   {

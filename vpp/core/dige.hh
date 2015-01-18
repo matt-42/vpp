@@ -21,6 +21,14 @@ namespace dg
       (i.ncols() + 2*i.border(), i.nrows() + 2*i.border(), (unsigned char*)i.data());
   }
 
+
+  image<trait::format::luminance, unsigned char>
+  adapt(const vpp::image2d<unsigned char>& i)
+  {
+    return image<trait::format::luminance, unsigned char>
+      (i.ncols() + 2*i.border(), i.nrows() + 2*i.border(), (unsigned char*)i.data());
+  }
+  
 };
 
 #endif
