@@ -58,11 +58,11 @@ image2d<int> B = A; // B now points to A's data.
 
 ### Image options
 
-#### _Border and _Aligned
+#### _border and _aligned
 
-Image constructors also take special image options. ```_Border``` (default: 0) set
+Image constructors also take special image options. ```_border``` (default: 0) set
 the border surrounding the pixels so filter accessing neighborhood
-access to valid pixels when traversing image borders. ```_Aligned``` (default: 16 bytes)
+access to valid pixels when traversing image borders. ```_aligned``` (default: 16 bytes)
 set the alignment in bytes of the beginning of the first pixel of each row
 (border excluded) to enable aligned SIMD memory instructions.
 
@@ -70,13 +70,13 @@ set the alignment in bytes of the beginning of the first pixel of each row
 // Allocates a 100x100 image with a border of 3 pixels
 // and rows aligned on 32 bytes (best for 256 bits SIMD
 // units like AVX2).
-image2d<int> C(100, 100, _Border = 3, _Aligned = 32);
+image2d<int> C(100, 100, _border = 3, _aligned = 32);
 ```
 
-#### _Data and _Pitch
+#### _data and _pitch
 
-To use image buffers allocated by external libraries, the ```_Data``` and
-```_Pitch``` options respectively pass the pointer to the first
+To use image buffers allocated by external libraries, the ```_data``` and
+```_pitch``` options respectively pass the pointer to the first
 pixel of the image and the distance in bytes between the first pixels
 of two consecutive rows. When setting these options, video++ is not
 responsible of freeing the data buffer.
@@ -85,7 +85,7 @@ responsible of freeing the data buffer.
 ```c++
 // Wraps an external images of 100x100 pixels, with a pitch
 // of 1000 bytes.
-image2d<int> C(100, 100, _Data = my_data_ptr, _Pitch = 1000);
+image2d<int> C(100, 100, _data = my_data_ptr, _pitch = 1000);
 ```
 
 ### OpenCV interoperability
@@ -130,10 +130,10 @@ to shorten tens of lines of code into one line, easy to write and to
 read.
 
 For example, the following expression formulates the an operation on the
-pixels of two images using the ```_V``` accessor:
+pixels of two images using the ```_v``` accessor:
 
 ```c++
-_V(A) + _V(B) * 2
+_v(A) + _v(B) * 2
 ```
 
 The ```eval``` routine actually runs this expression against each
@@ -141,7 +141,7 @@ pixels of A and B and returns the resulting image such that, given two
 images A and B with same dimensions and pixels with type ```pixel_type```:
 
 ```c++
-auto C = eval(_V(A) + _V(B) * 2);
+auto C = eval(_v(A) + _v(B) * 2);
 ```
 is equivalent to
 
@@ -153,7 +153,7 @@ for (int c = 0; c < A.ncols(); c++)
 ```
 
 Placeholders can also be used to refer to images passed as arguments
-to eval. Using placeholders, the use of _V to access pixels is not required:
+to eval. Using placeholders, the use of _v to access pixels is not required:
 
 ```c++
 auto C = eval(A, B, _1 + _2 * 2);
@@ -178,7 +178,7 @@ three images of the same dimensions:
 
 ```c++
 // No image allocation here:
-eval(_V(C) = _V(A) + _V(B) * 2);
+eval(_v(C) = _v(A) + _v(B) * 2);
 ```
 
 ### Conditional branching
@@ -187,9 +187,9 @@ The language of image expression support conditional branching with a
 construct similar to the ?: ternary operator of C++:
 
 ```c++
-eval(_V(C) = _If(_V(A) > _V(B))
-                (_V(A))
-                (_V(B))
+eval(_v(C) = _if(_v(A) > _v(B))
+                (_v(A))
+                (_v(B))
    );
 ```
 
@@ -203,7 +203,7 @@ expressions integrate information over the whole definition domain.
 Sum an expression over the whole definition domain:
 
 ```c++
-int sum = eval(_Sum(_V(A) + _V(B)));
+int sum = eval(_sum(_v(A) + _v(B)));
 ```
 
 #### Min, Max
@@ -211,8 +211,8 @@ int sum = eval(_Sum(_V(A) + _V(B)));
 Find the minimum/maximum value of an expression:
 
 ```c++
-auto min_value = eval(_Min(_V(A) + _V(B)));
-auto max_value = eval(_Max(_V(A) + _V(B)));
+auto min_value = eval(_min(_v(A) + _v(B)));
+auto max_value = eval(_max(_v(A) + _v(B)));
 ```
 
 #### Argmin, Argmax
@@ -220,8 +220,8 @@ auto max_value = eval(_Max(_V(A) + _V(B)));
 Find the position (row, column) of the minimum/maximum value of an expression:
 
 ```c++
-vint2 argmin = eval(_Argmin(_V(A) + _V(B)));
-vint2 argmax = eval(_Argmax(_V(A) + _V(B)));
+vint2 argmin = eval(_argmin(_v(A) + _v(B)));
+vint2 argmax = eval(_argmax(_v(A) + _v(B)));
 ```
 
 ### Mixing global expression in pixel wise image expressions
@@ -237,7 +237,7 @@ expressions are still evaluated once:
 ```c++
 
 // Normalize pixel values and generate an image of float.
-auto C_normalized = eval(_V(C) * 1.f / _Max(C));
+auto C_normalized = eval(_v(C) * 1.f / _max(C));
 
 // Note: The multiplication with 1.f allows to force conversion from int
 // pixel to float pixel values.
@@ -295,33 +295,33 @@ kernel processing a batch of image row per processor core. However,
 some recursive pixel wise kernels imply a dependency between the
 computation of neighbor pixels. The ```pixel_wise``` construct let you
 express these constraints. For example, the following set the
-```_Col_backward``` dependency to integrate pixel values along the
+```_col_backward``` dependency to integrate pixel values along the
 columns, from the bottom to the top of the image:
 
 ```c++
-pixel_wise(A_nbh)(_Col_backward) |
+pixel_wise(A_nbh)(_col_backward) |
   [] (auto& nbh) { nbh(0,0) += nbh(1, 0); }
 ```
 
 The following are valid options:
 
-  - **_Row_forward**: the computation of the i th pixel of row X depends
+  - **_row_forward**: the computation of the i th pixel of row X depends
     on the computation of the i-1 th pixel of the same row.
 
-  - **_Row_backward**: the computation of the i-1th pixel of row X depends
+  - **_row_backward**: the computation of the i-1th pixel of row X depends
     on the computation of the i th pixel of the same row.
 
-  - **_Col_forward**: the computation of the i th pixel of col X depends
+  - **_col_forward**: the computation of the i th pixel of col X depends
     on the computation of the i-1 th pixel of the same col.
 
-  - **_Col_backward**: the computation of the i-1th pixel of col X depends
+  - **_col_backward**: the computation of the i-1th pixel of col X depends
     on the computation of the i th pixel of the same col.
 
-  - **_No_thread**: disable the parallelism without specifying a dependency.
+  - **_no_thread**: disable the parallelism without specifying a dependency.
 
 To take these constraints into account, video++ change the way
 pixel_wise iterate on images while keeping as much parallelism as
-possible. For example, if **_Col_backward** is specified, each thread
+possible. For example, if **_col_backward** is specified, each thread
 will process a batch of consecutive rows, in order to leverage
 multiple cores and SIMD instructions.
 
