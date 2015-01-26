@@ -160,6 +160,26 @@ namespace vpp
 
 #    ifdef __ARM_NEON__
 #    include <arm_neon.h>
+
+    // struct fast9_simd // Fallback version
+    // {
+    //   typedef unsigned char V;
+    //   enum { size = 1, size_in_bits = 8 };
+
+    //   static V check(V x, V hi, V lo) { return ((x > hi) << 4) | (x < lo); };
+    //   static V u_subs(V a, V b) { return a > b ? a - b : 0; }
+    //   static V u_adds(V a, V b) 
+    //   {
+    //     int s = a + b;
+    //     return s > 255 ? 255 : s;
+    //   }
+    //   static bool all_equal_zero(V a) { return a == 0; }
+    //   static V repeat(int v) { return v; }
+    //   static V load(const void* ptr) { return *(const V*) (ptr); }
+    //   static V loadu(const void* ptr) { return *(const V*) (ptr); }
+    //   static void storeu(void* ptr, V x) { (*(V*) (ptr)) = x; }
+    // };
+    
     struct fast9_simd // ARM NEON version
     {
       typedef uint16x8_t V;
@@ -167,17 +187,43 @@ namespace vpp
 
       static V check(V x, V hi, V lo)
       {
-        V _1 = _mm_set1_epi8(1);
-        V a = vminq_u16(_1, _mm_subs_epu8(x, hi));
-        V b = vminq_u16(_1, _mm_subs_epu8(lo, x));
+        V _1 = vdupq_n_u16(1);
+        V a = vminq_u16(_1, vqsubq_u16(x, hi));
+        V b = vminq_u16(_1, vqsubq_u16(lo, x));
         return vshlq_n_u16(a, 4) | b;
       };
 
       static V u_subs(V a, V b) { return vqsubq_u16(a, b); }
       static V u_adds(V a, V b) { return vqaddq_u16(a, b); }
-      static bool all_equal_zero(V a) { return _mm_testz_si128(a, _mm_set1_epi8(255)) == 1; }
-      static V repeat(int v) { return _mm_set1_epi8(v); }
-      static V load(const void* ptr) { return vld1q_u16((const uint16_t*) (ptr)); }
+      static bool all_equal_zero(V a) {
+
+        V tmp;
+        int res;
+        asm("VTST.16     %q[tmp], %q[in], %q[in]\n\t"
+            "VQADD.u16   %q[tmp], %q[tmp]\n\t"
+            "VMRS        %[out],FPSCR"
+            : [out] "=r" (res), [tmp] "=w" (tmp)
+            : [in] "w" (a)
+          );
+
+        return !(res & (1 << 27));
+        // uint64x2_t v0 = vreinterpretq_u64_u16(a);
+        // uint64x1_t v0or = vorr_u64(vget_high_u64(v0), vget_low_u64(v0));
+
+        // uint32x2_t v1 = vreinterpret_u32_u64 (v0or);
+        // uint32_t r = vget_lane_u32(v1, 0) | vget_lane_u32(v1, 1); 
+        //return r == 0;
+      }
+      static V repeat(int v) { return vdupq_n_u16(v); }
+      static V load(const void* ptr) {
+        V res;
+        asm("VLD1.16 {%q[out]}, [%[in]:128]"
+            : [out] "=w" (res)
+            : [in]"r" (ptr)
+          );
+        return res;
+        // return vld1q_u16((const uint16_t*) (ptr));
+      }
       static V loadu(const void* ptr) { return vld1q_u16((const uint16_t*) (ptr)); }
       static void storeu(void* ptr, V x) { vst1q_u16((uint16_t*) (ptr), x); }
     };
