@@ -161,71 +161,45 @@ namespace vpp
 #    ifdef __ARM_NEON__
 #    include <arm_neon.h>
 
-    // struct fast9_simd // Fallback version
-    // {
-    //   typedef unsigned char V;
-    //   enum { size = 1, size_in_bits = 8 };
-
-    //   static V check(V x, V hi, V lo) { return ((x > hi) << 4) | (x < lo); };
-    //   static V u_subs(V a, V b) { return a > b ? a - b : 0; }
-    //   static V u_adds(V a, V b) 
-    //   {
-    //     int s = a + b;
-    //     return s > 255 ? 255 : s;
-    //   }
-    //   static bool all_equal_zero(V a) { return a == 0; }
-    //   static V repeat(int v) { return v; }
-    //   static V load(const void* ptr) { return *(const V*) (ptr); }
-    //   static V loadu(const void* ptr) { return *(const V*) (ptr); }
-    //   static void storeu(void* ptr, V x) { (*(V*) (ptr)) = x; }
-    // };
-    
     struct fast9_simd // ARM NEON version
     {
-      typedef uint16x8_t V;
+      typedef uint8x16_t V;
       enum { size = 16, size_in_bits = 128 };
 
       static V check(V x, V hi, V lo)
       {
-        V _1 = vdupq_n_u16(1);
-        V a = vminq_u16(_1, vqsubq_u16(x, hi));
-        V b = vminq_u16(_1, vqsubq_u16(lo, x));
-        return vshlq_n_u16(a, 4) | b;
+        V _1 = vdupq_n_u8(1);
+        V a = vminq_u8(_1, vqsubq_u8(x, hi));
+        V b = vminq_u8(_1, vqsubq_u8(lo, x));
+        return vshlq_n_u8(a, 4) | b;
       };
 
-      static V u_subs(V a, V b) { return vqsubq_u16(a, b); }
-      static V u_adds(V a, V b) { return vqaddq_u16(a, b); }
+      static V u_subs(V a, V b) { return vqsubq_u8(a, b); }
+      static V u_adds(V a, V b) { return vqaddq_u8(a, b); }
       static bool all_equal_zero(V a) {
 
         V tmp;
         int res;
-        asm("VTST.16     %q[tmp], %q[in], %q[in]\n\t"
-            "VQADD.u16   %q[tmp], %q[tmp]\n\t"
+        asm("VTST.8     %q[tmp], %q[in], %q[in]\n\t"
+            "VQADD.u8   %q[tmp], %q[tmp]\n\t"
             "VMRS        %[out],FPSCR"
             : [out] "=r" (res), [tmp] "=w" (tmp)
             : [in] "w" (a)
           );
 
         return !(res & (1 << 27));
-        // uint64x2_t v0 = vreinterpretq_u64_u16(a);
-        // uint64x1_t v0or = vorr_u64(vget_high_u64(v0), vget_low_u64(v0));
-
-        // uint32x2_t v1 = vreinterpret_u32_u64 (v0or);
-        // uint32_t r = vget_lane_u32(v1, 0) | vget_lane_u32(v1, 1); 
-        //return r == 0;
       }
-      static V repeat(int v) { return vdupq_n_u16(v); }
+      static V repeat(int v) { return vdupq_n_u8(v); }
       static V load(const void* ptr) {
         V res;
-        asm("VLD1.16 {%q[out]}, [%[in]:128]"
+        asm("VLD1.8 {%q[out]}, [%[in]:128]"
             : [out] "=w" (res)
             : [in]"r" (ptr)
           );
         return res;
-        // return vld1q_u16((const uint16_t*) (ptr));
       }
-      static V loadu(const void* ptr) { return vld1q_u16((const uint16_t*) (ptr)); }
-      static void storeu(void* ptr, V x) { vst1q_u16((uint16_t*) (ptr), x); }
+      static V loadu(const void* ptr) { return vld1q_u8((const uint8_t*) (ptr)); }
+      static void storeu(void* ptr, V x) { vst1q_u8((uint8_t*) (ptr), x); }
     };
 
 #    else
@@ -666,7 +640,7 @@ namespace vpp
     std::vector<vint2> kps;
     FAST_internals::fast_detector9_simd(A, kps, th, mask);
 
-    image2d<unsigned int> scores_img(A.domain());
+    image2d<unsigned int> scores_img(A.domain(), _border = 1);
     fill(scores_img, 0);
 
     #pragma omp parallel for simd
