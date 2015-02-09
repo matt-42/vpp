@@ -7,6 +7,41 @@
 namespace vpp
 {
 
+  template <typename U>
+  auto scharr(const image2d<U>& in, vint2 p)
+  {
+    assert(in.border() >= 1);
+
+    int r = p[0];
+    int c = p[1];
+
+    const U* row1 = &in(r - 1, 0);
+    const U* row2 = &in(r, 0);
+    const U* row3 = &in(r + 1, 0);
+
+    return vector<float, 2>(
+
+      (3 * int(row3[c - 1]) +
+       10 * int(row3[c]) +
+       3 * int(row3[c + 1])
+       -
+       3 * int(row1[c - 1]) -
+       10 * int(row1[c ]) -
+       3 * int(row1[c + 1])) / 32.f
+
+      ,
+
+      (3 * int(row1[c + 1]) +
+       10 * int(row2[c + 1]) +
+       3 * int(row3[c + 1])
+       -
+       3 * int(row1[c - 1]) -
+       10 * int(row2[c - 1]) -
+       3 * int(row3[c - 1])) / 32.f
+      );
+
+  }
+  
   template <typename U, typename V>
   void scharr(const image2d<U>& in, image2d<vector<V, 2>>& out)
   {

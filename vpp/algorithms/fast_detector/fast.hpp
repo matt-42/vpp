@@ -631,7 +631,7 @@ namespace vpp
   }
 
   template <typename V, typename F>
-  std::vector<vint2> fast_detector9_maxima(image2d<V>& A,
+  auto fast_detector9_maxima(image2d<V>& A,
                                            int th,
                                            const image2d<unsigned char>& mask,
                                            std::vector<int>* scores,
@@ -664,6 +664,41 @@ namespace vpp
     return std::move(kps);
   }
 
+
+  template <typename V, typename F>
+  auto fast_detector9_maxima2(image2d<V>& A,
+                              int th,
+                              const image2d<unsigned char>& mask,
+                              std::vector<int>* scores,
+                              F maxima_filter)
+  {
+    std::vector<vint2> kps;
+    FAST_internals::fast_detector9_simd(A, kps, th, mask);
+
+    image2d<unsigned int> scores_img(A.domain(), _border = 1);
+    fill(scores_img, 0);
+
+    #pragma omp parallel for simd
+    for (int i = 0; i < kps.size(); i++)
+    {
+      auto p = kps[i];
+      int s = FAST_internals::fast9_score(box_nbh2d<V, 7, 7>(A, p), th);
+      scores_img(p) = s;
+    }
+
+    auto kps2 = maxima_filter(scores_img, kps);
+
+    if (scores)
+    {
+      scores->resize(kps2.size());
+#pragma omp parallel for
+      for (int i = 0; i < kps2.size(); i++)
+        (*scores)[i] = scores_img(kps2[i].template segment<2>(0));
+    }
+
+    return std::move(kps2);
+  }
+  
   template <typename V>
   std::vector<vint2> fast_detector9_blockwise_maxima(image2d<V>& A,
                                                      int th,
@@ -721,6 +756,93 @@ namespace vpp
                                  });
   }
 
+  template <typename V>
+  std::vector<vint3> fast_detector9_blockwise_rank(image2d<V>& A,
+                                                   int th,
+                                                   int block_size,
+                                                   int max_point_per_block,
+                                                   const image2d<unsigned char>& mask,
+                                                   std::vector<int>* scores)
+  {
+    return fast_detector9_maxima2(A, th, mask, scores,
+                                 [=] (auto& S, auto& kps)
+                                 {
+                                   int nc = S.ncols();
+                                   int nr = S.nrows();
+                                   int pitch = S.pitch();
+                                   std::vector<vint3> lms;
+
+                                   #pragma omp parallel
+                                   {
+                                     std::vector<vint3> local;
+                                     #pragma omp for
+                                     for (int r = 0; r < nr; r += block_size)
+                                     {
+                                       unsigned int* rows[block_size];
+                                       for (int i = 0; i < block_size; i++)
+                                         if (r + i < nr)
+                                           rows[i] = &S(r + i, 0);
+
+                                       for (int c = 0; c < nc; c += block_size)
+                                       {
+                                         // Maximum search.
+                                         vint2 pmax;
+                                         unsigned int vmax = 0;
+                                         std::pair<vint2, unsigned int> init{vint2{0,0}, 0};
+                                         std::vector<std::pair<vint2, unsigned int>> pts(max_point_per_block, init);
+                                         for (int br = 0; br < block_size; br++)
+                                           for (int bc = c; bc < c + block_size; bc++)
+                                             if (r + br < nr and bc < nc)
+                                             {
+
+                                               unsigned int v = rows[br][bc];
+                                               if (v > 0)
+                                               {
+                                                 vint2 p(r + br, bc);
+                                                 auto nn = box_nbh2d<unsigned int, 3, 3>(S, p);
+                                                 unsigned int a = nn(0, 0);
+                                                 int is_max = 1;
+                                                 is_max &= a > nn(-1, -1);
+                                                 is_max &= a > nn(-1, 0);
+                                                 is_max &= a > nn(-1, 1);
+        
+                                                 is_max &= a > nn(0, -1);
+                                                 is_max &= a > nn(0, 1);
+        
+                                                 is_max &= a > nn(1, -1);
+                                                 is_max &= a > nn(1, 0);
+                                                 is_max &= a > nn(1, 1);
+        
+                                                 if (is_max)
+                                                 {
+                                                   for (int k = 0; k < max_point_per_block; k++)
+                                                     if (pts[k].second < v)
+                                                     {
+                                                       pts[k].second = v;
+                                                       pts[k].first = vint2(br, bc);
+                                                       break;
+                                                     }
+                                                 }
+                                               }
+                                             }
+                                         std::sort(pts.begin(), pts.end(), [] (auto& a, auto& b) {
+                                             return a.second > b.second; });
+
+                                         for (int k = 0; k < max_point_per_block; k++)
+                                           if (pts[k].second > 0)
+                                             local.push_back(vint3(r + pts[k].first[0], pts[k].first[1], k));
+                                       }
+                                     }
+                                     #pragma omp critical
+                                     lms.insert(lms.end(), local.begin(), local.end());
+                                   }
+                                   return std::move(lms);
+                                   // Cleaner but slower..
+                                   // blockwise_maxima_filter(S, block_size);
+                                   // return compact_coordinates_if(S, [] (unsigned int& s) { return s != 0; });
+                                 });
+  }
+  
   template <typename V>
   std::vector<vint2> fast_detector9_local_maxima(image2d<V>& A,
                                                  int th,

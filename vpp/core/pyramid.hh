@@ -78,9 +78,9 @@ namespace vpp
   template <typename V>
   image2d<V> antialias_subsample2(const image2d<V>& in)
   {
-    auto tmp = clone(in);
+    auto tmp = clone(in, _border = std::max(in.border(), 1));
     antialiasing_lowpass_filter(in, tmp);
-    image2d<V> tmp2(in.nrows() / 2, in.ncols() / 2);
+    image2d<V> tmp2(in.nrows() / 2, in.ncols() / 2, _border = std::max(in.border(), 1));
     subsample2(tmp, tmp2);
     return tmp2;
   }
