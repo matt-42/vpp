@@ -14,7 +14,9 @@ include(${QT_USE_FILE})
 
 SET(THIRDPARTY ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/install)
 
-include_directories(${THIRDPARTY}/include
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..
+                    ${THIRDPARTY}/include
+                    $ENV{HOME}/local/include
                     ${GLEW_INCLUDE_DIR}
          	    ${DIGE_INCLUDE_DIR})
 
@@ -40,5 +42,5 @@ target_link_libraries(box_filter ${OpenCV_LIBS} gomp)
 add_executable(fast_detector fast_detector.cc)
 target_link_libraries(fast_detector ${OpenCV_LIBS} gomp)
 
-add_executable(pyrlk pyrlk.cc)
-target_link_libraries(pyrlk ${OpenCV_LIBS} ${LIBS} gomp)
+add_executable(tutorial tutorial.cc)
+target_link_libraries(tutorial ${OpenCV_LIBS} ${LIBS} gomp)
