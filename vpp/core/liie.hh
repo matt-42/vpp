@@ -17,7 +17,7 @@ namespace vpp
   using s::_max; using s::_max_t;
   using s::_argmax; using s::_argmax_t;
   using s::_argmin; using s::_argmin_t;
-  using s::_if; using s::_if_t;
+  using s::_if_; using s::_if__t;
   using s::_v; using s::_v_t;
 
   using s::_1; using s::_2;
@@ -29,12 +29,12 @@ namespace vpp
     };
 
     template <typename Test, typename Then>
-    using if_then_exp = iod::function_call_exp<iod::function_call_exp<_if_t, Test>, Then>;
+    using if_then_exp = iod::function_call_exp<iod::function_call_exp<_if__t, Test>, Then>;
 
     template <typename Test, typename Then, typename Else>
     using if_then_else_exp = iod::function_call_exp<iod::function_call_exp<
                                                       iod::function_call_exp<
-                                                        _if_t, Test>, Then>, Else>;
+                                                        _if__t, Test>, Then>, Else>;
 
     // Evaluate an expression against a context.
     struct evaluate_visitor
