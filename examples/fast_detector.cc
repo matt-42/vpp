@@ -3,7 +3,7 @@
 
 #include <vpp/vpp.hh>
 #include <vpp/utils/opencv_bridge.hh>
-#include <vpp/algorithms/FAST_detector/FAST.hh>
+#include <vpp/algorithms/fast_detector/fast.hh>
 
 
 int main(int argc, char* argv[])
@@ -16,25 +16,13 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  typedef image2d<vuchar3> I;
-  I A = clone_with_border(from_opencv<vuchar3>(cv::imread(argv[1])), 3);
-  I B(A.domain(), 1);
+  image2d<unsigned char> A = rgb_to_graylevel<unsigned char>(from_opencv<vuchar3>(cv::imread(argv[1])));
+  A = clone(A, _border = 3);
 
-  image2d<unsigned char> Agl(A.domain(), 3);
-  image2d<unsigned char> Bgl(A.domain());
+  std::vector<vint2> keypoints = fast_detector9_local_maxima(A, atoi(argv[2]));
 
-  pixel_wise(Agl, A) << [] (unsigned char& gl, vuchar3& c)
-  {
-    gl = (c[0] + c[1] + c[2]) / 3;
-  };
-
-  fast_detector<9>(Agl, Bgl, atoi(argv[2]));
-
-  pixel_wise(Bgl) << [] (unsigned char& gl)
-  {
-    gl = gl * 255;
-  };
-
-  cv::imwrite("b.pgm", to_opencv(Bgl));
-
+  image2d<vuchar3> B = graylevel_to_rgb<vuchar3>(A);
+  for (vint2 p : keypoints) B(p) = vuchar3(0,0,255);
+  
+  cv::imwrite("b.ppm", to_opencv(B));
 }

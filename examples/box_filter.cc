@@ -9,24 +9,25 @@ int main(int argc, char* argv[])
 {
   using namespace vpp;
 
-  if (argc != 3)
+  if (argc != 2)
   {
     std::cerr << "Usage : " << argv[0] << " image" << std::endl;
     return 1;
   }
 
   typedef image2d<vuchar3> I;
-  I A = clone_with_border(from_opencv<vuchar3>(cv::imread(argv[1])), 1);
-  I B(A.domain(), 1);
+  I A = clone(from_opencv<vuchar3>(cv::imread(argv[1])), vpp::_border = 1);
+  I B(A.domain());
 
-  auto nbh = make_window(A, { {0, -1}, {0, 0}, {0, 1} });
+  auto nbh = box_nbh2d<vuchar3, 3, 3>(A);
 
   // Parallel Loop over pixels of in and out.
-  pixel_wise(A, B) << [&] (auto& a, auto& b) {
+  pixel_wise(nbh, B) | [] (auto& n, auto& b) {
     vint3 sum = vint3::Zero();
 
-    // Loop over in's neighboords wrt nbh to compute a sum.
-    nbh(a) < [&] (vuchar3& n) { sum += n.cast<int>(); };
+    sum += n(0, -1).cast<int>();
+    sum += n(0, 0).cast<int>();
+    sum += n(0, 1).cast<int>();
 
     // Write the sum to the output image.
     b = (sum / 3).cast<unsigned char>();
