@@ -63,27 +63,71 @@ void raw_openmp_simd(image2d<int> A, image2d<int> B)
 }
 
 
+// void raw_openmp_simd2(image2d<int> A, image2d<int> B)
+// {
+//   int nr = A.nrows();
+// #pragma omp parallel for
+//   for (int r = 0; r < nr; r++)
+//   {
+//     int* curA = &A(vint2(r, 0));
+//     int nc = A.ncols();
+
+//     int* rows[5];
+//     for (int i = -2; i <= 2; i++)
+//       rows[i + 2] = &B(vint2(r + i, 0));
+
+//     for (int i = 0; i < nc; i++)
+//     {
+//       int sum = curA[i-1];
+
+//       for (int d = -2; d <= 2; d++)
+//         sum -= rows[d + 2][i - 3];
+//       for (int d = -2; d <= 2; d++)
+//         sum += rows[d + 2][i + 2];
+//       curA[i] = sum;
+//     }
+//   }
+// }
+
+
 void raw_openmp_simd2(image2d<int> A, image2d<int> B)
 {
   int nr = A.nrows();
+  int pitch = B.pitch();
+
+  std::cout << pitch << std::endl;
 #pragma omp parallel for
   for (int r = 0; r < nr; r++)
   {
     int* curA = &A(vint2(r, 0));
+    int* curB = &B(vint2(r, 0));
     int nc = A.ncols();
 
-    int* rows[5];
-    for (int i = -2; i <= 2; i++)
-      rows[i + 2] = &B(vint2(r + i, 0));
 
     for (int i = 0; i < nc; i++)
     {
       int sum = curA[i-1];
 
       for (int d = -2; d <= 2; d++)
-        sum -= rows[d + 2][i - 3];
-      for (int d = -2; d <= 2; d++)
-        sum += rows[d + 2][i + 2];
+      {
+        for (int e = -2; e <= 2; e++)
+          sum += *(const int*)(((const char*) curB)  + (d * pitch) + (e + i) * sizeof(int));
+
+      }
+
+      // for (int e = -2; e <= 2; e++)
+      //   sum += *(int*)((char*) curB + (e + i) * sizeof(int) + -2 * 8064);
+      // for (int e = -2; e <= 2; e++)
+      //   sum += *(int*)((char*) curB + (e + i) * sizeof(int) + -1 * 8064);
+      // for (int e = -2; e <= 2; e++)
+      //   sum += *(int*)((char*) curB + (e + i) * sizeof(int) + -0 * 8064);
+      // for (int e = -2; e <= 2; e++)
+      //   sum += *(int*)((char*) curB + (e + i) * sizeof(int) + 1 * 8064);
+      // for (int e = -2; e <= 2; e++)
+      //   sum += *(int*)((char*) curB + (e + i) * sizeof(int) + 2 * 8064);
+      // for (int e = -2; e <= 2; e++)
+      //   sum += *(int*)((char*) curB + (e + i) * sizeof(int) + 3 * 8064);
+      
       curA[i] = sum;
     }
   }
@@ -119,7 +163,7 @@ void raw_openmp_simd3(image2d<int> A, image2d<int> B)
 void vpp_pixel_wise(image2d<int> B, image2d<int> A)
 {
   auto Anbh = box_nbh2d<int, 5, 5>(A);
-  vpp::pixel_wise(B, Anbh) << [&] (int& b, auto& a_nbh)
+  vpp::pixel_wise(B, Anbh) | [&] (int& b, auto& a_nbh)
   {
     int sum = 0;
     a_nbh.for_all([&sum] (int& n) { sum += n; });
@@ -138,12 +182,13 @@ template <typename T>
 int bench(int size, T& results, int debug = 0)
 {
   std::cout << size << std::endl;
-  image2d<int> A(sqrt(size),sqrt(size));
-  image2d<int> B(A.domain(), 2);
+  int w = sqrt(size);
+  image2d<int> A(w,w);
+  image2d<int> B(A.domain(), _Border = 2);
 
   fill(A, 0);
 
-  pixel_wise(B) << [] (int& b) { b = rand() % 1000; };
+  pixel_wise(B) | [] (int& b) { b = rand() % 1000; };
 
   int K = 10;
   double time;
@@ -226,9 +271,9 @@ int main()
 
   int step = 100000;
   int max_size = 2000 * 2000;
-  for (int s = step; s < max_size; s += step)
-    bench(s, results, 1);
-
+  // for (int s = step; s < max_size; s += step)
+  //   bench(s, results, 1);
+  bench(4e6, results, 1);
   std::ofstream n("box_5x5_naive.txt");
   std::ofstream p("box_5x5_pixel_wise.txt");
   std::ofstream o("box_5x5_openmp.txt");

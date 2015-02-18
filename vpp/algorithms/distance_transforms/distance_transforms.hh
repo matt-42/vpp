@@ -9,15 +9,10 @@
 #include <vpp/core/vector.hh>
 #include <vpp/core/liie.hh>
 #include <vpp/core/box_nbh2d.hh>
+#include <vpp/core/make_array.hh>
 
 namespace vpp
 {
-
-  template <typename... T>
-  decltype(auto) make_array(T&&... t)
-  {
-    return std::array<std::tuple_element_t<0, std::tuple<T...> >, sizeof...(t)>{std::forward<T>(t)...};
-  }
   
   template <typename T, typename U>
   void euclide_distance_transform(image2d<T>& input, image2d<U>& sedt)
