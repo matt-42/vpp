@@ -7,14 +7,14 @@
 namespace dg
 {
 
-  image<trait::format::bgr, unsigned char>
+  inline image<trait::format::bgr, unsigned char>
   adapt(const vpp::image2d<vpp::vuchar3>& i)
   {
     return image<trait::format::bgr, unsigned char>
       (i.ncols() + 2*i.border(), i.nrows() + 2*i.border(), (unsigned char*)&i(0,0));
   }
 
-  image<trait::format::luminance, unsigned char>
+  inline image<trait::format::luminance, unsigned char>
   adapt(const vpp::image2d<vpp::vuchar1>& i)
   {
     return image<trait::format::luminance, unsigned char>
@@ -22,7 +22,7 @@ namespace dg
   }
 
 
-  image<trait::format::luminance, unsigned char>
+  inline image<trait::format::luminance, unsigned char>
   adapt(const vpp::image2d<unsigned char>& i)
   {
     return image<trait::format::luminance, unsigned char>
