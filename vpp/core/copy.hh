@@ -12,6 +12,12 @@ namespace vpp
     pixel_wise(src, dst) | [] (const auto& in, auto& out) { out = in; };
   }
 
+  template <typename I, typename J>
+  void copy(const I& src, J&& dst)
+  {
+    pixel_wise(src, dst) | [] (const auto& in, auto& out) { out = in; };
+  }
+  
 };
 
 #endif
