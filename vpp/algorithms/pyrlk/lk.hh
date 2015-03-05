@@ -73,7 +73,7 @@ namespace vpp
 
     // Check minimum eigenvalue.
     float min_ev = 99999.f;
-    auto ev = G.eigenvalues();
+    auto ev = (G / cpt).eigenvalues();
     for (int i = 0; i < ev.size(); i++)
       if (fabs(ev[i].real()) < min_ev) min_ev = fabs(ev[i].real());
 
@@ -105,7 +105,7 @@ namespace vpp
         }
       }
     }
-    auto domain = B.domain() - border(hws + 1);
+    auto domain = B.domain();// - border(hws + 1);
 
     // Gradient descent
     for (int k = 0; k <= max_interations && nk.norm() >= convergence_delta; k++)
@@ -115,12 +115,16 @@ namespace vpp
       int i = 0;
       for(int r = -hws; r <= hws; r++)
       {
-        for(int c = -hws; c <= hws; c++)
+        for(int c = -hws; c <= hws; c++)          
         {
-          vfloat2 n2 = v + vfloat2(r, c);
-          auto g = gs[i];
-          float dt = (cast<float>(as[i]) - cast<float>(B.linear_interpolate(n2)));
-          bk += Eigen::Vector2f{g[0] * dt, g[1] * dt};
+          vfloat2 n = p + vfloat2(r, c);
+          if (Ag.has(n.cast<int>()))
+          {
+            vfloat2 n2 = v + vfloat2(r, c);
+            auto g = gs[i];
+            float dt = (cast<float>(as[i]) - cast<float>(B.linear_interpolate(n2)));
+            bk += Eigen::Vector2f{g[0] * dt, g[1] * dt};
+          }
           i++;
         }
       }
