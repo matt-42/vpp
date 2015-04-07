@@ -6,11 +6,6 @@
     iod_define_symbol(N)
 #endif
 
-#ifndef IOD_SYMBOL__AVX2__
-#define IOD_SYMBOL__AVX2__
-    iod_define_symbol(_AVX2__)
-#endif
-
 #ifndef IOD_SYMBOL_aligned
 #define IOD_SYMBOL_aligned
     iod_define_symbol(aligned)
