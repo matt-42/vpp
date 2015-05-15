@@ -28,7 +28,7 @@ namespace vpp
   }
 
   template <typename V, typename U>
-  void fill_border(image2d<V>& img, U&& value)
+  void fill_border_with_value(image2d<V>& img, U&& value)
   {
     int border = img.border();
     int nc = img.ncols();
