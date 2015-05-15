@@ -42,6 +42,10 @@ add_test(opencv_bridge opencv_bridge)
 add_executable(fill fill.cc)
 add_test(fill fill)
 
+
+add_executable(border border.cc)
+add_test(border border)
+
 add_executable(pyramid pyramid.cc)
 add_test(pyramid pyramid)
 

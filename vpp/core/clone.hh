@@ -9,8 +9,11 @@ namespace vpp
   template <typename I, typename... O>
   I clone(I img, const O&... options)
   {
-    I n(img.domain(), options...);
-    copy(img, n);
+    auto o = iod::D(options...);
+    int border = o.has(_border) ? o.get(_border, 0) : img.border();
+    int aligned = o.has(_aligned) ? o.get(_aligned, 0) : img.alignment();
+    I n(img.domain(), _border = border, _aligned = aligned);
+    copy_with_border(img, n);
     return n;
   }
 

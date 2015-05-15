@@ -9,7 +9,7 @@ namespace vpp
 {
 
   template <typename V, typename U, unsigned N>
-  void fill(imageNd<V, N>& img, U value)
+  void fill(imageNd<V, N>& img, U&& value)
   {
     pixel_wise(img) | [=] (auto& pix) { pix = value; };
   }
@@ -21,12 +21,100 @@ namespace vpp
   }
 
   template <typename V, typename U, unsigned N>
-  void fill_with_border(imageNd<V, N>& img, U value)
+  void fill_with_border(imageNd<V, N>& img, U&& value)
   {
     auto box = img.domain_with_border();
     pixel_wise(box, img) | [=] (auto&, auto& pix) { pix = value; };
   }
 
+  template <typename V, typename U>
+  void fill_border(image2d<V>& img, U&& value)
+  {
+    int border = img.border();
+    int nc = img.ncols();
+    int nr = img.nrows();
+    
+    auto top = box2d({-border, -border}, {-1, nc + border - 1});
+    auto bottom = box2d({nr, -border}, {nr + border - 1, nc + border - 1});
+    auto left = box2d({0, -border}, {nr - 1, -1});
+    auto right = box2d({0, nc}, {nr - 1, nc + border - 1});
+
+    for (auto b : {top, bottom, left, right})
+      pixel_wise(b, img) | [=] (auto&, auto& pix) { pix = value; };
+  }
+
+  template <typename V>
+  void fill_border_mirror(image2d<V>& img)
+  {
+    int border = img.border();
+    int nc = img.ncols();
+    int nr = img.nrows();
+
+    // 1  2  3    
+    // 4     5
+    // 6  7  8
+  
+    // Corners.
+    pixel_wise(box2d({-border, -border}, {-1, -1}), img) | // 1
+      [&] (auto& p, auto& pix) { pix = img(-p[0] - 1, -p[1] - 1); };
+
+    pixel_wise(box2d({-border, nc}, {-1, nc + border - 1}), img) | // 3
+      [&] (auto& p, auto& pix) { pix = img(-p[0] - 1, 2 * nc - p[1] - 1); };
+
+    pixel_wise(box2d({nr, -border}, {nr + border -1, -1}), img) | // 6
+      [&] (auto& p, auto& pix) { pix = img(2 * nr - p[0] - 1, -p[1] - 1); };
+ 
+    pixel_wise(box2d({nr, nc}, {nr + border - 1, nc + border - 1}), img) | // 8
+      [&] (auto& p, auto& pix) { pix = img(2 * nr - p[0] - 1, 2 * nc - p[1] - 1); };
+
+    // Edges.
+    pixel_wise(box2d({-border, 0}, { - 1, nc - 1}), img) | // 2
+      [&] (auto& p, auto& pix) { pix = img(-p[0] - 1, p[1]); };
+
+    pixel_wise(box2d({nr, 0}, {nr + border - 1, nc - 1}), img) | // 7
+      [&] (auto& p, auto& pix) { pix = img(2 * nr -p[0] - 1, p[1]); };
+    
+    pixel_wise(box2d({0, -border}, {nr - 1, -1}), img) | // 4
+      [&] (auto& p, auto& pix) { pix = img(p[0], - p[1] - 1); };
+
+    pixel_wise(box2d({0, nc}, {nr - 1, nc + border - 1}), img) | // 5
+      [&] (auto& p, auto& pix) { pix = img(p[0],  2 * nc - p[1] - 1); };
+  }
+
+  template <typename V>
+  void fill_border_closest(image2d<V>& img)
+  {
+    int border = img.border();
+    int nc = img.ncols();
+    int nr = img.nrows();
+
+    // Corners.
+    pixel_wise(box2d({-border, -border}, {-1, -1}), img) |
+      [&] (auto& p, auto& pix) { pix = img(0, 0); };
+
+    pixel_wise(box2d({-border, nc}, {-1, nc + border - 1}), img) |
+      [&] (auto& p, auto& pix) { pix = img(0, nc - 1); };
+
+    pixel_wise(box2d({nr, -border}, {nr + border -1, -1}), img) |
+      [&] (auto& p, auto& pix) { pix = img(nr - 1, 0); };
+ 
+    pixel_wise(box2d({nr, nc}, {nr + border - 1, nc + border - 1}), img) |
+      [&] (auto& p, auto& pix) { pix = img(nr - 1, nc - 1); };
+
+    // Edges.
+    pixel_wise(box2d({-border, 0}, { - 1, nc - 1}), img) |
+      [&] (auto& p, auto& pix) { pix = img(0, p[1]); };
+
+    pixel_wise(box2d({nr, 0}, {nr + border - 1, nc - 1}), img) |
+      [&] (auto& p, auto& pix) { pix = img(nr - 1, p[1]); };
+    
+    pixel_wise(box2d({0, -border}, {nr - 1, -1}), img) |
+      [&] (auto& p, auto& pix) { pix = img(p[0], 0); };
+
+    pixel_wise(box2d({0, nc}, {nr - 1, nc + border - 1}), img) |
+      [&] (auto& p, auto& pix) { pix = img(p[0], nc - 1); };
+  }
+  
 };
 
 #endif

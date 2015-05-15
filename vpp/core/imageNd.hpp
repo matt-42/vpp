@@ -142,6 +142,7 @@ namespace vpp
     ptr_ = std::make_shared<imageNd_data<V, N>>();
     auto& d = *ptr_;
     d.border_ = options.get(_border, 0);
+    d.alignment_ = align_size;
 
     int border_size = d.border_ * sizeof(V);
     int border_padding = 0;
@@ -229,9 +230,9 @@ namespace vpp
     typedef cast_to_float<V> S;
 
     return vpp::cast<V>((1 - a0) * (1 - a1) *  vpp::cast<S>(l1[0]) +
-                   a0 * (1 - a1) *  vpp::cast<S>(l2[0]) +
-                   (1 - a0) * a1 *  vpp::cast<S>(l1[1]) +
-                   a0 * a1 *  vpp::cast<S>(l2[1]));
+                        a0 * (1 - a1) *  vpp::cast<S>(l2[0]) +
+                        (1 - a0) * a1 *  vpp::cast<S>(l1[1]) +
+                        a0 * a1 *  vpp::cast<S>(l2[1]));
   }
 
   template <typename V, unsigned N>

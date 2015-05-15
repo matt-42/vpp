@@ -24,15 +24,7 @@ namespace vpp
     boxNd<N> domain_;
     int border_;
     int pitch_;
-  };
-
-  class align_on
-  {
-  public:
-    inline align_on(int _n) : n_(_n) {}
-    inline int n() const { return n_; }
-  private:
-    int n_;
+    int alignment_;
   };
 
   template <typename V, unsigned N>
@@ -130,6 +122,7 @@ namespace vpp
 
     inline int pitch() const { return ptr_->pitch_; }
     inline int border() const { return ptr_->border_; }
+    inline int alignment() const { return ptr_->alignment_; }
 
     template <typename U>
     inline imageNd<U, N>& cast() { return *(imageNd<U, N>*)this; }

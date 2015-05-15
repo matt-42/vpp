@@ -17,6 +17,14 @@ namespace vpp
   {
     pixel_wise(src, dst) | [] (const auto& in, auto& out) { out = in; };
   }
+
+  template <typename I, typename J>
+  void copy_with_border(const I& src, J&& dst)
+  {
+    assert(src.domain() == dst.domain());
+    assert(src.border() <= dst.border());
+    pixel_wise(src.domain_with_border(), src, dst) | [] (vint2, const auto& in, auto& out) { out = in; };
+  }
   
 };
 
