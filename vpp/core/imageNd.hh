@@ -22,6 +22,7 @@ namespace vpp
     V* data_end_;
     V* begin_;
     boxNd<N> domain_;
+    boxNd<N> buffer_domain_;
     int border_;
     int pitch_;
     int alignment_;

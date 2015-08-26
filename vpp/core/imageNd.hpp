@@ -114,6 +114,7 @@ namespace vpp
       ptr_->begin_ = ptr_->data_;
       ptr_->pitch_ = options.get(_pitch, 0);
       ptr_->domain_ = domain;
+      ptr_->buffer_domain_ = domain;
       ptr_->border_ = options.get(_border, 0);
 
       int size = ptr_->pitch_;
@@ -177,7 +178,7 @@ namespace vpp
     // Set begin_, the address of the first pixel.
     vint<N> p = vint<N>::Ones() * d.border_;
     d.begin_ = (V*)((char*)d.data_ + border_padding + coords_to_offset(p));
-
+    d.buffer_domain_ = d.domain_;
   }
 
   template <typename V, unsigned N>
@@ -187,7 +188,7 @@ namespace vpp
     int ds = 1;
     for (int i = N - 3; i >= 0; i--)
     {
-      ds *= ptr_->domain_.size(i + 1);
+      ds *= ptr_->buffer_domain_.size(i + 1);
       row_idx += ds * p[i];
     }
     return row_idx * ptr_->pitch_ + p[N - 1] * sizeof(V);
@@ -262,7 +263,7 @@ namespace vpp
   {
     imageNd<V, N> res;
     res.ptr_ = std::shared_ptr<imageNd_data<V, N>>(new imageNd_data<V, N>());
-    *res.ptr_.get() = *this->ptr_.get(); // Copy the whole image data.
+    *res.ptr_.get() = *this->ptr_.get(); // Copy the image data.
     res.ptr_->begin_ = address_of(d.p1());
     boxNd<N> domain = d;
     domain.p2() -= domain.p1();
