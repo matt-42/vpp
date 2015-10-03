@@ -117,6 +117,14 @@ namespace vpp
       ptr_->buffer_domain_ = domain;
       ptr_->border_ = options.get(_border, 0);
 
+      // compute alignement.
+      unsigned int data_al = 1;
+      typedef unsigned long UL;
+      while ((UL(ptr_->data_) % (data_al * 2)) == 0) data_al *= 2;
+      unsigned int pitch_al = 1;
+      while ((UL(ptr_->pitch_) % (pitch_al * 2)) == 0) pitch_al *= 2;
+      ptr_->alignment_ = std::min(data_al, pitch_al);
+
       int size = ptr_->pitch_;
       for (int n = 0; n < N - 1; n++)
         size *= ptr_->domain_.size(n);
@@ -138,7 +146,7 @@ namespace vpp
   void imageNd<V, N>::allocate(const std::vector<int>& dims, const iod::sio<O...>& options)
   {
     const int align_size = options.get(_aligned, VPP_DEFAULT_IMAGE_ALIGNMENT); // Memory alignment of rows.
-
+    assert(align_size != 0);
     typedef unsigned long long ULL;
     ptr_ = std::make_shared<imageNd_data<V, N>>();
     auto& d = *ptr_;
