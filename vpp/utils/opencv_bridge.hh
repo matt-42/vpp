@@ -28,7 +28,7 @@ namespace vpp
   OPENCV_TYPEOF_(char, char, 8S);
   OPENCV_TYPEOF_(unsigned short, ushort, 16U);
   OPENCV_TYPEOF_(short, short, 16S);
-  OPENCV_TYPEOF_(float, float, 32S);
+  OPENCV_TYPEOF_(float, float, 32F);
   OPENCV_TYPEOF_(int, int, 32S);
 
   struct opencv_data_holder
