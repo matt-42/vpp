@@ -17,6 +17,15 @@ namespace vpp
   class imageNd_data
   {
   public:
+    imageNd_data()
+      : data_(nullptr),
+        data_end_(nullptr),
+        begin_(nullptr),
+        border_(0),
+        pitch_(0),
+        alignment_(0)
+      {}
+
     V* data_;
     std::shared_ptr<void> data_sptr_;
     V* data_end_;
