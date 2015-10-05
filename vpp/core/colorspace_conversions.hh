@@ -12,25 +12,32 @@ namespace vpp
     o[0] = (i[0] + i[1] + i[2]) / 3;
   }
 
+
+  template <typename T, typename U>
+  void rgb_to_graylevel(const vector<U, 3>& i, T& o)
+  {
+    o = (i[0] + i[1] + i[2]) / 3;
+  }
+  
   template <typename T, typename U, unsigned N>
   imageNd<T, N> rgb_to_graylevel(const imageNd<vector<U, 3>, N>& in)
   {
     typedef T out_type;
     typedef vector<U, 3> in_type;
-    imageNd<out_type, N> out(in.domain(), _border = in.border());
+    imageNd<out_type, N> out(in.domain(), _border = in.border(), _aligned = in.alignment());
     pixel_wise(in, out) | [] (const in_type& i, out_type& o)
     {
-      o = T((i[0] + i[1] + i[2]) / 3);
+      rgb_to_graylevel(i, o);
     };
     return out;
   }
-
+  
   template <typename T, typename U, unsigned N>
   imageNd<T, N> graylevel_to_rgb(const imageNd<U, N>& in)
   {
     typedef T out_type;
     typedef U in_type;
-    imageNd<out_type, N> out(in.domain(), _border = in.border());
+    imageNd<out_type, N> out(in.domain(), _border = in.border(), _aligned = in.alignment());
     pixel_wise(in, out) | [] (const in_type& i, out_type& o)
     {
       o = out_type(i, i, i);
