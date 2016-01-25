@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
   box_nbh2d<vuchar1, 5, 5> box(i1);
 
   box_nbh2d<vuchar1, 5, 5>(i1, vint2(50,50)).for_all([] (auto& n) { n[0] = 255; });
-  box_nbh2d<vuchar1, 5, 5>(i1, vint2(52,52)).for_all([] (auto& n) { n[0] = 255; });
+  box_nbh2d<vuchar1, 5, 5>(i2, vint2(52,52)).for_all([] (auto& n) { n[0] = 255; });
 
   // box(i1(50,50)) < [] (auto& n) { n[0] = 255; };
   // box(i2(52,52)) < [] (auto& n) { n[0] = 255; };
