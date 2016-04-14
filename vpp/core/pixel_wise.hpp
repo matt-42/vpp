@@ -14,9 +14,13 @@ namespace vpp
       template <typename F>
       static void run(F f, int row_start, int row_end, bool parallel)
       {
-#pragma omp parallel for num_threads (parallel ? std::min(omp_get_num_procs(), (1 + row_end - row_start)) : 1)
-        for (int r = row_start; r <= row_end; r++)
-          f(r);
+        if (parallel)
+#pragma omp parallel for num_threads (std::min(omp_get_num_procs(), (1 + row_end - row_start)))
+          for (int r = row_start; r <= row_end; r++)
+            f(r);
+        else
+          for (int r = row_start; r <= row_end; r++)
+            f(r);
       }
     };
 
