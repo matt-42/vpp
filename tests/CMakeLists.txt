@@ -70,8 +70,8 @@ add_executable(pyrlk pyrlk.cc)
 add_test(pyrlk pyrlk)
 
 
-add_executable(liie liie.cc)
-add_test(liie liie)
+#add_executable(liie liie.cc)
+#add_test(liie liie)
 
 
 add_executable(lbp lbp.cc)
@@ -79,5 +79,5 @@ add_test(lbp lbp)
 
 target_link_libraries(pyrlk ${OpenCV_LIBS})
 target_link_libraries(opencv_bridge ${OpenCV_LIBS})
-target_link_libraries(liie gomp)
+#target_link_libraries(liie gomp)
 

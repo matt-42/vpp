@@ -8,7 +8,6 @@
 
 using namespace vpp;
 
-
 void raw_naive(image2d<int> A, image2d<int> B, image2d<int> C)
 {
   for (int r = 0; r < A.nrows(); r++)
@@ -28,7 +27,7 @@ void check(image2d<int> A, image2d<int> B, image2d<int> C)
   }
 }
 
-__attribute__((optimize("no-tree-vectorize")))
+//__attribute__((optimize("no-tree-vectorize")))
 void raw_openmp_simd(image2d<int> A, image2d<int> B, image2d<int> C)
 {
   int nr = A.nrows();

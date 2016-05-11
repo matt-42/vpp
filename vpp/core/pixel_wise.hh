@@ -42,15 +42,16 @@ namespace vpp
   {
     pixel_wise_functor() {}
     template <typename P, typename... PS>
-    auto operator()(P&& p, PS&&... params) const
+    decltype(auto) operator()(P&& p, PS&&... params) const
     {
-      return parallel_for_pixel_wise_runner<openmp, iod::sio<>, P, PS...>(std::forward_as_tuple(p, params...));
+      return parallel_for_pixel_wise_runner<openmp, iod::sio<>, P, PS...>(std::forward_as_tuple(p, params...),
+                                                                          iod::D());
     }
 
     template <typename... PS>
-    auto operator()(std::tuple<PS...>& params) const
+    decltype(auto) operator()(std::tuple<PS...>& params) const
     {
-      return parallel_for_pixel_wise_runner<openmp, iod::sio<>, PS...>(params);
+      return parallel_for_pixel_wise_runner<openmp, iod::sio<>, PS...>(params, iod::D());
     }
 
   };
@@ -97,6 +98,8 @@ namespace vpp
 
     template <typename F>
     void run_row_first(F fun);
+    template <typename F, size_t... I>
+    void run_row_first(F fun, std::index_sequence<I...>);
 
     template <typename F>
     void run_col_first_parallel(F fun);

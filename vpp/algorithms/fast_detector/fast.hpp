@@ -41,7 +41,7 @@ namespace vpp
       int sum_inf = 0;
       int sum_sup = 0;
 
-      auto f = [&] (V a) -> int {
+      auto f = [&] (V a) {
         int diff = v - a;
         if (diff < -th) sum_inf -= diff;
         else if (diff > th) sum_sup += diff;
@@ -707,7 +707,7 @@ namespace vpp
                                                      std::vector<int>* scores)
   {
     return fast_detector9_maxima(A, th, mask, scores,
-                                 [=] (auto& S, auto& kps)
+                                 [block_size] (auto& S, auto& kps)
                                  {
                                    int nc = S.ncols();
                                    int nr = S.nrows();

@@ -1,6 +1,7 @@
 #ifndef VPP_TUPLE_UTILS_HH_
 # define VPP_TUPLE_UTILS_HH_
 
+#include <utility>
 #include <cstddef>
 #include <tuple>
 #include <functional>
@@ -10,124 +11,68 @@ namespace vpp
   namespace internals
   {
 
-    template<size_t argIndex, size_t argSize, class... Args, class...
-             Unpacked, class F>
-    inline typename std::enable_if<(argIndex == argSize),
-                              void>::type apply_args_impl(std::tuple<Args...>& t, F f,
-                                                          Unpacked&&... u)
+    template<std::size_t... I, class... Args, class F>
+    inline void apply_args_impl(std::tuple<Args...>& t, std::integer_sequence<std::size_t, I...>, F&& f)
     {
-      f(u...); // f(std::forward<Unpacked>(u)...);
+      f(std::forward<Args>(std::get<I>(t))...);
     }
-
-    template<size_t argIndex, size_t argSize, class... Args, class...
-             Unpacked, class F>
-    inline typename std::enable_if<(argIndex < argSize),
-      void>::type apply_args_impl(std::tuple<Args...>& t, F f,
-                                  Unpacked&&... u)
-    {
-      apply_args_impl<argIndex + 1, argSize>(t, f, u...,
-                                             std::get<argIndex>(t));
-    }
-
+      
     template<class... Args, class F>
-    inline void apply_args(std::tuple<Args...>& t, F f)
+    inline void apply_args(std::tuple<Args...>& t, F&& f)
     {
-      apply_args_impl<0, sizeof...(Args)>(t, f);
+      apply_args_impl(t, std::make_integer_sequence<std::size_t, sizeof...(Args)>{}, f);
     }
-
-
-    template<size_t argIndex, size_t argSize, class... Args, class...
-             Unpacked, class F>
-    inline typename std::enable_if<(argIndex == argSize),
-                                   void>::type apply_args_star_impl(std::tuple<Args...>& t, F f,
-                                                          Unpacked&&... u)
+    
+    
+    template<std::size_t... I, class... Args, class F>
+    inline void apply_args_star_impl(std::tuple<Args...>& t, std::integer_sequence<std::size_t, I...>, F&& f)
     {
-      f((*u)...);
+      f(*std::get<I>(t)...);
     }
-
-    template<size_t argIndex, size_t argSize, class... Args, class...
-             Unpacked, class F>
-    inline typename std::enable_if<(argIndex < argSize),
-      void>::type apply_args_star_impl(std::tuple<Args...>& t, F f,
-                                  Unpacked&&... u)
-    {
-      apply_args_star_impl<argIndex + 1, argSize>(t, f, u...,
-                                             std::get<argIndex>(t));
-    }
-
+      
     template<class... Args, class F>
-    inline void apply_args_star(std::tuple<Args...>& t, F f)
+    inline void apply_args_star(std::tuple<Args...>& t, F&& f)
     {
-      apply_args_star_impl<0, sizeof...(Args)>(t, f);
+      apply_args_star_impl(t, std::make_integer_sequence<std::size_t, sizeof...(Args)>{}, f);
     }
 
-
-    template<size_t argIndex, size_t argSize, class... Args, class...
-             Unpacked, class F, class G>
-    inline typename std::enable_if<(argIndex == argSize),
-                                   void>::type apply_args_transform_impl(std::tuple<Args...>& t, F f, G g,
-                                                          Unpacked&&... u)
+    template<std::size_t... I, class... Args, class F, class G>
+    inline void apply_args_transform_impl(std::tuple<Args...>& t, std::integer_sequence<std::size_t, I...>,
+                                          F f, G g)
     {
-      f((g(u))...);
+      f(g(std::get<I>(t))...);
     }
-
-    template<size_t argIndex, size_t argSize, class... Args, class...
-             Unpacked, class F, class G>
-    inline typename std::enable_if<(argIndex < argSize),
-      void>::type apply_args_transform_impl(std::tuple<Args...>& t, F f, G g,
-                                  Unpacked&&... u)
-    {
-      apply_args_transform_impl<argIndex + 1, argSize>(t, f, g, u...,
-                                             std::get<argIndex>(t));
-    }
-
+      
     template<class... Args, class F, class G>
     inline void apply_args_transform(std::tuple<Args...>& t, F f, G g)
     {
-      apply_args_transform_impl<0, sizeof...(Args)>(t, f, g);
+      apply_args_transform_impl(t, std::make_integer_sequence<std::size_t, sizeof...(Args)>{}, f, g);
     }
+    
 
-    template<unsigned N, unsigned SIZE, typename F, typename... T>
-    inline typename std::enable_if<(N == SIZE), void>::type
-    tuple_map_(std::tuple<T...>& t, F f)
+    template<typename F, size_t... I, typename... T>
+    inline F tuple_map(std::tuple<T...>& t, F f, std::index_sequence<I...>)
     {
+      return (void)std::initializer_list<int>{((void)f(std::get<I>(t)), 0)...}, f;
     }
-
-    template<unsigned N, unsigned SIZE, typename F, typename... T>
-    inline typename std::enable_if<(N < SIZE), void>::type
-    tuple_map_(std::tuple<T...>& t, F f)
-    {
-      f(std::get<N>(t));
-      tuple_map_<N+1, SIZE>(t, f);
-    }
-
+    
     template<typename F, typename... T>
     inline void tuple_map(std::tuple<T...>& t, F f)
     {
-      tuple_map_<0, sizeof...(T)>(t, f);
+      tuple_map(t, f, std::index_sequence_for<T...>{});
     }
 
-
-    template<unsigned N, unsigned SIZE, typename F, typename... T, typename... U>
-    inline
-    auto
-    tuple_map2_(std::enable_if_t<(N == SIZE), int>*, std::tuple<T...>& t, F f, U&&... u) 
+    template<typename F, size_t... I, typename T>
+    inline decltype(auto) tuple_transform(T&& t, F f, std::index_sequence<I...>)
     {
-      return std::make_tuple(f(u)...);
+      return std::make_tuple(f(std::get<I>(std::forward<T>(t)))...);
     }
 
-    template<unsigned N, unsigned SIZE, typename F, typename... T, typename... U>
-    inline
-    auto
-    tuple_map2_(std::enable_if_t<(N < SIZE), int>*, std::tuple<T...>& t, F f, U&&... u)
+    template<typename F, typename T>
+    inline decltype(auto) tuple_transform(T&& t, F f)
     {
-      return tuple_map2_<N + 1, SIZE>(0, t, f, u..., std::get<N>(t));
-    }
-
-    template<typename F, typename... T>
-    inline auto tuple_transform(std::tuple<T...>& t, F f)
-    {
-      return tuple_map2_<0, sizeof...(T)>(0, t, f);
+      return tuple_transform(std::forward<T>(t), f,
+                             std::make_index_sequence<std::tuple_size<std::decay_t<T>>{}>{});
     }
 
   }

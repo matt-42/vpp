@@ -40,8 +40,8 @@ namespace vpp
       : cur_(image.address_of(cur))
     {}
 
-    inline void next() { cur_ += 1; }
-    inline void prev() { cur_ -= 1; }
+    inline void next() { ++cur_; }
+    inline void prev() { --cur_; }
 
     inline self& operator++() { next(); return *this; }
     inline self& operator--() { next(); return *this; }

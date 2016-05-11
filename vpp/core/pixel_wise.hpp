@@ -29,9 +29,13 @@ namespace vpp
       template <typename F>
       static void run(F f, int row_start, int row_end, bool parallel)
       {
+        if (parallel)
 #pragma omp parallel for num_threads (parallel ? std::min(omp_get_num_procs(), (1 + row_end - row_start)) : 1)
-        for (int r = row_end; r >= row_start; r--)
-          f(r);
+          for (int r = row_end; r >= row_start; r--)
+            f(r);
+        else
+          for (int r = row_end; r >= row_start; r--)
+            f(r);
       }
     };
 
@@ -57,15 +61,12 @@ namespace vpp
       (config_sum == 0 || !((config[0] || config[1]) && 
                             (config[2] || config[3]))) && // no dependency or either row_* or col_* is activated (not both).
       !options_.has(_no_threads); // user did not specify serial
-
-    // if (col_reverse)
-    //   std::swap(row_start, row_end);
-
+    
     auto process_row = [&] (int r)
     {
       int col_start = p1[1];
       int col_end = p2[1];
-
+      
       if (row_reverse) std::swap(col_start, col_end);
       const int inc = row_reverse ? -1 : 1;
       auto cur_ = internals::tuple_transform(ranges_, [&] (auto& range) {
@@ -75,22 +76,18 @@ namespace vpp
 
       typedef get_row_iterator_t<decltype(std::get<0>(ranges_))> IT1;
       auto end0_ = IT1(vint2{r, col_end + inc}, std::get<0>(ranges_));
-      auto& cur0_ = std::get<0>(cur_);
 
-      while (cur0_ != end0_)
+      while (std::get<0>(cur_) != end0_)
       {
         iod::static_if<OPTS::has(s::_tie_arguments)>
           ([&cur_] (auto& fun) { // tie arguments into a tuple and pass it to fun.
-            auto t = internals::tuple_transform(cur_, [] (auto& i) -> auto&& { return *i; });
+            auto t = internals::tuple_transform(cur_, [] (auto& i) -> decltype(auto) { return *i; });
             fun(t);
           },
             [&cur_] (auto& fun) { // Directly apply arguments to fun.
               internals::apply_args_star(cur_, fun);
             }, fun);
 
-        // internals::apply_args_star(cur_, fun);
-
-        
         internals::tuple_map(cur_, [this, row_reverse] (auto& it) { row_reverse ? it.prev() : it.next(); });
       }
     };

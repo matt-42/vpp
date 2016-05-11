@@ -18,10 +18,10 @@ int main()
       assert(v.nrows() == 100);
       assert(v.ncols() == 200);
 
-      assert(*(m.refcount) == 2);
+      assert((m.u->refcount) == 2);
 
     }
-    assert(*(m.refcount) == 1);
+    assert((m.u->refcount) == 1);
   }
 
   // from_opencv, vpp releases memory.
@@ -36,7 +36,7 @@ int main()
       assert(v.ncols() == 200);
 
       m.at<int>(50, 50) = 41;
-      assert(*(m.refcount) == 2);
+      assert((m.u->refcount) == 2);
     }
 
     assert(v(50, 50) == 41);

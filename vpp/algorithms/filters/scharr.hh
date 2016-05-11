@@ -63,23 +63,23 @@ namespace vpp
       {
         out_row[c] = vector<V, 2>(
 
-          (3 * int(row3[c - 1]) +
-           10 * int(row3[c]) +
-           3 * int(row3[c + 1])
+          (3 * V(row3[c - 1]) +
+           10 * V(row3[c]) +
+           3 * V(row3[c + 1])
            -
-           3 * int(row1[c - 1]) -
-           10 * int(row1[c ]) -
-           3 * int(row1[c + 1])) / 32.f
+           3 * V(row1[c - 1]) -
+           10 * V(row1[c ]) -
+           3 * V(row1[c + 1])) / 32.f
 
           ,
 
-          (3 * int(row1[c + 1]) +
-           10 * int(row2[c + 1]) +
-           3 * int(row3[c + 1])
+          (3 * V(row1[c + 1]) +
+           10 * V(row2[c + 1]) +
+           3 * V(row3[c + 1])
            -
-           3 * int(row1[c - 1]) -
-           10 * int(row2[c - 1]) -
-           3 * int(row3[c - 1])) / 32.f
+           3 * V(row1[c - 1]) -
+           10 * V(row2[c - 1]) -
+           3 * V(row3[c - 1])) / 32.f
           );
       }
     }

@@ -16,10 +16,12 @@ namespace vpp
     int nc = in.ncols();
     typedef plus_promotion<V> S;
 
+    #pragma omp parallel for
     for (int r = 0; r < nr; r++)
     {
       const V* i = &in(r, 0);
       V* o = &tmp(r, 0);
+#pragma omp simd
       for (int c = 0; c < nc; c++)
       {
         o[c] =
@@ -31,6 +33,7 @@ namespace vpp
       }
     }
 
+    #pragma omp parallel for
     for (int r = 0; r < nr; r++)
     {
       const V* r1 = &tmp(r - 2, 0);
@@ -39,6 +42,7 @@ namespace vpp
       const V* r4 = &tmp(r + 1, 0);
       const V* r5 = &tmp(r + 2, 0);
       V* o = &out(r, 0);
+#pragma omp simd
       for (int c = 0; c < nc; c++)
       {
         o[c] =
@@ -116,10 +120,13 @@ namespace vpp
 
     void propagate_level0()
     {
+      // image_type tmp_(levels_[0].domain(), _border = 3);
+
       for (int i = 1; i < levels_.size(); i++)
       {
         if (factor_ == 2)
         {
+          //image_type tmp = tmp_.subimage(levels_[i - 1].domain());
           image_type tmp(levels_[i - 1].domain(), _border = 3);
           antialiasing_lowpass_filter(levels_[i - 1], tmp);
           subsample2(tmp, levels_[i]);

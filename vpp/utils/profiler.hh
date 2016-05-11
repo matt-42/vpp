@@ -131,9 +131,9 @@ namespace vpp
        << std::left << std::setw(15) << "| #calls"
        << std::left << std::setw(15) << "| ms/calls"
        << std::left << std::setw(15) << "| time"
-       << std::left << std::setw(15) << "| %"
-       << std::left << std::setw(15) << "| %"
-       << std::left << std::setw(15) << "| %"
+       << std::left << std::setw(15) << "| %P"
+       << std::left << std::setw(15) << "| %T"
+       << std::left << std::setw(15) << "| %I"
        << std::endl
        << std::left << std::setw(140) << std::setfill('-') << ""
        << std::endl;
@@ -151,6 +151,10 @@ namespace vpp
       print(os, it->first, it->second, "", root_total_time, root_total_time);
     }
 
+    std::cout << std::endl << "%P = 100*node_time/parent_node_time" << std::endl
+              << "%T = 100*node_time/total_recorded_time" << std::endl
+              << "%I = 100*(node_duration-childs_time)/total_recorded_time";
+      
     return os;
   }
 
