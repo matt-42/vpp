@@ -5,7 +5,7 @@ find_package(OpenCV REQUIRED)
 enable_testing()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/.. /usr/include/eigen3 $ENV{HOME}/projects/iod)
-add_definitions(-std=c++14)
+add_definitions(-std=c++14 -g)
 
 add_executable(imageNd imageNd.cc)
 add_test(imageNd imageNd)
@@ -76,6 +76,10 @@ add_test(pyrlk pyrlk)
 
 add_executable(lbp lbp.cc)
 add_test(lbp lbp)
+
+
+add_executable(miel miel.cc)
+add_test(miel miel)
 
 target_link_libraries(pyrlk ${OpenCV_LIBS})
 target_link_libraries(opencv_bridge ${OpenCV_LIBS})
