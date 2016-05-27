@@ -1,6 +1,7 @@
 #ifndef VPP_IMAGENd_HPP__
 # define VPP_IMAGENd_HPP__
 
+# include <iostream>
 # include <iod/sio.hh>
 # include <vpp/core/imageNd.hh>
 # include <vpp/core/boxNd.hh>
@@ -29,6 +30,7 @@ namespace vpp
   imageNd<V, N>::imageNd(const std::initializer_list<int>& dims, const O&... options)
   {
     allocate(dims, iod::D(options...));
+    index_rows();
   }
 
   template <typename V, unsigned N>
@@ -36,6 +38,7 @@ namespace vpp
   imageNd<V, N>::imageNd(const std::vector<int>& dims, const O&... options)
   {
     allocate(dims, iod::D(options...));
+    index_rows();
   }
 
 
@@ -133,6 +136,8 @@ namespace vpp
     }
     else
       allocate(dims, options);
+
+    index_rows();
   }
 
   template <typename V, unsigned N>
@@ -166,9 +171,9 @@ namespace vpp
 
     int size = 1;
     for (int i = 0; i < N - 1; i++)
-      size *= (dims[i] + border_size * 2);
+      size *= dims[i] + (d.border_ * 2);
     size *= d.pitch_;
-    
+
     d.data_ = (V*) malloc(align_size + size);
     d.data_sptr_ = std::shared_ptr<void>(d.data_, [] (V* p) { 
         free((char*)p); 
@@ -189,6 +194,31 @@ namespace vpp
     d.buffer_domain_ = d.domain_;
   }
 
+  
+  template <typename V, unsigned N>
+  void imageNd<V, N>::index_rows()
+  {
+    
+    std::vector<V*>& rows = ptr_->rows_;
+    rows.clear();
+    boxNd<N - 1> row_domain(domain_with_border().p1().template segment<N - 1>(0),
+                            domain_with_border().p2().template segment<N - 1>(0));
+
+    int ras = 0;
+    for(vint<N - 1> r : row_domain)
+    {
+      vint<N> p = domain().p1();
+      p.template segment<N - 1>(0) = r;
+
+      rows.push_back(this->address_of(p));
+
+      if (p == vint<N>::Zero())
+        ras = rows.size() - 1;
+    }
+
+    ptr_->rows_array_start_ = &rows[ras];
+  }
+  
   template <typename V, unsigned N>
   int imageNd<V, N>::coords_to_offset(const vint<N>& p) const
   {
@@ -222,6 +252,20 @@ namespace vpp
     return *addr;
   }
 
+  template <typename V, unsigned N>
+  V*
+  imageNd<V, N>::operator[](int r)
+  {
+    return ptr_->rows_array_start_[r];
+  }
+
+  template <typename V, unsigned N>
+  const V*
+  imageNd<V, N>::operator[](int r) const
+  {
+    return ptr_->rows_array_start_[r];
+  }
+  
   template <typename V, unsigned N>
   V
   imageNd<V, N>::linear_interpolate(const vfloat<N>& p) const
@@ -277,6 +321,12 @@ namespace vpp
     domain.p2() -= domain.p1();
     domain.p1() -= domain.p1();
     res.ptr_->domain_ = domain;
+
+    for (V*& r_start : res.ptr_->rows_)
+      r_start += d.p1()[1] - this->domain().p1()[1];
+
+    res.ptr_->rows_array_start_ += d.p1()[0] - this->domain().p1()[0];
+
     return res;
   }
 
@@ -293,6 +343,12 @@ namespace vpp
     domain.p2() -= domain.p1();
     domain.p1() -= domain.p1();
     res.ptr_->domain_ = domain;
+
+    for (V*& r_start : res.ptr_->rows_)
+      r_start += d.p1()[1] - this->domain().p1()[1];
+    
+    res.ptr_->rows_array_start_ += d.p1()[0] - this->domain().p1()[0];
+
     return res;
   }
 
