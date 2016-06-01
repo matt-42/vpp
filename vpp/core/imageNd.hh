@@ -27,6 +27,8 @@ namespace vpp
       {}
 
     V* data_;
+    std::vector<V*> rows_;
+    V** rows_array_start_;
     std::shared_ptr<void> data_sptr_;
     V* data_end_;
     V* begin_;
@@ -95,6 +97,9 @@ namespace vpp
     inline V& operator()(const vint<N>& p);
     inline const V& operator()(const vint<N>& p) const;
 
+    inline V* operator[](int r);
+    inline const V* operator[](int r) const;
+    
     inline V linear_interpolate(const vfloat<N>& p) const;
 
     template <typename... Tail>
@@ -158,7 +163,7 @@ namespace vpp
   protected:
     template <typename... O>
     void allocate(const std::vector<int>& dims, const iod::sio<O...>& options);
-
+    void index_rows();
     std::shared_ptr<imageNd_data<V, N> > ptr_;
   };
 
