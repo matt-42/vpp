@@ -241,7 +241,7 @@ namespace vpp
 #pragma omp parallel
       {
       std::vector<vint2> local;
-
+      
 #pragma omp for
       for (int r = 0; r < nr; r++)
       {
