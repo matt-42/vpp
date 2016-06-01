@@ -5,7 +5,7 @@ import GPOF.strategies as gs
 import GPOF.runset as gr
 import GPOF.display as gd
 
-sets = gr.open_runset_from_google_benchmark('./fast_lm_benchmark5.txt')
+sets = gr.open_runset_from_google_benchmark('./fast_raw_bench.txt')
 
 v1 = sets['vpp_raw'].view(('range_y', 'real_time'))
 v2 = sets['vpp_opencv_raw'].view(('range_y', 'real_time'))

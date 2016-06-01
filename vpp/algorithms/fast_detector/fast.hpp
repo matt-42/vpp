@@ -240,8 +240,28 @@ namespace vpp
 
 #pragma omp parallel
       {
-      std::vector<vint2> local;
-      
+
+#define LSB_MAX_SIZE (1024*2)
+        vint2 local_static_buffer[LSB_MAX_SIZE];
+        int local_static_buffer_size = 0;
+
+        auto export_keypoints = [&] ()
+        {
+          int last_idx;
+#pragma omp critical          
+          keypoints.insert(keypoints.end(), local_static_buffer, local_static_buffer + local_static_buffer_size);
+          local_static_buffer_size = 0;
+        };
+        
+        auto add_keypoint = [&] (vint2 p)
+        {
+          if (local_static_buffer_size >= LSB_MAX_SIZE)
+            export_keypoints();
+
+          local_static_buffer[local_static_buffer_size] = p;
+          local_static_buffer_size++;
+        };
+        
 #pragma omp for
       for (int r = 0; r < nr; r++)
       {
@@ -451,19 +471,21 @@ namespace vpp
           {
             unsigned char is_corner[S::size];
             S::storeu(is_corner, possible);
+            // if (is_corner[i] and (c + i) < nc) add_keypoint(vint2{r, c + i});
             for (int i = 0; i < S::size; i++)
-              if (is_corner[i] and (c + i) < nc) local.push_back(vint2{r, c + i});
+              if (is_corner[i] and (c + i) < nc) add_keypoint(vint2{r, c + i});
+            
           }
         }
 
       }
 
-#pragma omp critical
-      keypoints.insert(keypoints.end(), local.begin(), local.end());
+      export_keypoints();
     }
 
     }
 
+    
     template <typename V, typename U>
     void fast_detector9(image2d<V>& A, image2d<U>& B, int th)
     {
@@ -640,15 +662,15 @@ namespace vpp
     std::vector<vint2> kps;
     FAST_internals::fast_detector9_simd(A, kps, th, mask);
 
-    image2d<unsigned int> scores_img(A.domain(), _border = 1);
-    fill(scores_img, 0);
+    image2d<unsigned char> scores_img(A.domain(), _border = 1);
+    fill_with_border(scores_img, 0);
 
     #pragma omp parallel for simd
     for (int i = 0; i < kps.size(); i++)
     {
       auto p = kps[i];
       int s = FAST_internals::fast9_score(box_nbh2d<V, 7, 7>(A, p), th);
-      scores_img(p) = s;
+      scores_img(p) = s / 16;
     }
 
     kps = maxima_filter(scores_img, kps);
@@ -676,7 +698,7 @@ namespace vpp
     FAST_internals::fast_detector9_simd(A, kps, th, mask);
 
     image2d<unsigned int> scores_img(A.domain(), _border = 1);
-    fill(scores_img, 0);
+    fill_with_border(scores_img, 0);
 
     #pragma omp parallel for simd
     for (int i = 0; i < kps.size(); i++)
@@ -720,7 +742,7 @@ namespace vpp
                                      #pragma omp for
                                      for (int r = 0; r < nr; r += block_size)
                                      {
-                                       unsigned int* rows[block_size];
+                                       unsigned char* rows[block_size];
                                        for (int i = 0; i < block_size; i++)
                                          if (r + i < nr)
                                            rows[i] = &S(r + i, 0);
@@ -778,7 +800,7 @@ namespace vpp
                                      #pragma omp for
                                      for (int r = 0; r < nr; r += block_size)
                                      {
-                                       unsigned int* rows[block_size];
+                                       unsigned char* rows[block_size];
                                        for (int i = 0; i < block_size; i++)
                                          if (r + i < nr)
                                            rows[i] = &S(r + i, 0);
@@ -861,7 +883,7 @@ namespace vpp
                                      for (int i = 0; i < kps.size(); i++)
                                      {
                                        auto p = kps[i];
-                                       auto nn = box_nbh2d<unsigned int, 3, 3>(img, p);
+                                       auto nn = box_nbh2d<unsigned char, 3, 3>(img, p);
                                        unsigned int a = nn(0, 0);
                                        int is_max = 1;
                                        is_max &= a > nn(-1, -1);
@@ -884,6 +906,7 @@ namespace vpp
                                    return lms;
                                  });
   }
+  
 }
 
 #endif

@@ -53,7 +53,7 @@ static void vpp_raw_lm(benchmark::State& state)
     keypoints.clear();
     keypoints = fast_detector9_local_maxima(A, th);
   }
-  //std::cout << "vpp lm " << keypoints.size() << std::endl;
+  // std::cout << "vpp lm " << keypoints.size() << std::endl;
 }
 
 
@@ -85,7 +85,7 @@ static void vpp_opencv_lm(benchmark::State& state)
     keypoints.clear();
     FAST(cv_A, keypoints, th, true);
   }
-  //std::cout << "opencv lm " << keypoints.size() << std::endl;
+  // std::cout << "opencv lm " << keypoints.size() << std::endl;
 }
 
 
@@ -103,21 +103,21 @@ static void vpp_opencv_raw(benchmark::State& state)
     keypoints.clear();
     FAST(cv_A, keypoints, th, false);
   }
-  //std::cout << "opencv raw " << keypoints.size() << std::endl;
+  // std::cout << "opencv raw " << keypoints.size() << std::endl;
 }
 
 static void CustomArguments(benchmark::internal::Benchmark* b) {
-  for (int th = 0; th <= 100; th += 2)
+  for (int th = 1; th <= 100; th += 5)
     for (int w = 500; w <= 500; w += 300)
       b->ArgPair(w, th);
   //b->ArgPair(500, 1);
 }
 
-BENCHMARK(vpp_raw)->Apply(CustomArguments);
-//BENCHMARK(vpp_raw_lm)->Apply(CustomArguments);
+//BENCHMARK(vpp_raw)->Apply(CustomArguments);
+BENCHMARK(vpp_raw_lm)->Apply(CustomArguments);
 // BENCHMARK(vpp_raw_bm)->Range(300, 2000);
-//BENCHMARK(vpp_opencv_lm)->Apply(CustomArguments);
-BENCHMARK(vpp_opencv_raw)->Apply(CustomArguments);
+BENCHMARK(vpp_opencv_lm)->Apply(CustomArguments);
+// BENCHMARK(vpp_opencv_raw)->Apply(CustomArguments);
 BENCHMARK_MAIN();
 
 // int main(int argc, char* argv[])
