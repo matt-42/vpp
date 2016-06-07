@@ -1,7 +1,6 @@
 #ifndef VPP_OPENCV_BRIDGE_HH__
 # define VPP_OPENCV_BRIDGE_HH__
 
-# include <opencv2/highgui/highgui.hpp>
 # include <vpp/core/image2d.hh>
 
 namespace vpp

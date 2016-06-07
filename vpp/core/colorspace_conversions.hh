@@ -25,7 +25,7 @@ namespace vpp
     typedef T out_type;
     typedef vector<U, 3> in_type;
     imageNd<out_type, N> out(in.domain(), _border = in.border(), _aligned = in.alignment());
-    pixel_wise(in, out) | [] (const in_type& i, out_type& o)
+    pixel_wise(in.domain_with_border(), in, out) | [] (vint2, const in_type& i, out_type& o)
     {
       rgb_to_graylevel(i, o);
     };
@@ -38,7 +38,7 @@ namespace vpp
     typedef T out_type;
     typedef U in_type;
     imageNd<out_type, N> out(in.domain(), _border = in.border(), _aligned = in.alignment());
-    pixel_wise(in, out) | [] (const in_type& i, out_type& o)
+    pixel_wise(in.domain_with_border(), in, out) | [] (vint2, const in_type& i, out_type& o)
     {
       o = out_type(i, i, i);
     };
