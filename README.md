@@ -92,7 +92,7 @@ image2d<int> C(100, 100, _data = my_data_ptr, _pitch = 1000);
 
 The header ```vpp/utils/opencv_bridge.hh``` (not included by
 ```vpp/vpp.hh```) provides explicit conversions to and from OpenCV image types. It
-allows to run video++ algorithms on OpenCV images and to run OpenCV algorithms on
+allows running video++ algorithms on OpenCV images and to run OpenCV algorithms on
 video++ images, without cloning the pixel buffer.  Ownership of the buffer
 will switch to OpenCV or Video++ depending of the order of the
 destructor calls.
@@ -124,7 +124,7 @@ For example, the type ```image2d<vuchar4>``` can handle an image of RGBA 8-bit.
 ## Pixel Wise Kernels
 
 The ```pixel_wise``` construct allows to easily and efficiently map
-simple kernel functions on all the pixels of a set of images. It rely
+simple kernel functions on all the pixels of a set of images. It relies
 on OpenMP to spread the processing on all the available cores, and
 SIMD-vectorize the processing of rows when possible. If the kernel
 function returns a value, ```pixel_wise``` will return a newly
@@ -319,7 +319,7 @@ The following explains the different types of valid expressions.
 
 In many cases, creating new images when evaluating an expression is not
 needed and can affect the performances of an algorithm. To avoid this
-extra image creation, assignments allows to store the result of an
+extra image creation, assignments allows storing the result of an
 expression in an existing image as in the following. Given A, B and C
 three images of the same dimensions:
 
