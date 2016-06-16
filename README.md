@@ -123,10 +123,13 @@ For example, the type ```image2d<vuchar4>``` can handle an image of RGBA 8-bit.
 
 ## Pixel Wise Kernels
 
-The ```pixel_wise``` construct allows to easily and efficiently map a
-kernel function on all the pixels of a set of images. If the kernel
-function returns a value, ```pixel_wise``` will return a newly allocated image
-filled with the results of the kernel. Given A and B two 2d images of integers:
+The ```pixel_wise``` construct allows to easily and efficiently map
+simple kernel functions on all the pixels of a set of images. It rely
+on OpenMP to spread the processing on all the available cores, and
+SIMD-vectorize the processing of rows when possible. If the kernel
+function returns a value, ```pixel_wise``` will return a newly
+allocated image filled with the results of the kernel. Given A and B
+two 2d images of integers:
 
 ```c++
 // Compute C, the parallel pixel wise sum of A and B.
