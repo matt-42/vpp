@@ -18,6 +18,7 @@ int main()
   assert(img.domain().size(0) == dims[0]);
   assert(img.domain().size(1) == dims[1]);
 
+  assert(&(*img.begin()) == &img(0,0));
 
   for (int r = 0; r < img.domain().size(0); r++)
     for (int c = 0; c < img.domain().size(1); c++)
@@ -43,6 +44,7 @@ int main()
 
   int align_size = 256;
   imageNd<int, 2> img2(dims, _border = 1, _aligned = align_size);
+  assert(&(*img2.begin()) == &img2(0,0));
   assert(!(long(&img2(0,0)) % align_size));
   assert(!(img2.pitch() % align_size));
   assert((char*)(&img2(vint2(99,199))) == ((char*)&img2(0,0) + 99 * img2.pitch() + 199 * sizeof(int)));
@@ -56,6 +58,7 @@ int main()
   auto img_clone = clone(img);
   auto img_clone_border = clone(img, _border = 3);
 
+  assert(&(*img_clone_border.begin()) == &img_clone_border(0,0));
   assert(img.domain() == img_clone.domain());
   assert(img.domain() == img_clone_border.domain());
 
@@ -73,6 +76,7 @@ int main()
     vint2 p2 = vint2(12,15);
 
     auto sub = img | box2d(p1, p2);
+    assert(&(*sub.begin()) == &sub(0,0));
     assert(&sub(0,0) == &img(p1));
     assert(sub.nrows() == (p2[0] - p1[0] + 1));
     assert(sub.ncols() == (p2[1] - p1[1] + 1));
