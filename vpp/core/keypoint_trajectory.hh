@@ -51,6 +51,11 @@ namespace vpp
       history_.push_front(p);
     }
 
+    void pop_oldest_position()
+    {
+      history_.pop_back();
+    }
+    
     vfloat2 operator[](unsigned i) const { return history_[i]; }
 
     const std::deque<vfloat2>& positions() const { return history_; }

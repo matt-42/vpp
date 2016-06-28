@@ -13,6 +13,8 @@
 # include <bitset>
 # include <thread>
 # include <vpp/vpp.hh>
+# include <stdint.h>
+# include <float.h>
 
 namespace vpp
 {
@@ -20,6 +22,8 @@ namespace vpp
   namespace FAST_internals
   {
 
+    typedef unsigned int uint;
+    
     inline bool fast9_check_code(uint code32)
     {
       // Thanks Arkanosis (https://github.com/Arkanosis) for the idea.
@@ -158,7 +162,7 @@ namespace vpp
 
 #  else
 
-#    ifdef __ARM_NEON__
+#    ifdef __ARM_NEON
 #    include <arm_neon.h>
 
     struct fast9_simd // ARM NEON version
@@ -178,6 +182,18 @@ namespace vpp
       static V u_adds(V a, V b) { return vqaddq_u8(a, b); }
       static bool all_equal_zero(V a) {
 
+#ifdef __aarch64__
+        V tmp;
+        int res;
+        asm("CMTST     %[tmp].16B, %[in].16B, %[in].16B\n\t"
+            "UQADD   %[tmp].16B, %[tmp].16B, %[tmp].16B\n\t"
+            "MRS        %[out],FPSR"
+            : [out] "=r" (res), [tmp] "=w" (tmp)
+            : [in] "w" (a)
+          );
+
+        return !(res & (1 << 27));
+#else
         V tmp;
         int res;
         asm("VTST.8     %q[tmp], %q[in], %q[in]\n\t"
@@ -188,15 +204,23 @@ namespace vpp
           );
 
         return !(res & (1 << 27));
+#endif
       }
       static V repeat(int v) { return vdupq_n_u8(v); }
       static V load(const void* ptr) {
+
+#ifdef __aarch64__
+        V res;
+        const uint8_t *aligned_ptr = (const uint8_t*)__builtin_assume_aligned(ptr, 128);
+        return vld1q_u8(aligned_ptr);
+#else
         V res;
         asm("VLD1.8 {%q[out]}, [%[in]:128]"
             : [out] "=w" (res)
             : [in]"r" (ptr)
           );
         return res;
+#endif
       }
       static V loadu(const void* ptr) { return vld1q_u8((const uint8_t*) (ptr)); }
       static void storeu(void* ptr, V x) { vst1q_u8((uint8_t*) (ptr), x); }
@@ -238,10 +262,10 @@ namespace vpp
 
       auto shift_row = [] (V* ptr, int o) { return (V*)(((char*)ptr) + o); };
 
-#pragma omp parallel
+      #pragma omp parallel
       {
 
-#define LSB_MAX_SIZE (1024*2)
+#define LSB_MAX_SIZE (2000)
         vint2 local_static_buffer[LSB_MAX_SIZE];
         int local_static_buffer_size = 0;
 
@@ -800,7 +824,7 @@ namespace vpp
                                      #pragma omp for
                                      for (int r = 0; r < nr; r += block_size)
                                      {
-                                       unsigned char* rows[block_size];
+                                       unsigned int* rows[block_size];
                                        for (int i = 0; i < block_size; i++)
                                          if (r + i < nr)
                                            rows[i] = &S(r + i, 0);
