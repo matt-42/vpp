@@ -92,7 +92,7 @@ image2d<int> C(100, 100, _data = my_data_ptr, _pitch = 1000);
 
 The header ```vpp/utils/opencv_bridge.hh``` (not included by
 ```vpp/vpp.hh```) provides explicit conversions to and from OpenCV image types. It
-allows to run video++ algorithms on OpenCV images and to run OpenCV algorithms on
+allows running video++ algorithms on OpenCV images and to run OpenCV algorithms on
 video++ images, without cloning the pixel buffer.  Ownership of the buffer
 will switch to OpenCV or Video++ depending of the order of the
 destructor calls.
@@ -121,142 +121,15 @@ For example, the type ```image2d<vuchar4>``` can handle an image of RGBA 8-bit.
 
 
 
-## 2D Image Expressions
-
-Video++ embeds into C++14 a domain specific language allowing to build
-image expressions that will be evaluated using ```eval```. While
-leveraging the power of multi-core SIMD architectures, it enables the developer
-to shorten tens of lines of code into one line, easy to write and to
-read.
-
-For example, the following expression formulates the an operation on the
-pixels of two images using the ```_v``` accessor:
-
-```c++
-_v(A) + _v(B) * 2
-```
-
-The ```eval``` routine actually runs this expression against each
-pixels of A and B and returns the resulting image such that, given two
-images A and B with same dimensions and pixels with type ```pixel_type```:
-
-```c++
-auto C = eval(_v(A) + _v(B) * 2);
-```
-is equivalent to
-
-```c++
-image2d<pixel_type> C(A.domain());
-for (int r = 0; r < A.nrows(); r++)
-for (int c = 0; c < A.ncols(); c++)
-  C(r, c) = A(r, c) + B(r, c) * 2;
-```
-
-Placeholders can also be used to refer to images passed as arguments
-to eval. Using placeholders, the use of _v to access pixels is not required:
-
-```c++
-auto C = eval(A, B, _1 + _2 * 2);
-```
-
-```eval``` generates code spanning one thread per processor
-core. Depending on your compiler, there is a good chance that the
-loops will be optimized with SIMD vector instructions.
-
-Note that no technical challenge but some time constraints prevented
-us to implement N-dimensional image expressions.
-
-The following explains the different types of valid expressions.
-
-### Assignments
-
-In many cases, creating new images when evaluating an expression is not
-needed and can affect the performances of an algorithm. To avoid this
-extra image creation, assignments allows to store the result of an
-expression in an existing image as in the following. Given A, B and C
-three images of the same dimensions:
-
-```c++
-// No image allocation here:
-eval(_v(C) = _v(A) + _v(B) * 2);
-```
-
-### Conditional branching
-
-The language of image expression support conditional branching with a
-construct similar to the ?: ternary operator of C++:
-
-```c++
-eval(_v(C) = _if(_v(A) > _v(B))
-                (_v(A))
-                (_v(B))
-   );
-```
-
-### Global expressions
-
-Image expressions are not limited to pixel wise operations. Global
-expressions integrate information over the whole definition domain.
-
-#### Sum
-
-Sum an expression over the whole definition domain:
-
-```c++
-int sum = eval(_sum(_v(A) + _v(B)));
-```
-
-#### Min, Max
-
-Find the minimum/maximum value of an expression:
-
-```c++
-auto min_value = eval(_min(_v(A) + _v(B)));
-auto max_value = eval(_max(_v(A) + _v(B)));
-```
-
-#### Argmin, Argmax
-
-Find the position (row, column) of the minimum/maximum value of an expression:
-
-```c++
-vint2 argmin = eval(_argmin(_v(A) + _v(B)));
-vint2 argmax = eval(_argmax(_v(A) + _v(B)));
-```
-
-### Mixing global expression in pixel wise image expressions
-
-In opposition to pixel wise image expressions, global expressions are
-evaluated only once per expression. However, it is possible to include
-them in pixel wise image expression without impacting
-performances. The eval function first traverses the expression
-abstract syntax tree (AST), replace them with their actual value and
-then finally launch the pixel wise evaluation. As a result, the global
-expressions are still evaluated once:
-
-```c++
-
-// Normalize pixel values and generate an image of float.
-auto C_normalized = eval(_v(C) * 1.f / _max(C));
-
-// Note: The multiplication with 1.f allows to force conversion from int
-// pixel to float pixel values.
-```
-
-### Limitations
-
-Because embedded domain specific languages such as image expressions involve
-heavy C++ meta-programming, compilation time and compiler memory
-consumption can increase significantly with the use of long and
-complex image expressions.
-
-
 ## Pixel Wise Kernels
 
-The ```pixel_wise``` construct allows to easily and efficiently map a
-kernel function on all the pixels of a set of images. If the kernel
-function returns a value, ```pixel_wise``` will return a newly allocated image
-filled with the results of the kernel. Given A and B two 2d images of integers:
+The ```pixel_wise``` construct allows to easily and efficiently map
+simple kernel functions on all the pixels of a set of images. It relies
+on OpenMP to spread the processing on all the available cores, and
+SIMD-vectorize the processing of rows when possible. If the kernel
+function returns a value, ```pixel_wise``` will return a newly
+allocated image filled with the results of the kernel. Given A and B
+two 2d images of integers:
 
 ```c++
 // Compute C, the parallel pixel wise sum of A and B.
@@ -390,6 +263,139 @@ row_wise(A, A.domain()) | [] (auto& a, vint2 coord)
   sums[coord[0]] += a;
 };
 ```
+
+
+## 2D Image Expressions
+
+**Warning: This feature is experimental and is currently very slow to compile.**
+
+
+Video++ embeds into C++14 a domain specific language allowing to build
+image expressions that will be evaluated using ```eval```. While
+leveraging the power of multi-core SIMD architectures, it enables the developer
+to shorten tens of lines of code into one line, easy to write and to
+read.
+
+For example, the following expression formulates the an operation on the
+pixels of two images using the ```_v``` accessor:
+
+```c++
+_v(A) + _v(B) * 2
+```
+
+The ```eval``` routine actually runs this expression against each
+pixels of A and B and returns the resulting image such that, given two
+images A and B with same dimensions and pixels with type ```pixel_type```:
+
+```c++
+auto C = eval(_v(A) + _v(B) * 2);
+```
+is equivalent to
+
+```c++
+image2d<pixel_type> C(A.domain());
+for (int r = 0; r < A.nrows(); r++)
+for (int c = 0; c < A.ncols(); c++)
+  C(r, c) = A(r, c) + B(r, c) * 2;
+```
+
+Placeholders can also be used to refer to images passed as arguments
+to eval. Using placeholders, the use of _v to access pixels is not required:
+
+```c++
+auto C = eval(A, B, _1 + _2 * 2);
+```
+
+```eval``` generates code spanning one thread per processor
+core. Depending on your compiler, there is a good chance that the
+loops will be optimized with SIMD vector instructions.
+
+Note that no technical challenge but some time constraints prevented
+us to implement N-dimensional image expressions.
+
+The following explains the different types of valid expressions.
+
+### Assignments
+
+In many cases, creating new images when evaluating an expression is not
+needed and can affect the performances of an algorithm. To avoid this
+extra image creation, assignments allows storing the result of an
+expression in an existing image as in the following. Given A, B and C
+three images of the same dimensions:
+
+```c++
+// No image allocation here:
+eval(_v(C) = _v(A) + _v(B) * 2);
+```
+
+### Conditional branching
+
+The language of image expression support conditional branching with a
+construct similar to the ?: ternary operator of C++:
+
+```c++
+eval(_v(C) = _if(_v(A) > _v(B))
+                (_v(A))
+                (_v(B))
+   );
+```
+
+### Global expressions
+
+Image expressions are not limited to pixel wise operations. Global
+expressions integrate information over the whole definition domain.
+
+#### Sum
+
+Sum an expression over the whole definition domain:
+
+```c++
+int sum = eval(_sum(_v(A) + _v(B)));
+```
+
+#### Min, Max
+
+Find the minimum/maximum value of an expression:
+
+```c++
+auto min_value = eval(_min(_v(A) + _v(B)));
+auto max_value = eval(_max(_v(A) + _v(B)));
+```
+
+#### Argmin, Argmax
+
+Find the position (row, column) of the minimum/maximum value of an expression:
+
+```c++
+vint2 argmin = eval(_argmin(_v(A) + _v(B)));
+vint2 argmax = eval(_argmax(_v(A) + _v(B)));
+```
+
+### Mixing global expression in pixel wise image expressions
+
+In opposition to pixel wise image expressions, global expressions are
+evaluated only once per expression. However, it is possible to include
+them in pixel wise image expression without impacting
+performances. The eval function first traverses the expression
+abstract syntax tree (AST), replace them with their actual value and
+then finally launch the pixel wise evaluation. As a result, the global
+expressions are still evaluated once:
+
+```c++
+
+// Normalize pixel values and generate an image of float.
+auto C_normalized = eval(_v(C) * 1.f / _max(C));
+
+// Note: The multiplication with 1.f allows to force conversion from int
+// pixel to float pixel values.
+```
+
+### Limitations
+
+Because embedded domain specific languages such as image expressions involve
+heavy C++ meta-programming, compilation time and compiler memory
+consumption can increase significantly with the use of long and
+complex image expressions.
 
 ## Contributing
 
