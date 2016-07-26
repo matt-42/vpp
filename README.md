@@ -21,6 +21,20 @@ Dependencies:
 **Because Video++ relies on C++14 features, only compilers fully supporting this standard are able to
 compile the library.**
 
+Video++ is free of use (BSD). But if you you are using Video++ in research related work, you are more than
+welcome to cite us :
+
+```
+@inproceedings{garrigues2014video++,
+  title={Video++, a modern image and video processing C++ framework},
+  author={Garrigues, Matthieu and Manzanera, Antoine},
+  booktitle={Design and Architectures for Signal and Image Processing (DASIP), 2014 Conference on},
+  pages={1--6},
+  year={2014},
+  organization={IEEE}
+}
+```
+
 ## Getting Started
 
 Video++ is a header-only library, To start coding, include the vpp.hh
