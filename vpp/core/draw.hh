@@ -1,6 +1,8 @@
 #ifndef VPP_DRAW_HH_
 # define VPP_DRAW_HH_
 
+#include <vpp/core/vector.hh>
+
 namespace vpp
 {
   namespace draw
@@ -59,6 +61,18 @@ namespace vpp
     {
       for (int r = -1; r <= 1; r++)
         for (int c = -1; c <= 1; c++)
+        {
+          vint2 n = a + vint2{r, c};
+          if (out.has(n))
+            out(n) = color;
+        }
+    }
+
+    template <typename I, typename V>
+    void square(I out, vint2 a, int size, V color)
+    {
+      for (int r = -size/2; r <= size/2; r++)
+        for (int c = -size/2; c <= size/2; c++)
         {
           vint2 n = a + vint2{r, c};
           if (out.has(n))
