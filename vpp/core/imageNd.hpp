@@ -325,7 +325,7 @@ namespace vpp
   {
     imageNd<V, N> res;
     res.ptr_ = std::shared_ptr<imageNd_data<V, N>>(new imageNd_data<V, N>());
-    *res.ptr_.get() = *this->ptr_.get(); // Copy the image data.
+    *res.ptr_.get() = *(this->ptr_.get()); // Copy the image data.
     res.ptr_->begin_ = address_of(d.p1());
     boxNd<N> domain = d;
     domain.p2() -= domain.p1();
@@ -336,9 +336,8 @@ namespace vpp
       r_start += d.p1()[1] - this->domain().p1()[1];
 
     res.ptr_->rows_array_start_ = &res.ptr_->rows_.front() +
-      (*this->ptr_->rows_array_start_ - &(*this->ptr_->rows_.front()))
+      (this->ptr_->rows_array_start_ - &(this->ptr_->rows_.front()))
       + (d.p1()[0] - this->domain().p1()[0]);
-
 
     return res;
   }
@@ -350,17 +349,20 @@ namespace vpp
     imageNd<V, N> res;
 
     res.ptr_ = std::shared_ptr<imageNd_data<V, N>>(new imageNd_data<V, N>());
-    *res.ptr_.get() = *this->ptr_.get();
+    *res.ptr_.get() = *(this->ptr_.get());
     res.ptr_->begin_ = const_cast<V*>(address_of(d.p1()));
     boxNd<N> domain = d;
     domain.p2() -= domain.p1();
     domain.p1() -= domain.p1();
     res.ptr_->domain_ = domain;
 
-    for (V*& r_start : res.ptr_->rows_)
+
+    for (auto& r_start : res.ptr_->rows_)
       r_start += d.p1()[1] - this->domain().p1()[1];
-    
-    res.ptr_->rows_array_start_ += d.p1()[0] - this->domain().p1()[0];
+
+    res.ptr_->rows_array_start_ = &res.ptr_->rows_.front() +
+      (this->ptr_->rows_array_start_ - &(this->ptr_->rows_.front()))
+      + (d.p1()[0] - this->domain().p1()[0]);
 
     return res;
   }
