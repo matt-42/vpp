@@ -237,9 +237,14 @@ namespace vpp
   imageNd<V, N>::operator()(const vint<N>& p)
   {
     assert(domain_with_border().has(p));
-    V* addr = (V*)((char*)ptr_->begin_ + coords_to_offset(p));
-    assert(addr < ptr_->data_end_);
-    return *addr;
+    if (N == 2)
+      return (*this)[p[0]][p[1]];
+    else
+    {
+      V* addr = (V*)((char*)ptr_->begin_ + coords_to_offset(p));
+      assert(addr < ptr_->data_end_);
+      return *addr;
+    }
   }
 
   template <typename V, unsigned N>
@@ -247,9 +252,14 @@ namespace vpp
   imageNd<V, N>::operator()(const vint<N>& p) const
   {
     assert(domain_with_border().has(p));
-    const V* addr = (V*)((char*)ptr_->begin_ + coords_to_offset(p));
-    assert(addr < ptr_->data_end_);
-    return *addr;
+    if (N == 2)
+      return (*this)[p[0]][p[1]];
+    else
+    {
+      const V* addr = (V*)((char*)ptr_->begin_ + coords_to_offset(p));
+      assert(addr < ptr_->data_end_);
+      return *addr;
+    }
   }
 
   template <typename V, unsigned N>
@@ -322,10 +332,13 @@ namespace vpp
     domain.p1() -= domain.p1();
     res.ptr_->domain_ = domain;
 
-    for (V*& r_start : res.ptr_->rows_)
+    for (auto& r_start : res.ptr_->rows_)
       r_start += d.p1()[1] - this->domain().p1()[1];
 
-    res.ptr_->rows_array_start_ += d.p1()[0] - this->domain().p1()[0];
+    res.ptr_->rows_array_start_ = &res.ptr_->rows_.front() +
+      (*this->ptr_->rows_array_start_ - &(*this->ptr_->rows_.front()))
+      + (d.p1()[0] - this->domain().p1()[0]);
+
 
     return res;
   }
