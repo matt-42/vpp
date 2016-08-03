@@ -51,6 +51,8 @@ namespace vpp
   template <typename V>
   image2d<V> from_opencv(cv::Mat m)
   {
+    if (!m.data) return image2d<V>();
+
     image2d<V> res(make_box2d(m.rows, m.cols), _data = m.data, _pitch = m.step);
 
     #if CV_VERSION_MAJOR == 2
@@ -66,6 +68,8 @@ namespace vpp
   template <typename V>
   cv::Mat to_opencv(image2d<V>& v)
   {
+    if (!v.has_data()) return cv::Mat();
+
     cv::Mat m(v.nrows(), v.ncols(), opencv_typeof<V>::ret, (void*) v.address_of(vint2(0,0)), v.pitch());
     return m;
   }
