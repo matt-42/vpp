@@ -4,6 +4,7 @@
 # include <vpp/core/image2d.hh>
 # include <vpp/core/box_nbh2d.hh>
 # include <vpp/core/vector.hh>
+# include <vpp/core/fill.hh>
 
 namespace vpp
 {
@@ -108,6 +109,21 @@ namespace vpp
       }
     }
 
+
+    template <typename... O>
+    pyramid(const imageNd<V, N>& img, int nlevels, int factor, const O&... image_options)
+      : levels_(nlevels),
+        factor_(factor)
+    {
+      boxNd<N> d = img.domain();
+      for (int i = 0; i < nlevels; i++)
+      {
+        levels_[i] = imageNd<V, N>(d, image_options...);
+        d = make_box2d(d.nrows() / factor, d.ncols() / factor);
+      }
+      update(img);
+    }
+    
     image_type& operator[] (unsigned i)
     {
       return levels_[i];
@@ -121,6 +137,7 @@ namespace vpp
     void propagate_level0()
     {
       // image_type tmp_(levels_[0].domain(), _border = 3);
+      fill_border_mirror(levels_[0]);
 
       for (int i = 1; i < levels_.size(); i++)
       {
@@ -130,6 +147,7 @@ namespace vpp
           image_type tmp(levels_[i - 1].domain(), _border = 3);
           antialiasing_lowpass_filter(levels_[i - 1], tmp);
           subsample2(tmp, levels_[i]);
+          fill_border_mirror(levels_[i]);
         }
         else
           assert(0); // Not implemented.
