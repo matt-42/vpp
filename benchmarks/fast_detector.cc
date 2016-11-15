@@ -36,7 +36,7 @@ static void vpp_raw(benchmark::State& state)
   while (state.KeepRunning())
   {
     keypoints.clear();
-    keypoints = fast_detector9(A, th);
+    keypoints = fast9(A, th);
   }
   //std::cout << "vpp raw " << keypoints.size() << std::endl;
   
@@ -51,7 +51,7 @@ static void vpp_raw_lm(benchmark::State& state)
   while (state.KeepRunning())
   {
     keypoints.clear();
-    keypoints = fast_detector9_local_maxima(A, th);
+    keypoints = fast9(A, th, _local_maxima);
   }
   // std::cout << "vpp lm " << keypoints.size() << std::endl;
 }
@@ -65,7 +65,7 @@ static void vpp_raw_bm(benchmark::State& state)
   while (state.KeepRunning())
   {
     keypoints.clear();
-    keypoints = fast_detector9_blockwise_maxima(A, th, 10);
+    keypoints = fast9(A, th, _blockwise, _block_size = 10);
   }
   // //std::cout << "vpp bm " << keypoints.size() << std::endl;
 }

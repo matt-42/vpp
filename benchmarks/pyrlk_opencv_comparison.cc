@@ -20,12 +20,12 @@ int main(int argc, char* argv[])
 
   // image2d<vuchar3> i1 = (from_opencv<vuchar3>(cv::imread(argv[1])));
   // image2d<vuchar1> i3 = rgb_to_graylevel<unsigned char>(i1);
-  image2d<vuchar1> i1 = rgb_to_graylevel<unsigned char>(from_opencv<vuchar3>(cv::imread(argv[1])));
-  image2d<vuchar1> i2 = rgb_to_graylevel<unsigned char>(from_opencv<vuchar3>(cv::imread(argv[2])));
+  image2d<unsigned char> i1 = rgb_to_graylevel<unsigned char>(from_opencv<vuchar3>(cv::imread(argv[1])));
+  image2d<unsigned char> i2 = rgb_to_graylevel<unsigned char>(from_opencv<vuchar3>(cv::imread(argv[2])));
 
-  i1 = clone_with_border(i1, 5);
-  i2 = clone_with_border(i2, 5);
-  image2d<vuchar3> display = graylevel_to_rgb<unsigned char>(i1);
+  i1 = clone(i1, _border = 5);
+  i2 = clone(i2, _border = 5);
+  image2d<vuchar3> display = graylevel_to_rgb<vuchar3>(i1);
 
   image2d<int> fast_score(i1.domain());
   pyrlk_keypoint_container keypoints(i1.domain());

@@ -14,7 +14,7 @@ using namespace vpp;
 template <typename V>
 void test1(image2d<V>& A, image2d<V>& B)
 {
-  pixel_wise(A, B) << [&] (unsigned char& a, unsigned char& b)
+  pixel_wise(A, B) | [&] (unsigned char& a, unsigned char& b)
   {
     b = a;
   };
@@ -220,15 +220,15 @@ return 1;
   int K = 200;
 
   typedef image2d<vuchar3> I;
-  I A = clone_with_border(from_opencv<vuchar3>(cv::imread(argv[1])), 3);
-  I B(A.domain(), 1);
+  I A = clone(from_opencv<vuchar3>(cv::imread(argv[1])), _border = 3);
+  I B(A.domain(), _border = 1);
 
-  image2d<unsigned char> Agl(A.domain(), 3);
+  image2d<unsigned char> Agl(A.domain(), _border = 3);
   image2d<unsigned char> Bgl(A.domain());
   image2d<int> Bint(A.domain());
   image2d<unsigned char> kp(A.domain());
 
-  pixel_wise(Agl, A) << [] (unsigned char& gl, vuchar3& c)
+  pixel_wise(Agl, A) | [] (unsigned char& gl, vuchar3& c)
   {
     gl = (c[0] + c[1] + c[2]) / 3;
   };
@@ -259,7 +259,7 @@ return 1;
   double test4_ms_per_iter = (get_time_in_seconds() - time);
 
   int sum = 0;
-  pixel_wise(kp) < [&] (unsigned char& k)
+  pixel_wise(kp) | [&] (unsigned char& k)
   {
     sum += k;
   };

@@ -50,7 +50,7 @@ void raw_openmp_simd(image2d<int> A, image2d<int> B, image2d<int> C)
 
 void vpp_pixel_wise(image2d<int> A, image2d<int> B, image2d<int> C)
 {
-  vpp::pixel_wise(A, B, C) << [] (int& a, int& b, int& c)
+  vpp::pixel_wise(A, B, C) | [] (int& a, int& b, int& c)
   {
     a = b + c;
   };
@@ -66,13 +66,13 @@ template <typename T>
 int bench(int size, T& results)
 {
   std::cout << size << std::endl;
-  image2d<int> A(sqrt(size),sqrt(size));
+  image2d<int> A(int(sqrt(size)),int(sqrt(size)));
   image2d<int> B(A.domain());
   image2d<int> C(A.domain());
 
   fill(A, 0);
 
-  pixel_wise(B, C) << [] (int& b, int& c) { b = rand(); c = rand(); };
+  pixel_wise(B, C) | [] (int& b, int& c) { b = rand(); c = rand(); };
 
   int K = 10;
   double time;

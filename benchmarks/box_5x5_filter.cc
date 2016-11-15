@@ -184,7 +184,7 @@ int bench(int size, T& results, int debug = 0)
   std::cout << size << std::endl;
   int w = sqrt(size);
   image2d<int> A(w,w);
-  image2d<int> B(A.domain(), _Border = 2);
+  image2d<int> B(A.domain(), _border = 2);
 
   fill(A, 0);
 

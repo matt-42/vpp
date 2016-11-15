@@ -5,17 +5,52 @@
 
 namespace vpp
 {
+
+  // FAST9 detector.
+
+  // Options :
+  //  _local_maxima: Local maxima keypoint selection.
+  //  _blockwise: blockwise keypoint selection (one kp per block)
+  //  _blockwise_rank: blockwise rank selection (several kp per block).
+  //
+  //  _block_size = int(): block size ised by _blockwise and _blockwise_rank.
+  //  _max_points_per_block = int(): block size ised by _blockwise and _blockwise_rank.
+  //  _mask = image2d<unsigned char>
+  //  _scores = &std::vector<int>
+  //
+  // example: fast_detector9(image, th, _local_maxima, _mask = mask_image);
+  //
+  template <typename V, typename... OPTS>
+  std::vector<vint2> fast9(image2d<V>& A,
+                           int th,
+                           OPTS... opts);
+
+
+
+  template <typename V>
+  void fast9_scores(image2d<V>& A,
+                    int th, 
+                    const std::vector<vint2> keypoints,
+                    std::vector<int>& scores);
+
+  template <typename V>
+  int fast9_score(image2d<V>& A,
+                  int th, 
+                  vint2 p);
+  
+  // Old API only used internally.
+
   template <typename V>
   std::vector<vint2> fast_detector9(image2d<V>& A,
                                     int th,
-                                    const image2d<unsigned char>& mask = image2d<V>(),
+                                    const image2d<unsigned char>& mask,
                                     std::vector<int>* scores = 0);
 
   template <typename V>
   std::vector<vint2> fast_detector9_blockwise_maxima(image2d<V>& A,
                                                      int th,
                                                      int block_size,
-                                                     const image2d<unsigned char>& mask = image2d<V>(),
+                                                     const image2d<unsigned char>& mask,
                                                      std::vector<int>* scores = 0);
 
   template <typename V>
@@ -23,25 +58,14 @@ namespace vpp
                                                    int th,
                                                    int block_size,
                                                    int max_point_per_block,
-                                                   const image2d<unsigned char>& mask = image2d<V>(),
+                                                   const image2d<unsigned char>& mask,
                                                    std::vector<int>* scores = 0);
   
   template <typename V>
   std::vector<vint2> fast_detector9_local_maxima(image2d<V>& A,
                                                  int th,
-                                                 const image2d<unsigned char>& mask = image2d<V>(),
+                                                 const image2d<unsigned char>& mask,
                                                  std::vector<int>* scores = 0);
-
-  template <typename V>
-  void fast_detector9_scores(image2d<V>& A,
-                             int th, 
-                             const std::vector<vint2> keypoints,
-                             std::vector<int>& scores);
-
-  template <typename V>
-  int fast_detector9_score(image2d<V>& A,
-                           int th, 
-                           vint2 p);
 
 }
 

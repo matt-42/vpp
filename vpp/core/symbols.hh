@@ -18,4 +18,6 @@ namespace vpp
   using s::_block_size;
   using s::_data;
   using s::_pitch;
+
+  using namespace s;
 }

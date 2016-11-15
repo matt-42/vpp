@@ -1,5 +1,4 @@
 #include <iostream>
-#include <vpp/boxNd.hh>
 #include <vpp/vpp.hh>
 
 #include "get_time.hh"
@@ -78,7 +77,7 @@ void raw_openmp_simd(image2d<int> img)
 
 void vpp_pixel_wise(image2d<int> img)
 {
-  vpp::pixel_wise(img, img.domain()) << [] (auto& p, auto& c)
+  vpp::pixel_wise(img, img.domain()) | [] (auto& p, auto& c)
   {
     p = c[0] + c[1];
   };

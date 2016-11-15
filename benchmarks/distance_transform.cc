@@ -30,15 +30,15 @@ void manual_d4_distance_transform(vpp::image2d<T>& input, vpp::image2d<U>& sedt)
   pixel_wise(input, sedt) | [] (auto& i, auto& s) { if (i == 0) s = 0; };
 
   auto sedt_nbh = box_nbh2d<U, 3, 3>(sedt);
-  row_wise(sedt)(_Col_forward) | [&] (auto sedt_row)
+  row_wise(sedt)(_col_forward) | [&] (auto sedt_row)
   {
     auto sedt_nbh = box_nbh2d<U, 3, 3>(sedt_row);
-    pixel_wise(sedt_nbh)(_No_threads) | [&] (auto sn) {
+    pixel_wise(sedt_nbh)(_no_threads) | [&] (auto sn) {
       U min_dist = std::min(sn(0,0), U(sn.north() + 1));
       sn(0,0) = std::min(min_dist, U(sn.west() + 1));
     };
   };
-  pixel_wise(sedt_nbh)(_Col_backward, _Row_backward) | [&] (auto sn) {
+  pixel_wise(sedt_nbh)(_col_backward, _row_backward) | [&] (auto sn) {
     U min_dist = std::min(sn(0,0), U(sn.south() + 1));
     sn(0,0) = std::min(min_dist, U(sn.east() + 1));
   };
@@ -106,14 +106,14 @@ int main(int argc, char* argv[])
   {
     using namespace vpp;
     image2d<vuchar3> A = from_opencv<vuchar3>(cv::imread(argv[1]));
-    image2d<int> B = pixel_wise(A)(_No_threads) | [] (auto& a) -> int {
+    image2d<int> B = pixel_wise(A)(vpp::_no_threads) | [] (auto& a) -> int {
       return a.norm() > 0 ? 255 : 0;
     };
-    image2d<int> C4(B.domain(), _Border = 2);
-    image2d<int> C8(B.domain(), _Border = 2);
-    image2d<int> CE(B.domain(), _Border = 2);
-    image2d<int> C34(B.domain(), _Border = 2);
-    image2d<int> C711(B.domain(), _Border = 4);
+    image2d<int> C4(B.domain(), _border = 2);
+    image2d<int> C8(B.domain(), _border = 2);
+    image2d<int> CE(B.domain(), _border = 2);
+    image2d<int> C34(B.domain(), _border = 2);
+    image2d<int> C711(B.domain(), _border = 4);
     manual_d4_distance_transform2(B, C4);
     d8_distance_transform(B, C8);
     euclide_distance_transform(B, CE);
@@ -149,8 +149,8 @@ int main(int argc, char* argv[])
     {
       using namespace vpp;
     
-      image2d<int> img(s, s, _Border = 2);
-      image2d<int> out(img.domain(), _Border = 2);
+      image2d<int> img(s, s, _border = 2);
+      image2d<int> out(img.domain(), _border = 2);
     
       res.push_back(make_pair(s * s,
                                   benchmark(f, img, out)));

@@ -25,7 +25,7 @@ int main()
 
   auto time = get_time_in_seconds();
 
-  auto res = run_liie(_V(A) + _V(B));
+  auto res = eval(_v(A) + _v(B));
   for (int K = 0; K < 1000; K++)
     pixel_wise(res, A, B) | [] (auto& r, auto& a, auto& b) { r = a + b; };
 
@@ -34,7 +34,7 @@ int main()
   time = get_time_in_seconds();
 
   for (int K = 0; K < 1000; K++)
-    pixel_wise(_V(res) = _V(A) + _V(B));
+    pixel_wise(_v(res) = _v(A) + _v(B));
 
   std::cout << 1000 * (get_time_in_seconds() - time) << std::endl;
 

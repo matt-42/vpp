@@ -252,9 +252,9 @@ namespace vpp
 #  endif
 #endif
 
-    template <typename V>
+    template <typename V, typename M>
     void fast_detector9_simd(image2d<V>& A, std::vector<vint2>& keypoints, int th,
-                             const image2d<unsigned char>& mask)
+                             const M& mask)
     {
       int nc = A.ncols();
       int nr = A.nrows();
@@ -663,10 +663,10 @@ namespace vpp
     return FAST_internals::fast9_score(box_nbh2d<V, 7, 7>(A, p), th);
   }
 
-  template <typename V>
+  template <typename V, typename M>
   std::vector<vint2> fast_detector9(image2d<V>& A,
                                     int th,
-                                    const image2d<unsigned char>& mask,
+                                    const M& mask,
                                     std::vector<int>* scores)
   {
     std::vector<vint2> kps;
@@ -676,10 +676,10 @@ namespace vpp
     return std::move(kps);
   }
 
-  template <typename V, typename F>
+  template <typename V, typename F, typename M>
   auto fast_detector9_maxima(image2d<V>& A,
                                            int th,
-                                           const image2d<unsigned char>& mask,
+                                           const M& mask,
                                            std::vector<int>* scores,
                                            F maxima_filter)
   {
@@ -714,7 +714,7 @@ namespace vpp
   template <typename V, typename F>
   auto fast_detector9_maxima2(image2d<V>& A,
                               int th,
-                              const image2d<unsigned char>& mask,
+                              const image2d<int>& mask,
                               std::vector<int>* scores,
                               F maxima_filter)
   {
@@ -929,6 +929,30 @@ namespace vpp
                                    }
                                    return lms;
                                  });
+  }
+
+  template <typename V, typename... OPTS>
+  std::vector<vint2> fast9(image2d<V>& A,
+                           int th,
+                           OPTS... opts_)
+  {
+    auto opts = iod::D(opts_...);
+    
+    image2d<unsigned char> mask = opts.get(_mask, image2d<unsigned char>());
+    std::vector<int>* scores = opts.get(_scores, nullptr);
+    int block_size = opts.get(_block_size, 10);
+    int max_points_per_block = opts.get(_max_points_per_block, 5);
+
+    if (opts.has(_local_maxima))
+      return fast_detector9_local_maxima(A, th, mask, scores);
+    else if (opts.has(_blockwise))
+      return fast_detector9_blockwise_maxima(A, th, block_size, mask, scores);
+    // else if (opts.has(_blockwise_rank))
+    //   return fast_detector9_blockwise_rank(A, th, opts.block_size,
+    //                                        opts.max_points_per_block,
+    //                                        opts.mask, opts.scores);
+    else
+      return fast_detector9(A, th, mask, scores);
   }
   
 }
