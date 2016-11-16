@@ -44,3 +44,7 @@ target_link_libraries(fast_detector ${OpenCV_LIBS} gomp)
 
 add_executable(tutorial tutorial.cc)
 target_link_libraries(tutorial ${OpenCV_LIBS} ${LIBS} gomp)
+
+
+add_executable(video_extruder video_extruder.cc)
+target_link_libraries(video_extruder ${OpenCV_LIBS} ${LIBS} gomp)

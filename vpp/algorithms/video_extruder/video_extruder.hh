@@ -1,30 +1,39 @@
+#pragma once
 
+#include <iod/array_view.hh>
+#include <vpp/core/keypoint_trajectory.hh>
+#include <vpp/core/keypoint_container.hh>
+#include <vpp/core/symbols.hh>
+#include <vpp/algorithms/video_extruder/optical_flow.hh>
+#include <vpp/algorithms/fast_detector/fast.hh>
 
 namespace vpp
 {
   struct video_extruder_ctx
   {
-    keypoint_container keypoints;
+    video_extruder_ctx(box2d domain) : keypoints(domain) {}
+
+    keypoint_container<keypoint<int>, int> keypoints;
     std::vector<keypoint_trajectory> trajectories;
   };
 
 
   // Init the video extruder.
-  video_extruder_ctx video_extruder_init(int nkeypoints, )
+  video_extruder_ctx video_extruder_init(box2d domain)
   {
-    video_extruder_ctx res;
+    video_extruder_ctx res(domain);
 
     // Setup parameters ?
-    
+
+    return res;
   }
 
   // Update the video extruder with a new frame.
   template <typename... OPTS>
   void video_extruder_update(video_extruder_ctx& ctx,
-                             const image2d<vuchar3>& frame1,
-                             const image2d<vuchar3>& frame2,
-                             int detector_th,
-                             float precision_runtime_balance,
+                             const image2d<unsigned char>& frame1,
+                             const image2d<unsigned char>& frame2,
+                             //float precision_runtime_balance = 0,
                              OPTS... options)
   {
     // Options.
@@ -35,8 +44,8 @@ namespace vpp
 
     // Optical flow vectors.
     ctx.keypoints.prepare_matching();
-    semi_dense_optical_flow(array_view(ctx.keypoints.size(),
-                                       _position [] (int i) { return ctx.keypoints[i].position})
+    semi_dense_optical_flow(iod::array_view(ctx.keypoints.size(),
+                                       [&] (int i) { return ctx.keypoints[i].position; }),
                             [&] (int i, vint2 pos, int distance) { ctx.keypoints.move(i, pos); },
                             frame1,
                             frame2);
@@ -44,29 +53,51 @@ namespace vpp
     // Filtering.
     // Merging.
     {
+      image2d<int> idx(frame2.domain().nrows() / keypoint_spacing,
+                       frame2.domain().ncols() / keypoint_spacing);
+
+      fill(idx, -1);
+      for (int i = 0; i < ctx.keypoints.size(); i++)
+      {
+        vint2 pos = ctx.keypoints[i].position / keypoint_spacing;
+        assert(idx.has(pos));
+        if (idx(pos) >= 0)
+        {
+          auto& other = ctx.keypoints[idx(pos)];
+          if (other.age < ctx.keypoints[i].age)
+          {
+            ctx.keypoints.remove(idx(pos));
+            idx(pos) = i;
+          }
+          else
+            ctx.keypoints.remove(i);
+        }
+        else
+          idx(pos) = i;
+      }
     }
 
     // Detect new keypoints.
     {
-      image2d<int> mask(frame2.domain().nrows() / keypoint_spacing,
-                        frame2.domain().ncols() / keypoint_spacing,
-                        _border = opts.keypoint_spacing);
+      image2d<int> mask(frame2.domain().nrows(),
+                        frame2.domain().ncols(),
+                        _border = keypoint_spacing);
 
       fill_with_border(mask, 0);
       for (int i = 0; i < ctx.keypoints.size(); i++)
       {
         int r = ctx.keypoints[i].position[0];
         int c = ctx.keypoints[i].position[1];
-        for (int dr = -opts.keypoint_spacing; dr < -opts.keypoint_spacing; dr++)
-          for (int dc = -opts.keypoint_spacing; dc < -opts.keypoint_spacing; dc++)
+        for (int dr = -keypoint_spacing; dr < -keypoint_spacing; dr++)
+          for (int dc = -keypoint_spacing; dc < -keypoint_spacing; dc++)
             mask[r + dr][c + dc] = 1;
       }
 
-      auto kps = fast9(frame2, opts.detector_th, _blockwise.
-                       _block_size = opts.keypoint_spacing,
+      auto kps = fast9(frame2, detector_th, _blockwise,
+                       _block_size = keypoint_spacing,
                        _mask = mask);
       for (auto kp : kps)
-        ctx.keypoints.add(keypoint<int>(p));
+        ctx.keypoints.add(keypoint<int>(kp));
       
       // Trajectories update.
       ctx.keypoints.sync_attributes(ctx.trajectories);

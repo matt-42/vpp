@@ -41,9 +41,12 @@ namespace vpp
   inline void
   semi_dense_optical_flow(const K& keypoints,
                           F match_callback,
-                          const image2d<vuchar3>& i1,
-                          const image2d<vuchar3>& i2)
+                          const image2d<unsigned char>& i1,
+                          const image2d<unsigned char>& i2)
   {
+    const int winsize = 11;
+    const int nscales = 4;
+    
     auto pf_domain = make_box2d(i1.domain().nrows() / winsize,
                                 i1.domain().ncols() / winsize);
     pyramid2d<vint2> pyr_flow_map(pf_domain, nscales, 2, _border = 1);
@@ -65,7 +68,7 @@ namespace vpp
       auto distance = [&] (vint2 a, vint2 b, int max_distance)
         {
           if (i1.has(a) and i2.has(b))
-            return ssd_distance(i1, i2, a, b, winsize * PC, max_distance);
+            return ve_internals::sad_distance(i1, i2, a, b, winsize * PC, max_distance);
           else
             return INT_MAX;
         };
@@ -98,9 +101,10 @@ namespace vpp
 
     for (int pi = 0; pi < keypoints.size(); pi++)
     {
-      if (pyr_flow_map_mark[0](keypoints[pi] / winsize))
-        match_callback(pi, pts[pi] + pyr_flow_map[0](pts[pi] / winsize),
-                       distance_map[0](pts[pi] / winsize));
+      vint2 pos = keypoints[pi];
+      if (pyr_flow_map_mark[0](pos / winsize))
+        match_callback(pi, pos + pyr_flow_map[0](pos / winsize),
+                       distance_map[0](pos / winsize));
     }
     
   }

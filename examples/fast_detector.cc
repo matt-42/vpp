@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
   image2d<unsigned char> A = rgb_to_graylevel<unsigned char>(from_opencv<vuchar3>(cv::imread(argv[1])));
   A = clone(A, _border = 3);
 
-  std::vector<vint2> keypoints = fast_detector9_local_maxima(A, atoi(argv[2]));
+  std::vector<vint2> keypoints = fast9(A, atoi(argv[2]), _local_maxima);
 
   image2d<vuchar3> B = graylevel_to_rgb<vuchar3>(A);
   for (vint2 p : keypoints) B(p) = vuchar3(0,0,255);

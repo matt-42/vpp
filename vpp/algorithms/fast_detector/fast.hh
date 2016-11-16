@@ -21,40 +21,40 @@ namespace vpp
   // example: fast_detector9(image, th, _local_maxima, _mask = mask_image);
   //
   template <typename V, typename... OPTS>
-  std::vector<vint2> fast9(image2d<V>& A,
+  std::vector<vint2> fast9(const image2d<V>& A,
                            int th,
                            OPTS... opts);
 
 
 
   template <typename V>
-  void fast9_scores(image2d<V>& A,
+  void fast9_scores(const image2d<V>& A,
                     int th, 
                     const std::vector<vint2> keypoints,
                     std::vector<int>& scores);
 
   template <typename V>
-  int fast9_score(image2d<V>& A,
+  int fast9_score(const image2d<V>& A,
                   int th, 
                   vint2 p);
   
   // Old API only used internally.
 
   template <typename V>
-  std::vector<vint2> fast_detector9(image2d<V>& A,
+  std::vector<vint2> fast_detector9(const image2d<V>& A,
                                     int th,
                                     const image2d<unsigned char>& mask,
                                     std::vector<int>* scores = 0);
 
   template <typename V>
-  std::vector<vint2> fast_detector9_blockwise_maxima(image2d<V>& A,
+  std::vector<vint2> fast_detector9_blockwise_maxima(const image2d<V>& A,
                                                      int th,
                                                      int block_size,
                                                      const image2d<unsigned char>& mask,
                                                      std::vector<int>* scores = 0);
 
   template <typename V>
-  std::vector<vint3> fast_detector9_blockwise_rank(image2d<V>& A,
+  std::vector<vint3> fast_detector9_blockwise_rank(const image2d<V>& A,
                                                    int th,
                                                    int block_size,
                                                    int max_point_per_block,
@@ -62,7 +62,7 @@ namespace vpp
                                                    std::vector<int>* scores = 0);
   
   template <typename V>
-  std::vector<vint2> fast_detector9_local_maxima(image2d<V>& A,
+  std::vector<vint2> fast_detector9_local_maxima(const image2d<V>& A,
                                                  int th,
                                                  const image2d<unsigned char>& mask,
                                                  std::vector<int>* scores = 0);

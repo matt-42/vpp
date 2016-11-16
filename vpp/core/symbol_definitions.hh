@@ -145,7 +145,6 @@
     iod_define_symbol(min)
 #endif
 
-
 #ifndef IOD_SYMBOL_nbh
 #define IOD_SYMBOL_nbh
     iod_define_symbol(nbh)
@@ -164,11 +163,6 @@
 #ifndef IOD_SYMBOL_pitch
 #define IOD_SYMBOL_pitch
     iod_define_symbol(pitch)
-#endif
-
-#ifndef IOD_SYMBOL_position
-#define IOD_SYMBOL_position
-    iod_define_symbol(position)
 #endif
 
 #ifndef IOD_SYMBOL_row_backward

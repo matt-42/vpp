@@ -253,7 +253,7 @@ namespace vpp
 #endif
 
     template <typename V, typename M>
-    void fast_detector9_simd(image2d<V>& A, std::vector<vint2>& keypoints, int th,
+    void fast_detector9_simd(const image2d<V>& A, std::vector<vint2>& keypoints, int th,
                              const M& mask)
     {
       int nc = A.ncols();
@@ -289,7 +289,7 @@ namespace vpp
 #pragma omp for
       for (int r = 0; r < nr; r++)
       {
-        V* a_row = &A(r, 0);
+        V* a_row = const_cast<V*>(&A(r, 0));
         V* a_row1 = shift_row(a_row, -3*pitch);
         V* a_row2 = shift_row(a_row, -2*pitch);
         V* a_row3 = shift_row(a_row, -1*pitch);
@@ -511,7 +511,7 @@ namespace vpp
 
     
     template <typename V, typename U>
-    void fast_detector9(image2d<V>& A, image2d<U>& B, int th)
+    void fast_detector9(const image2d<V>& A, image2d<U>& B, int th)
     {
       int nc = A.ncols();
       int nr = A.nrows();
@@ -556,7 +556,7 @@ namespace vpp
   }
 
   template <typename V>
-  void local_maxima_filter(image2d<V>& A, int nbh_size) // At the moment nbh_size is ignored.
+  void local_maxima_filter(const image2d<V>& A, int nbh_size) // At the moment nbh_size is ignored.
   {
     auto nbh = box_nbh2d<V, 3, 3>(A);
 
@@ -580,7 +580,7 @@ namespace vpp
   }
 
   template <typename V>
-  void blockwise_maxima_filter(image2d<V>& A, int block_size)
+  void blockwise_maxima_filter(const image2d<V>& A, int block_size)
   {
     int nc = A.ncols();
     int nr = A.nrows();
@@ -619,7 +619,7 @@ namespace vpp
   }
 
   template <typename V, typename F>
-  inline std::vector<vint2> compact_coordinates_if(image2d<V>& img, F f)
+  inline std::vector<vint2> compact_coordinates_if(const image2d<V>& img, F f)
   {
     int nc = img.ncols();
     int nr = img.nrows();
@@ -644,7 +644,7 @@ namespace vpp
   }
 
   template <typename V>
-  void fast_detector9_scores(image2d<V>& A,
+  void fast_detector9_scores(const image2d<V>& A,
                              int th, 
                              const std::vector<vint2> keypoints,
                              std::vector<int>& scores)
@@ -656,7 +656,7 @@ namespace vpp
   }
 
   template <typename V>
-  int fast_detector9_score(image2d<V>& A,
+  int fast_detector9_score(const image2d<V>& A,
                            int th, 
                            vint2 p)
   {
@@ -664,7 +664,7 @@ namespace vpp
   }
 
   template <typename V, typename M>
-  std::vector<vint2> fast_detector9(image2d<V>& A,
+  std::vector<vint2> fast_detector9(const image2d<V>& A,
                                     int th,
                                     const M& mask,
                                     std::vector<int>* scores)
@@ -677,7 +677,7 @@ namespace vpp
   }
 
   template <typename V, typename F, typename M>
-  auto fast_detector9_maxima(image2d<V>& A,
+  auto fast_detector9_maxima(const image2d<V>& A,
                                            int th,
                                            const M& mask,
                                            std::vector<int>* scores,
@@ -712,7 +712,7 @@ namespace vpp
 
 
   template <typename V, typename F>
-  auto fast_detector9_maxima2(image2d<V>& A,
+  auto fast_detector9_maxima2(const image2d<V>& A,
                               int th,
                               const image2d<int>& mask,
                               std::vector<int>* scores,
@@ -746,7 +746,7 @@ namespace vpp
   }
   
   template <typename V>
-  std::vector<vint2> fast_detector9_blockwise_maxima(image2d<V>& A,
+  std::vector<vint2> fast_detector9_blockwise_maxima(const image2d<V>& A,
                                                      int th,
                                                      int block_size,
                                                      const image2d<unsigned char>& mask,
@@ -803,7 +803,7 @@ namespace vpp
   }
 
   template <typename V>
-  std::vector<vint3> fast_detector9_blockwise_rank(image2d<V>& A,
+  std::vector<vint3> fast_detector9_blockwise_rank(const image2d<V>& A,
                                                    int th,
                                                    int block_size,
                                                    int max_point_per_block,
@@ -890,7 +890,7 @@ namespace vpp
   }
   
   template <typename V>
-  std::vector<vint2> fast_detector9_local_maxima(image2d<V>& A,
+  std::vector<vint2> fast_detector9_local_maxima(const image2d<V>& A,
                                                  int th,
                                                  const image2d<unsigned char>& mask,
                                                  std::vector<int>* scores)
@@ -932,7 +932,7 @@ namespace vpp
   }
 
   template <typename V, typename... OPTS>
-  std::vector<vint2> fast9(image2d<V>& A,
+  std::vector<vint2> fast9(const image2d<V>& A,
                            int th,
                            OPTS... opts_)
   {

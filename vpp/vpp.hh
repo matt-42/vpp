@@ -24,7 +24,6 @@
 # include <vpp/core/make_array.hh>
 
 # include <vpp/core/fill.hh>
-# include <vpp/core/draw.hh>
 
 # include <vpp/core/zero.hh>
 # include <vpp/core/cast_to_float.hh>
@@ -36,5 +35,7 @@
 
 # include <vpp/core/sum.hh>
 
+# include <vpp/draw/draw.hh>
+# include <vpp/draw/draw_trajectories.hh>
 
 #endif
