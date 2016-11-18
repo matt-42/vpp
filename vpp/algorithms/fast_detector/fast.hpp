@@ -9,7 +9,7 @@
 # include "immintrin.h"
 #endif
 
-# include <omp.h>
+//# include <omp.h>
 # include <bitset>
 # include <thread>
 # include <vpp/vpp.hh>
@@ -643,45 +643,46 @@ namespace vpp
     return std::move(points);
   }
 
-  template <typename V>
-  void fast_detector9_scores(const image2d<V>& A,
-                             int th, 
-                             const std::vector<vint2> keypoints,
-                             std::vector<int>& scores)
+
+  template <typename V, typename KPS>
+  void fast9_scores(const image2d<V>& A,
+                    int th,
+                    const KPS& keypoints,
+                    std::vector<int>& scores)
   {
     scores.resize(keypoints.size());
-    #pragma omp parallel for simd
+#pragma omp parallel for
     for (int i = 0; i < keypoints.size(); i++)
-      scores[i] = FAST_internals::fast9_score(box_nbh2d<V, 7, 7>(A, keypoints[i]), th);
+      scores[i] = FAST_internals::fast9_score(const_box_nbh2d<V, 7, 7>(A, keypoints[i]), th);
   }
 
   template <typename V>
-  int fast_detector9_score(const image2d<V>& A,
-                           int th, 
-                           vint2 p)
+  int fast9_score(const image2d<V>& A,
+                  int th,
+                  vint2 p)
   {
-    return FAST_internals::fast9_score(box_nbh2d<V, 7, 7>(A, p), th);
+    return FAST_internals::fast9_score(const_box_nbh2d<V, 7, 7>(A, p), th);
   }
 
-  template <typename V, typename M>
+  template <typename V>
   std::vector<vint2> fast_detector9(const image2d<V>& A,
                                     int th,
-                                    const M& mask,
+                                    const image2d<unsigned char>& mask,
                                     std::vector<int>* scores)
   {
     std::vector<vint2> kps;
     FAST_internals::fast_detector9_simd(A, kps, th, mask);
     if (scores)
-      fast_detector9_scores(A, th, kps, *scores);
+      fast9_scores(A, th, kps, *scores);
     return std::move(kps);
   }
 
   template <typename V, typename F, typename M>
   auto fast_detector9_maxima(const image2d<V>& A,
-                                           int th,
-                                           const M& mask,
-                                           std::vector<int>* scores,
-                                           F maxima_filter)
+                             int th,
+                             const M& mask,
+                             std::vector<int>* scores,
+                             F maxima_filter)
   {
     std::vector<vint2> kps;
     FAST_internals::fast_detector9_simd(A, kps, th, mask);
@@ -693,7 +694,7 @@ namespace vpp
     for (int i = 0; i < kps.size(); i++)
     {
       auto p = kps[i];
-      int s = FAST_internals::fast9_score(box_nbh2d<V, 7, 7>(A, p), th);
+      int s = FAST_internals::fast9_score(const_box_nbh2d<V, 7, 7>(A, p), th);
       scores_img(p) = s / 16;
     }
 

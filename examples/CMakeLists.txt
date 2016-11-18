@@ -21,7 +21,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..
          	    ${DIGE_INCLUDE_DIR})
 
 set(LIBS
-         dige
          ${OpenGL_LIBS}
 	 ${OPENGL_gl_LIBRARY}
 	 ${OPENGL_glu_LIBRARY}
@@ -29,9 +28,9 @@ set(LIBS
 
 link_directories(${THIRDPARTY}/lib)
 
-add_definitions(-std=c++1y -g -fopenmp)
-add_definitions(-Ofast -march=native)
-add_definitions(-DNDEBUG)
+add_definitions(-std=c++1y)
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -march=native -fopenmp -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1 -march=native")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories(/usr/include/eigen3)

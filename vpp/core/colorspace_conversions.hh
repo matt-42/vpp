@@ -33,6 +33,20 @@ namespace vpp
   }
   
   template <typename T, typename U, unsigned N>
+  imageNd<T, N> rgb_to_graylevel(const imageNd<vector<U, 4>, N>& in)
+  {
+    typedef T out_type;
+    typedef vector<U, 4> in_type;
+    imageNd<out_type, N> out(in.domain(), _border = in.border(), _aligned = in.alignment());
+    pixel_wise(in.domain_with_border(), in, out) | [] (vint2, const in_type& i, out_type& o)
+    {
+      vector<U, 3> tmp = i.template segment<3>(0);
+      rgb_to_graylevel(tmp, o);
+    };
+    return out;
+  }
+  
+  template <typename T, typename U, unsigned N>
   imageNd<T, N> graylevel_to_rgb(const imageNd<U, N>& in)
   {
     typedef T out_type;

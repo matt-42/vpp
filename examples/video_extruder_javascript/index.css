@@ -1,0 +1,13 @@
+body { font-size: 14px; font-family: arial; }
+canvas
+{
+    float: left;
+}
+.number
+{
+    font-weight: 700; font-size: 20px;
+}
+
+.infos { margin-bottom: 10px;  padding-top: 20px; }
+button, input { height: 50px; font-size: 15px;}
+.ctrls { font-size: 20px; }

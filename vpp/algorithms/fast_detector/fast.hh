@@ -27,10 +27,10 @@ namespace vpp
 
 
 
-  template <typename V>
+  template <typename V, typename KPS>
   void fast9_scores(const image2d<V>& A,
                     int th, 
-                    const std::vector<vint2> keypoints,
+                    const KPS& keypoints,
                     std::vector<int>& scores);
 
   template <typename V>

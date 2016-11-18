@@ -11,10 +11,11 @@ namespace vpp
 {
   struct video_extruder_ctx
   {
-    video_extruder_ctx(box2d domain) : keypoints(domain) {}
+    video_extruder_ctx(box2d domain) : keypoints(domain), frame_id(0) {}
 
     keypoint_container<keypoint<int>, int> keypoints;
     std::vector<keypoint_trajectory> trajectories;
+    int frame_id;
   };
 
 
@@ -45,25 +46,29 @@ namespace vpp
     // Optical flow vectors.
     ctx.keypoints.prepare_matching();
     semi_dense_optical_flow(iod::array_view(ctx.keypoints.size(),
-                                       [&] (int i) { return ctx.keypoints[i].position; }),
-                            [&] (int i, vint2 pos, int distance) { ctx.keypoints.move(i, pos); },
-                            frame1,
-                            frame2);
+                                            [&] (int i) { return ctx.keypoints[i].position; }),
+                            [&] (int i, vint2 pos, int distance) {
+        if (frame1.has(pos))
+            ctx.keypoints.move(i, pos);
+        else ctx.keypoints.remove(i); },
+    frame1,
+    frame2, 9);
 
     // Filtering.
     // Merging.
     {
       image2d<int> idx(frame2.domain().nrows() / keypoint_spacing,
-                       frame2.domain().ncols() / keypoint_spacing);
+                       frame2.domain().ncols() / keypoint_spacing, _border = 1);
 
-      fill(idx, -1);
+      fill_with_border(idx, -1);
       for (int i = 0; i < ctx.keypoints.size(); i++)
       {
         vint2 pos = ctx.keypoints[i].position / keypoint_spacing;
-        assert(idx.has(pos));
+        //assert(idx.has(pos));
         if (idx(pos) >= 0)
         {
-          auto& other = ctx.keypoints[idx(pos)];
+          assert(idx(pos) < ctx.keypoints.size());
+          auto other = ctx.keypoints[idx(pos)];
           if (other.age < ctx.keypoints[i].age)
           {
             ctx.keypoints.remove(idx(pos));
@@ -77,31 +82,53 @@ namespace vpp
       }
     }
 
+    // Remove points with very low fast scores.
+    {
+      for (int i = 0; i < ctx.keypoints.size(); i++)
+        if (fast9_score(frame2, detector_th, ctx.keypoints[i].position) < 3)
+          ctx.keypoints.remove(i);
+    }
+
     // Detect new keypoints.
     {
-      image2d<int> mask(frame2.domain().nrows(),
-                        frame2.domain().ncols(),
-                        _border = keypoint_spacing);
-
-      fill_with_border(mask, 0);
-      for (int i = 0; i < ctx.keypoints.size(); i++)
+      if (!(ctx.frame_id % detector_period))
       {
-        int r = ctx.keypoints[i].position[0];
-        int c = ctx.keypoints[i].position[1];
-        for (int dr = -keypoint_spacing; dr < -keypoint_spacing; dr++)
-          for (int dc = -keypoint_spacing; dc < -keypoint_spacing; dc++)
-            mask[r + dr][c + dc] = 1;
-      }
+        image2d<unsigned char> mask(frame2.domain().nrows(),
+                          frame2.domain().ncols(),
+                          _border = keypoint_spacing);
 
-      auto kps = fast9(frame2, detector_th, _blockwise,
-                       _block_size = keypoint_spacing,
-                       _mask = mask);
-      for (auto kp : kps)
-        ctx.keypoints.add(keypoint<int>(kp));
-      
-      // Trajectories update.
-      ctx.keypoints.sync_attributes(ctx.trajectories);
+        fill_with_border(mask, 1);
+        for (int i = 0; i < ctx.keypoints.size(); i++)
+        {
+          int r = ctx.keypoints[i].position[0];
+          int c = ctx.keypoints[i].position[1];
+          for (int dr = -keypoint_spacing; dr < keypoint_spacing; dr++)
+            for (int dc = -keypoint_spacing; dc < keypoint_spacing; dc++)
+              mask[r + dr][c + dc] = 0;
+        }
+
+        auto kps = fast9(frame2, detector_th, _blockwise,
+                         _block_size = keypoint_spacing,
+                         _mask = mask);
+        for (auto kp : kps)
+          ctx.keypoints.add(keypoint<int>(kp));
+
+        ctx.keypoints.compact();
+        ctx.keypoints.sync_attributes(ctx.trajectories);
+
+      }
     }
+
+    // Trajectories update.
+    for (int i = 0; i < ctx.keypoints.size(); i++)
+    {
+      if (ctx.keypoints[i].alive())
+        ctx.trajectories[i].move_to(ctx.keypoints[i].position.template cast<float>());
+      else
+        ctx.trajectories[i].die();
+    }
+
+    ctx.frame_id++;
   }
   
 }

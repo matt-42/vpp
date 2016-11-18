@@ -80,12 +80,36 @@ namespace vpp
     }
   }
 
+
+  template <typename V>
+  void subsample(const image2d<V>& in, image2d<V>& out, float factor)
+  {
+    int nr = out.nrows();
+    int nc = out.ncols();
+
+    typedef plus_promotion<V> S;
+#pragma omp parallel for
+    for (int r = 0; r < nr; r++)
+    {
+      V* out_row = &out(r, 0);
+      const V* row1 = &in(int(r * factor), 0);
+      const V* row2 = &in(int(r * factor) + 1, 0);
+#pragma omp simd
+      for (int c = 0; c < nc; c++)
+      {
+        out_row[c] = row1[int(c * factor)];
+        // out_row[c] = vpp::cast<V, S>((cast<S>(row1[c * 2]) + cast<S>(row1[c * 2 + 1]) +
+        //                               cast<S>(row2[c * 2]) + cast<S>(row2[c * 2 + 1])) / 4);
+      }
+    }
+  }
+  
   template <typename V>
   image2d<V> antialias_subsample2(const image2d<V>& in)
   {
     auto tmp = clone(in, _border = std::max(in.border(), 1));
     antialiasing_lowpass_filter(in, tmp);
-    image2d<V> tmp2(in.nrows() / 2, in.ncols() / 2, _border = std::max(in.border(), 1));
+    image2d<V> tmp2(1 + (in.nrows() / 2), 1 + (in.ncols() / 2), _border = std::max(in.border(), 1));
     subsample2(tmp, tmp2);
     return tmp2;
   }
@@ -98,20 +122,20 @@ namespace vpp
     typedef imageNd<V, N> image_type;
 
     template <typename... O>
-    pyramid(boxNd<N> d, int nlevels, int factor, const O&... image_options)
+    pyramid(boxNd<N> d, int nlevels, float factor, const O&... image_options)
       : levels_(nlevels),
         factor_(factor)
     {
       for (int i = 0; i < nlevels; i++)
       {
         levels_[i] = imageNd<V, N>(d, image_options...);
-        d = make_box2d(d.nrows() / factor, d.ncols() / factor);
+        d = make_box2d(1 + (d.nrows() / factor), 1 + (d.ncols() / factor));
       }
     }
 
 
     template <typename... O>
-    pyramid(const imageNd<V, N>& img, int nlevels, int factor, const O&... image_options)
+    pyramid(const imageNd<V, N>& img, int nlevels, float factor, const O&... image_options)
       : levels_(nlevels),
         factor_(factor)
     {
@@ -119,7 +143,7 @@ namespace vpp
       for (int i = 0; i < nlevels; i++)
       {
         levels_[i] = imageNd<V, N>(d, image_options...);
-        d = make_box2d(d.nrows() / factor, d.ncols() / factor);
+        d = make_box2d(1 + (d.nrows() / factor), 1 + (d.ncols() / factor));
       }
       update(img);
     }
@@ -141,7 +165,7 @@ namespace vpp
 
       for (int i = 1; i < levels_.size(); i++)
       {
-        if (factor_ == 2)
+        if (factor_ == 2.f)
         {
           //image_type tmp = tmp_.subimage(levels_[i - 1].domain());
           image_type tmp(levels_[i - 1].domain(), _border = 3);
@@ -150,7 +174,12 @@ namespace vpp
           fill_border_mirror(levels_[i]);
         }
         else
-          assert(0); // Not implemented.
+        {
+          image_type tmp(levels_[i - 1].domain(), _border = 3);
+          antialiasing_lowpass_filter(levels_[i - 1], tmp);
+          subsample(tmp, levels_[i], factor_);
+          fill_border_mirror(levels_[i]);
+        }
       }
     }
 
@@ -160,7 +189,7 @@ namespace vpp
       propagate_level0();
     }
 
-    int factor() const { return factor_; }
+    float factor() const { return factor_; }
     int size() const { return levels_.size(); }
 
     void swap(pyramid<V, N>& o)
@@ -174,7 +203,7 @@ namespace vpp
 
   private:
     std::vector<image_type> levels_;
-    int factor_;
+    float factor_;
   };
 
   template <typename V>

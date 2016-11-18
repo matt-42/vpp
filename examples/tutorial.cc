@@ -29,9 +29,9 @@ int main()
   pixel_wise(nbh, out) | [] (auto& n, auto& b) {
     vint3 sum = vint3::Zero();
 
-    sum += n(0, -1).cast<int>();
-    sum += n(0, 0).cast<int>();
-    sum += n(0, 1).cast<int>();
+    sum += n(0, -1).template cast<int>();
+    sum += n(0, 0).template cast<int>();
+    sum += n(0, 1).template cast<int>();
 
     b = (sum / 3).cast<unsigned char>();
   };
