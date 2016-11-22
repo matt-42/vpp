@@ -47,3 +47,7 @@ target_link_libraries(tutorial ${OpenCV_LIBS} ${LIBS} gomp)
 
 add_executable(video_extruder video_extruder.cc)
 target_link_libraries(video_extruder ${OpenCV_LIBS} ${LIBS} gomp)
+
+
+add_executable(video_extruder_paint video_extruder_paint.cc)
+target_link_libraries(video_extruder_paint ${OpenCV_LIBS} ${LIBS} gomp)

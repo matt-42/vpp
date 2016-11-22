@@ -74,7 +74,7 @@ namespace vpp
                           const image2d<unsigned char>& i2, const int winsize)
   {
   //    const int winsize = 7;
-    const int nscales = 5;
+    const int nscales = 4;
     const int min_scale = 0;
 
     auto pf_domain = make_box2d(i1.domain().nrows() / winsize,

@@ -43,16 +43,18 @@ namespace vpp
     int keypoint_spacing = opts.get(_keypoint_spacing, 10);
     int detector_period = opts.get(_detector_period, 5);
 
+    const int winsize = 9;
+
     // Optical flow vectors.
     ctx.keypoints.prepare_matching();
     semi_dense_optical_flow(iod::array_view(ctx.keypoints.size(),
                                             [&] (int i) { return ctx.keypoints[i].position; }),
                             [&] (int i, vint2 pos, int distance) {
-        if (frame1.has(pos))
+                              if (frame1.has(pos) and distance < (20 * winsize * winsize) )
             ctx.keypoints.move(i, pos);
         else ctx.keypoints.remove(i); },
     frame1,
-    frame2, 9);
+    frame2, winsize);
 
     // Filtering.
     // Merging.
@@ -123,7 +125,11 @@ namespace vpp
     for (int i = 0; i < ctx.keypoints.size(); i++)
     {
       if (ctx.keypoints[i].alive())
+      {
         ctx.trajectories[i].move_to(ctx.keypoints[i].position.template cast<float>());
+        if (ctx.trajectories[i].size() > 15)
+          ctx.trajectories[i].pop_oldest_position();
+      }
       else
         ctx.trajectories[i].die();
     }
