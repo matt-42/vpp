@@ -21,11 +21,13 @@ script:
 - export CXX=${COMPILER}
 - ${CXX} --version
 
+- export VPP_DIR=$PWD
 - git clone https://github.com/matt-42/iod
 - cd iod
 - mkdir -p ~/local
 - mkdir build && cd build && cmake .. -DCMAKE_INSTALL_PREFIX=~/local && make -j4 install;
 
+- cd $VPP_DIR
 - mkdir -p build && cd build
 - cmake .. && make -j4
 - cd tests
