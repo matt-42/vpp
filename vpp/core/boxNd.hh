@@ -22,6 +22,8 @@ namespace vpp
       : p1_(p1),
         p2_(p2)
     {
+      for (unsigned i = 0; i < N; i++)
+        size_[i] = compute_size(i);
     }
 
     inline bool has(const coord_type& p) const
@@ -50,19 +52,23 @@ namespace vpp
     inline const coord_type& p1() const { return p1_; }
     inline const coord_type& p2() const { return p2_; }
 
-    inline coord_type& p1() { return p1_; }
-    inline coord_type& p2() { return p2_; }
-
-    inline int size(int d) const {
+    inline int compute_size(int d) const {
       assert(d >= 0);
       assert(d < N);
       return p2_[d] - p1_[d] + 1;
     }
 
-    inline int ncols() const { return size(N - 1); }
-    inline int nrows() const { return size(N - 2); }
+    inline const int& size(int d) const {
+      assert(d >= 0);
+      assert(d < N);
+      return size_[d];
+    }
+    
+    inline const int& ncols() const { return size_[N - 1]; }
+    inline const int& nrows() const { return size_[N - 2]; }
 
   private:
+    coord_type size_;
     coord_type p1_;
     coord_type p2_;
   };
@@ -113,30 +119,30 @@ namespace vpp
   template <unsigned N, typename C>
   boxNd<N, C> operator-(const boxNd<N, C>& b, const border& border)
   {
-    boxNd<N, C> res = b;
-
+    auto p1 = b.p1();
+    auto p2 = b.p2();
     for (int n = 0; n < N; n++)
     {
-      res.p1()[n] += border.size();
-      res.p2()[n] -= border.size();
+      p1[n] += border.size();
+      p2[n] -= border.size();
     }
 
-    return res;
+    return boxNd<N, C>(p1, p2);
   }
 
 
   template <unsigned N, typename C>
   boxNd<N, C> operator+(const boxNd<N, C>& b, const border& border)
   {
-    boxNd<N, C> res = b;
-
+    auto p1 = b.p1();
+    auto p2 = b.p2();
     for (int n = 0; n < N; n++)
     {
-      res.p1()[n] -= border.size();
-      res.p2()[n] += border.size();
+      p1[n] -= border.size();
+      p2[n] += border.size();
     }
 
-    return res;
+    return boxNd<N, C>(p1, p2);
   }
 
   template <unsigned N>

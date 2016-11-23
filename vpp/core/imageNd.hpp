@@ -184,9 +184,10 @@ namespace vpp
 
     d.data_end_ = d.data_ + size / sizeof(V);
     assert(!(ULL(d.data_) % align_size));
-    d.domain_.p1() = vint<N>::Zero();
+    vint<N> p2;
     for (unsigned i = 0; i < N; i++)
-      d.domain_.p2()[i] = dims[i] - 1;
+      p2[i] = dims[i] - 1;
+    d.domain_ = boxNd<N, int>(vint<N>::Zero(), p2);
 
     // Set begin_, the address of the first pixel.
     vint<N> p = vint<N>::Ones() * d.border_;
@@ -327,10 +328,7 @@ namespace vpp
     res.ptr_ = std::shared_ptr<imageNd_data<V, N>>(new imageNd_data<V, N>());
     *res.ptr_.get() = *(this->ptr_.get()); // Copy the image data.
     res.ptr_->begin_ = address_of(d.p1());
-    boxNd<N> domain = d;
-    domain.p2() -= domain.p1();
-    domain.p1() -= domain.p1();
-    res.ptr_->domain_ = domain;
+    res.ptr_->domain_ = boxNd<N>(d.p1() - d.p1(), d.p2() - d.p1());
 
     for (auto& r_start : res.ptr_->rows_)
       r_start += d.p1()[1] - this->domain().p1()[1];
@@ -351,11 +349,7 @@ namespace vpp
     res.ptr_ = std::shared_ptr<imageNd_data<V, N>>(new imageNd_data<V, N>());
     *res.ptr_.get() = *(this->ptr_.get());
     res.ptr_->begin_ = const_cast<V*>(address_of(d.p1()));
-    boxNd<N> domain = d;
-    domain.p2() -= domain.p1();
-    domain.p1() -= domain.p1();
-    res.ptr_->domain_ = domain;
-
+    res.ptr_->domain_ = boxNd<N>(d.p1() - d.p1(), d.p2() - d.p1());
 
     for (auto& r_start : res.ptr_->rows_)
       r_start += d.p1()[1] - this->domain().p1()[1];

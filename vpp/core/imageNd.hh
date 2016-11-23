@@ -85,9 +85,9 @@ namespace vpp
     // Destructor.
     ~imageNd();
 
-    inline int nslices() const { static_assert(N >= 3, "nslices require dimension >= 3."); return domain().size(N-3); }
-    inline int nrows() const { static_assert(N >= 2, "nrows require dimension >= 2."); return domain().size(N-2); }
-    inline int ncols() const { static_assert(N >= 1, "ncols require dimension >= 1."); return domain().size(N-1); }
+    inline const int& nslices() const { static_assert(N >= 3, "nslices require dimension >= 3."); return domain().size(N-3); }
+    inline const int& nrows() const { static_assert(N >= 2, "nrows require dimension >= 2."); return domain().size(N-2); }
+    inline const int& ncols() const { static_assert(N >= 1, "ncols require dimension >= 1."); return domain().size(N-1); }
 
     // Assigment.
     imageNd<V, N>& operator=(const imageNd<V, N>& other);
