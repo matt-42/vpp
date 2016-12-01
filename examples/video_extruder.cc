@@ -22,11 +22,19 @@ int main(int argc, const char* argv[])
                                  cl::required(_video),
                                  _video = std::string(),
                                  _detector_th = int(10),
-                                 _keypoint_spacing = int(5));
+                                 _keypoint_spacing = int(5),
+                                 _record_video = std::string());
 
   box2d domain = videocapture_domain(opts.video.c_str());
   video_extruder_ctx ctx = video_extruder_init(domain);
 
+  cv::VideoWriter output_video;
+  if (opts.record_video.size())
+  {
+    output_video.open(opts.record_video, cv::VideoWriter::fourcc('M','J','P','G'), 30.f,
+                      cv::Size(domain.ncols(), domain.nrows()), true);
+  }
+  
   image2d<unsigned char> prev_frame(domain);
 
   bool first = true;
@@ -57,8 +65,11 @@ int main(int argc, const char* argv[])
     auto display = clone(frame);
     draw::draw_trajectories(display, ctx.trajectories, 200);
     cv::imshow("Trajectories", to_opencv(display));
-    cv::waitKey(50);
+    cv::waitKey(1);
 
+    if (output_video.isOpened())
+      output_video << to_opencv(display);
+    
     nframes++;
   };
   

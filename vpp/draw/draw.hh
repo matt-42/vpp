@@ -102,8 +102,8 @@ namespace vpp
         if (out.has(to_plot))
         {
           plot_color(out, to_plot, color);
-          if (out.has(n1)) plot_color_antialias(out, n1, color);
-          if (out.has(n2)) plot_color_antialias(out, n2, color);
+          // if (out.has(n1)) plot_color_antialias(out, n1, color);
+          // if (out.has(n2)) plot_color_antialias(out, n2, color);
         }
 
         error = error + deltaerr;
@@ -118,7 +118,7 @@ namespace vpp
 
     using namespace vpp;
     template <typename V, typename U>
-    void line2d(vint2 a, vint2 b, V paint, U paint_border)
+    void line2d(vint2 a, vint2 b, V paint, U paint_border, int line_width = 5)
     {
       int x0 = a[1]; int y0 = a[0];
       int x1 = b[1]; int y1 = b[0];
@@ -164,7 +164,7 @@ namespace vpp
 
         float interp = float(x - x0) / (x1 - x0);
         paint(to_plot, interp);
-        for (int bi = 1; bi < 5; bi++)
+        for (int bi = 1; bi < line_width / 2; bi++)
         {
           paint_border(to_plot + bi * d1, interp, bi);
           paint_border(to_plot + bi * d2, interp, bi);

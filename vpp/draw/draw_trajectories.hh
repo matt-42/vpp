@@ -31,7 +31,7 @@ namespace vpp
       vuchar3 pt_color = hsv_to_rgb((M_PI + atan2(p2[0] - p1[0], p2[1] - p1[1])) * 180.f / M_PI, 1.f, 1.f);
 
       int last_frame_id = std::max(t.end_frame() - max_trajectory_len, t.start_frame());
-      if ((p1 - t.position_at_frame(last_frame_id).template cast<int>()).norm() < 30)
+      if ((p1 - t.position_at_frame(last_frame_id).template cast<int>()).norm() < 4)
         continue;
 
       for (int i = t.end_frame(); i >= std::max(t.end_frame() - max_trajectory_len, t.start_frame()) + 1; i--)
@@ -40,8 +40,9 @@ namespace vpp
         vint2 p2 = t.position_at_frame(i - 1).template cast<int>();
         vuchar4 color;
         color.segment<3>(0) = pt_color;
-
         color[3] = 0.4f*(255.f - 255.f * (t.end_frame() - i) / max_trajectory_len);
+
+        color = vuchar4(0,255,0,255);
         draw::line2d(out, p1, p2,
                      color
                      //)
@@ -49,7 +50,7 @@ namespace vpp
       }
 
       //draw::c9(out, t.position().template cast<int>(), pt_color);
-      //draw::c9(out, t.position().template cast<int>(), vuchar3(0,0,255));
+      draw::c9(out, t.position().template cast<int>(), vuchar3(0,0,255));
 
     }
   }

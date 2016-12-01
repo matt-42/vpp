@@ -37,7 +37,7 @@ void paint(std::vector<keypoint_trajectory>& trs,
 
       float alpha = std::min(1.f, speed / 10);
 
-      auto paint = [&] (vint2 x)
+      auto paint = [&] (vint2 x, float a)
         {
           if (!paint_buffer.has(x)) return;
           vuchar4 c;
@@ -46,7 +46,7 @@ void paint(std::vector<keypoint_trajectory>& trs,
           vpp::draw::plot_color(paint_buffer, x, c);
         };
 
-      auto paint2 = [&] (vint2 x)
+      auto paint2 = [&] (vint2 x, float a, int d)
         {
           if (!paint_buffer.has(x)) return;
           vuchar4 c;
@@ -69,7 +69,8 @@ int main(int argc, const char* argv[])
                                  cl::required(_video),
                                  _video = std::string(),
                                  _detector_th = int(10),
-                                 _keypoint_spacing = int(5));
+                                 _keypoint_spacing = int(5),
+                                 _record_video = std::string());
 
   box2d domain = videocapture_domain(opts.video.c_str());
   video_extruder_ctx ctx = video_extruder_init(domain);
@@ -80,6 +81,13 @@ int main(int argc, const char* argv[])
   
   bool first = true;
   int nframes = 0;
+
+  cv::VideoWriter output_video;
+  if (opts.record_video.size())
+  {
+    output_video.open(opts.record_video, cv::VideoWriter::fourcc('M','J','P','G'), 30.f,
+                      cv::Size(domain.ncols(), domain.nrows()), true);
+  }
 
   int us_cpt = 0;
   foreach_videoframe(opts.video.c_str()) | [&] (const image2d<vuchar3>& frame)
@@ -112,9 +120,12 @@ int main(int argc, const char* argv[])
     };
     //draw::draw_trajectories(display, ctx.trajectories, 200);
     cv::imshow("Trajectories", to_opencv(display));
-    cv::waitKey(15);
+    cv::waitKey(1);
 
+    if (output_video.isOpened())
+      output_video << to_opencv(display);
     nframes++;
   };
-  
+
+  output_video.release();
 }

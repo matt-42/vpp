@@ -90,10 +90,15 @@ namespace vpp
     for (int scale = nscales - 1; scale >= min_scale; scale--)
     {
       int scale_div= std::pow(2, scale);
-      auto& i1 = pyr_i1[scale];
-      auto& i2 = pyr_i2[scale];
+      image2d<unsigned char> i1 = pyr_i1[scale];
+      image2d<unsigned char> i2 = pyr_i2[scale];
 
+      // i1 = clone(i1, _border = 10);
+      // i2 = clone(i2, _border = 10);
+      fill_border_mirror(i1);
+      fill_border_mirror(i2);
 
+      
       float PC = 1.f;
 
       // Distance function
@@ -103,12 +108,13 @@ namespace vpp
           {
             //return ve_internals::sad_distance_static_size<winsize>(i1, i2, a, b, max_distance);
             //return ve_internals::sad_distance(i1, i2, a, b, winsize * PC, max_distance);
-            switch (winsize)
+            switch (int(winsize * PC))
             {
             case 5: return ve_internals::sad_distance_static_size<5>(i1, i2, a, b, max_distance);
             case 7: return ve_internals::sad_distance_static_size<7>(i1, i2, a, b, max_distance);
             case 9: return ve_internals::sad_distance_static_size<9>(i1, i2, a, b, max_distance);
             case 11: return ve_internals::sad_distance_static_size<11>(i1, i2, a, b, max_distance);
+            case 18: return ve_internals::sad_distance_static_size<18>(i1, i2, a, b, max_distance);
             default: return ve_internals::sad_distance(i1, i2, a, b, winsize * PC, max_distance);
             }
           }

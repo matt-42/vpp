@@ -43,7 +43,7 @@ namespace vpp
     int keypoint_spacing = opts.get(_keypoint_spacing, 10);
     int detector_period = opts.get(_detector_period, 5);
 
-    const int winsize = 9;
+    const int winsize = 7;
 
     // Optical flow vectors.
     ctx.keypoints.prepare_matching();
