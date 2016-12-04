@@ -152,6 +152,65 @@ namespace vpp
           distance_map[scale](p / winsize) = m.second;
         }
       }
+
+      // Regularisation
+      //if (scale != 0)
+      const int regularization_niter = 4;
+      for (int Ki = 0; Ki < regularization_niter; Ki++)
+      {
+
+        auto loop_body = [&] (int r, int c)
+          {
+            auto& flow_map = pyr_flow_map[scale];
+            vint2 p(r, c);
+            vint2 pf(r / winsize, c / winsize);
+
+            if (!pyr_flow_map_mark[scale](pf)) return;
+
+            vint2 prev_flow = flow_map(pf);
+            for (int dr = -1; dr <= 1; dr++)
+              for (int dc = -1; dc <= 1; dc++)
+              {
+                if (!dr and !dc) continue;
+                vint2 pfn(pf[0] + dr, pf[1] + dc);
+                if (flow_map.has(pfn) and pyr_flow_map_mark[scale](pfn) and
+                    (flow_map(pf) - flow_map(pfn)).norm() > 2 and
+                    (prev_flow - flow_map(pfn)).norm() > 2)
+                {
+                  // Two neighbors with high divergence.
+                  int d1 = distance_map[scale](pf);
+                  int d2 = distance(p, p + flow_map(pfn), INT_MAX);
+
+                  if (d2 < d1)
+                  {
+                    auto m = gradient_descent_match(p, p + flow_map(pfn), distance, 3);
+
+                    // Register match.
+                    vint2 match = p + m.first;
+                    if (m.second < d1)
+                    {
+                      pyr_flow_map_mark[scale](pf) = true;
+                      pyr_flow_map[scale](pf) = match - p;
+                      distance_map[scale](pf) = m.second;
+                    }
+                
+                  }
+                }
+              }
+          };
+
+        if (Ki % 2)
+#pragma omp parallel for
+          for (int r = 0; r < i1.nrows(); r+= winsize)
+            for (int c = 0; c < i1.ncols(); c+= winsize)
+              loop_body(r, c);
+        else
+#pragma omp parallel for
+          for (int r = i1.nrows() - 1; r >= 0; r-= winsize)
+            for (int c = i1.ncols() - 1; c >= 0; c-= winsize)
+              loop_body(r, c);
+      }
+      
     }
 
     for (int pi = 0; pi < keypoints.size(); pi++)

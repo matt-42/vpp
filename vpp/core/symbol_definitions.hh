@@ -130,6 +130,11 @@
     iod_define_symbol(max_points_per_block)
 #endif
 
+#ifndef IOD_SYMBOL_max_trajectory_length
+#define IOD_SYMBOL_max_trajectory_length
+    iod_define_symbol(max_trajectory_length)
+#endif
+
 #ifndef IOD_SYMBOL_mem_backward
 #define IOD_SYMBOL_mem_backward
     iod_define_symbol(mem_backward)

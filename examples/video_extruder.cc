@@ -50,7 +50,8 @@ int main(int argc, const char* argv[])
       video_extruder_update(ctx, prev_frame, frame_gl,
                             _detector_th = opts.detector_th,
                             _keypoint_spacing = opts.keypoint_spacing,
-                            _detector_period = 5);
+                            _detector_period = 5,
+                            _max_trajectory_length = 100);
     else first = false;
     t.end();
 

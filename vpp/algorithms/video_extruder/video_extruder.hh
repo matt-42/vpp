@@ -42,8 +42,9 @@ namespace vpp
     int detector_th = opts.get(_detector_th, 10);
     int keypoint_spacing = opts.get(_keypoint_spacing, 10);
     int detector_period = opts.get(_detector_period, 5);
+    int max_trajectory_length = opts.get(_max_trajectory_length, 15);
 
-    const int winsize = 7;
+    const int winsize = 9;
 
     // Optical flow vectors.
     ctx.keypoints.prepare_matching();
@@ -127,7 +128,7 @@ namespace vpp
       if (ctx.keypoints[i].alive())
       {
         ctx.trajectories[i].move_to(ctx.keypoints[i].position.template cast<float>());
-        if (ctx.trajectories[i].size() > 15)
+        if (ctx.trajectories[i].size() > max_trajectory_length)
           ctx.trajectories[i].pop_oldest_position();
       }
       else
