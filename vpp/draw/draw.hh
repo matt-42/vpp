@@ -30,7 +30,12 @@ namespace vpp
             out(n) = color;
         }
     }
- 
+
+    inline void plot_color(image2d<vuchar3>& out, vint2 p, vuchar3 rgb)
+    {
+      out(p) = rgb;
+    }
+    
     inline void plot_color(image2d<vuchar3>& out, vint2 p, vuchar4 rgba)
     {
       vuchar3 color = ((out(p).cast<int>() * (255 - rgba[3]) + rgba.segment<3>(0).cast<int>() * rgba[3]) / 255).cast<unsigned char>();

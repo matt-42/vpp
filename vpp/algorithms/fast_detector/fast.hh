@@ -14,7 +14,7 @@ namespace vpp
   //  _blockwise_rank: blockwise rank selection (several kp per block).
   //
   //  _block_size = int(): block size ised by _blockwise and _blockwise_rank.
-  //  _max_points_per_block = int(): block size ised by _blockwise and _blockwise_rank.
+  //  _max_points_per_block = int(): block size used by _blockwise and _blockwise_rank.
   //  _mask = image2d<unsigned char>
   //  _scores = &std::vector<int>
   //
@@ -24,8 +24,6 @@ namespace vpp
   std::vector<vint2> fast9(const image2d<V>& A,
                            int th,
                            OPTS... opts);
-
-
 
   template <typename V, typename KPS>
   void fast9_scores(const image2d<V>& A,

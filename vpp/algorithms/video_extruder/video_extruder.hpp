@@ -4,28 +4,17 @@
 #include <vpp/core/keypoint_trajectory.hh>
 #include <vpp/core/keypoint_container.hh>
 #include <vpp/core/symbols.hh>
-#include <vpp/algorithms/video_extruder/optical_flow.hh>
+#include <vpp/algorithms/symbols.hh>
+#include <vpp/algorithms/optical_flow.hh>
 #include <vpp/algorithms/fast_detector/fast.hh>
 
 namespace vpp
 {
-  struct video_extruder_ctx
-  {
-    video_extruder_ctx(box2d domain) : keypoints(domain), frame_id(0) {}
-
-    keypoint_container<keypoint<int>, int> keypoints;
-    std::vector<keypoint_trajectory> trajectories;
-    int frame_id;
-  };
-
 
   // Init the video extruder.
   video_extruder_ctx video_extruder_init(box2d domain)
   {
     video_extruder_ctx res(domain);
-
-    // Setup parameters ?
-
     return res;
   }
 
@@ -39,26 +28,32 @@ namespace vpp
   {
     // Options.
     auto opts = D(options...);
-    int detector_th = opts.get(_detector_th, 10);
-    int keypoint_spacing = opts.get(_keypoint_spacing, 10);
-    int detector_period = opts.get(_detector_period, 5);
-    int max_trajectory_length = opts.get(_max_trajectory_length, 15);
 
-    const int winsize = 9;
+    const int detector_th = opts.get(_detector_th, 10);
+    const int keypoint_spacing = opts.get(_keypoint_spacing, 10);
+    const int detector_period = opts.get(_detector_period, 5);
+    const int max_trajectory_length = opts.get(_max_trajectory_length, 15);
+    const int nscales = opts.get(_nscales, 3);
+    const int winsize = opts.get(_winsize, 9);
+    const int regularisation_niters = opts.get(_propagation, 2);
 
     // Optical flow vectors.
     ctx.keypoints.prepare_matching();
-    semi_dense_optical_flow(iod::array_view(ctx.keypoints.size(),
-                                            [&] (int i) { return ctx.keypoints[i].position; }),
-                            [&] (int i, vint2 pos, int distance) {
-                              if (frame1.has(pos) and distance < (20 * winsize * winsize) )
-            ctx.keypoints.move(i, pos);
+    semi_dense_optical_flow
+      (iod::array_view(ctx.keypoints.size(),
+                       [&] (int i) { return ctx.keypoints[i].position; }),
+       [&] (int i, vint2 pos, int distance) {
+        if (frame1.has(pos) and distance < (20 * winsize * winsize) )
+          ctx.keypoints.move(i, pos);
         else ctx.keypoints.remove(i); },
-    frame1,
-    frame2, winsize);
+       frame1, frame2,
+       _winsize = winsize,
+       _patchsize = 5,
+       _propagation = regularisation_niters,
+       _nscales = nscales);
 
     // Filtering.
-    // Merging.
+    // Merge particules that converged to the same pixel.
     {
       image2d<int> idx(frame2.domain().nrows() / keypoint_spacing,
                        frame2.domain().ncols() / keypoint_spacing, _border = 1);
