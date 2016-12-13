@@ -4,7 +4,7 @@
 #include <iod/timer.hh>
 
 #include <vpp/vpp.hh>
-#include <vpp/algorithms/video_extruder/video_extruder.hh>
+#include <vpp/algorithms/video_extruder.hh>
 #include <vpp/utils/opencv_bridge.hh>
 #include <vpp/utils/opencv_utils.hh>
 #include <vpp/draw/draw_trajectories.hh>

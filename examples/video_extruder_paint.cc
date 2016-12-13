@@ -3,6 +3,8 @@
 #include <iod/parse_command_line.hh>
 #include <iod/timer.hh>
 
+#include <vpp/algorithms/symbols.hh>
+
 #include <vpp/vpp.hh>
 #include <vpp/algorithms/video_extruder/video_extruder.hh>
 #include <vpp/utils/opencv_bridge.hh>
@@ -12,6 +14,7 @@
 
 using namespace iod;
 using namespace vpp;
+using namespace s;
 
 void paint(std::vector<keypoint_trajectory>& trs,
            image2d<vuchar4>& paint_buffer)
@@ -99,7 +102,10 @@ int main(int argc, const char* argv[])
       video_extruder_update(ctx, prev_frame, frame_gl,
                             _detector_th = opts.detector_th,
                             _keypoint_spacing = opts.keypoint_spacing,
-                            _detector_period = 5);
+                            _detector_period = 5,
+                            _nscales = 2,
+                            _winsize = 9,
+                            _propagation = 6);
     else first = false;
     t.end();
 
