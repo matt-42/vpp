@@ -52,7 +52,7 @@ namespace vpp
     auto opts = D(options...);
     const int winsize = opts.get(_winsize, 7);
     const int nscales = opts.get(_nscales, 4);
-    const int min_scale = opts.get(_min_scale, 1);
+    const int min_scale = opts.get(_min_scale, 0);
     const int propagation_niters = opts.get(_propagation, 2);
     const int patchsize = opts.get(_patchsize, 5);
 

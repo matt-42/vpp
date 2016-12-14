@@ -16,6 +16,7 @@ Tested compilers: **G++ 4.9.1, Clang++ 3.5.0**
 Dependencies:
   - [the iod library](http://github.com/matt-42/iod)
   - [Eigen 3](http://eigen.tuxfamily.org)
+  - [Boost](http://www.boost.org/)
 
 
 **Because Video++ relies on C++14 features, only compilers fully supporting this standard are able to
@@ -37,7 +38,26 @@ welcome to cite us :
 
 ## Getting Started
 
-Video++ is a header-only library, To start coding, include the vpp.hh
+### Installation.
+
+Before installing Video++, you need to get Eigen3 and Boost on your
+system. Most package managers deliver these libraries.
+
+To install Video++ and its dependency Iod, follow these steps:
+
+```
+git clone https://github.com/matt-42/vpp.git
+cd vpp
+./install.sh your_install_prefix # Install iod and vpp in a given prefix
+```
+
+The script install.sh will install the iod and vpp headers.
+
+
+Video++ is a header-only library,
+
+
+To start coding, include the vpp.hh
 header to access the core of the library:
 
 ```c++

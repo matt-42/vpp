@@ -7,10 +7,16 @@
 namespace vpp
 {
 
+  template <typename... OPTS
   void draw_trajectories(image2d<vuchar3>& out, std::vector<keypoint_trajectory>& trs,
-                         int max_trajectory_len)
+                         int max_trajectory_len,
+                         OPTS... opts)
   {
+    auto options = D(opts...);
 
+    auto trajectory_color = options.get(_trajectory_color, [] (int i) {
+        return vuchar3(255, 255, 0)});
+    
     if (max_trajectory_len == -1)
       max_trajectory_len = INT_MAX;
 
@@ -45,7 +51,6 @@ namespace vpp
         color = vuchar4(0,255,0,255);
         draw::line2d(out, p1, p2,
                      color
-                     //)
                      );
       }
 

@@ -15,6 +15,7 @@ namespace vpp
   video_extruder_ctx video_extruder_init(box2d domain)
   {
     video_extruder_ctx res(domain);
+    res.frame_id = -1;
     return res;
   }
 
@@ -26,6 +27,8 @@ namespace vpp
                              //float precision_runtime_balance = 0,
                              OPTS... options)
   {
+    ctx.frame_id++;
+    
     // Options.
     auto opts = D(options...);
 
@@ -43,7 +46,8 @@ namespace vpp
       (iod::array_view(ctx.keypoints.size(),
                        [&] (int i) { return ctx.keypoints[i].position; }),
        [&] (int i, vint2 pos, int distance) {
-        if (frame1.has(pos) and distance < (20 * winsize * winsize) )
+        if (frame1.has(pos) // and distance < (20 * winsize * winsize)
+          )
           ctx.keypoints.move(i, pos);
         else ctx.keypoints.remove(i); },
        frame1, frame2,
@@ -72,7 +76,7 @@ namespace vpp
             ctx.keypoints.remove(idx(pos));
             idx(pos) = i;
           }
-          else
+          if (other.age > ctx.keypoints[i].age)
             ctx.keypoints.remove(i);
         }
         else
@@ -112,7 +116,8 @@ namespace vpp
           ctx.keypoints.add(keypoint<int>(kp));
 
         ctx.keypoints.compact();
-        ctx.keypoints.sync_attributes(ctx.trajectories);
+        ctx.keypoints.sync_attributes(ctx.trajectories, keypoint_trajectory(ctx.frame_id));
+        //ctx.keypoints.sync_attributes(ctx.trajectories);
 
       }
     }
@@ -130,7 +135,6 @@ namespace vpp
         ctx.trajectories[i].die();
     }
 
-    ctx.frame_id++;
   }
   
 }

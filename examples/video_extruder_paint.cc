@@ -6,7 +6,7 @@
 #include <vpp/algorithms/symbols.hh>
 
 #include <vpp/vpp.hh>
-#include <vpp/algorithms/video_extruder/video_extruder.hh>
+#include <vpp/algorithms/video_extruder.hh>
 #include <vpp/utils/opencv_bridge.hh>
 #include <vpp/utils/opencv_utils.hh>
 
@@ -21,7 +21,7 @@ void paint(std::vector<keypoint_trajectory>& trs,
 {
   // Decrease opacity.
   pixel_wise(paint_buffer) | [] (vuchar4& v) {
-    v[3] *= 0.96;
+    v[3] *= 0.97;
   };
 
 #pragma omp parallel for
@@ -103,14 +103,15 @@ int main(int argc, const char* argv[])
                             _detector_th = opts.detector_th,
                             _keypoint_spacing = opts.keypoint_spacing,
                             _detector_period = 5,
-                            _nscales = 2,
+                            _nscales = 3,
                             _winsize = 9,
-                            _propagation = 6);
+                            _patchsize = 5,
+                            _propagation = 2);
     else first = false;
     t.end();
 
     us_cpt += t.us();
-    if (!(nframes%1000))
+    if (!(nframes%500))
     {
         std::cout << "Tracker time: " << (us_cpt / 1000000.f) << " ms/frame. " << ctx.trajectories.size() << " particles." << std::endl;
         us_cpt = 0;
