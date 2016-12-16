@@ -97,8 +97,8 @@ namespace vpp
     inline V& operator()(const vint<N>& p);
     inline const V& operator()(const vint<N>& p) const;
 
-    inline V* operator[](int r);
-    inline const V* operator[](int r) const;
+    inline V*& operator[](int r);
+    inline V* const & operator[](int r) const;
     
     inline V linear_interpolate(const vfloat<N>& p) const;
 

@@ -26,9 +26,6 @@ add_executable(pixel_wise pixel_wise.cc)
 target_link_libraries(pixel_wise gomp)
 add_test(pixel_wise pixel_wise)
 
-add_executable(box_nbh2d box_nbh2d.cc)
-add_test(box_nbh2d box_nbh2d)
-
 add_executable(sandbox sandbox.cc)
 add_test(sandbox sandbox)
 
@@ -61,7 +58,6 @@ add_test(tuple_utils tuple_utils)
 add_executable(block_wise block_wise.cc)
 target_link_libraries(block_wise gomp)
 add_test(block_wise block_wise)
-
 
 add_executable(colorspace_conversions colorspace_conversions.cc)
 add_test(colorspace_conversions colorspace_conversions)

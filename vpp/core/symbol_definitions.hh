@@ -15,6 +15,11 @@
     iod_define_symbol(N)
 #endif
 
+#ifndef IOD_SYMBOL__AVX2__
+#define IOD_SYMBOL__AVX2__
+    iod_define_symbol(_AVX2__)
+#endif
+
 #ifndef IOD_SYMBOL_aligned
 #define IOD_SYMBOL_aligned
     iod_define_symbol(aligned)
@@ -40,29 +45,19 @@
     iod_define_symbol(block_size)
 #endif
 
-#ifndef IOD_SYMBOL_blockwise
-#define IOD_SYMBOL_blockwise
-    iod_define_symbol(blockwise)
-#endif
-
-#ifndef IOD_SYMBOL_blockwise_rank
-#define IOD_SYMBOL_blockwise_rank
-    iod_define_symbol(blockwise_rank)
-#endif
-
 #ifndef IOD_SYMBOL_border
 #define IOD_SYMBOL_border
     iod_define_symbol(border)
 #endif
 
-#ifndef IOD_SYMBOL_col_backward
-#define IOD_SYMBOL_col_backward
-    iod_define_symbol(col_backward)
+#ifndef IOD_SYMBOL_bottom_to_top
+#define IOD_SYMBOL_bottom_to_top
+    iod_define_symbol(bottom_to_top)
 #endif
 
-#ifndef IOD_SYMBOL_col_forward
-#define IOD_SYMBOL_col_forward
-    iod_define_symbol(col_forward)
+#ifndef IOD_SYMBOL_col_order
+#define IOD_SYMBOL_col_order
+    iod_define_symbol(col_order)
 #endif
 
 #ifndef IOD_SYMBOL_ctx
@@ -75,21 +70,6 @@
     iod_define_symbol(data)
 #endif
 
-#ifndef IOD_SYMBOL_descriptor
-#define IOD_SYMBOL_descriptor
-    iod_define_symbol(descriptor)
-#endif
-
-#ifndef IOD_SYMBOL_detector_period
-#define IOD_SYMBOL_detector_period
-    iod_define_symbol(detector_period)
-#endif
-
-#ifndef IOD_SYMBOL_detector_th
-#define IOD_SYMBOL_detector_th
-    iod_define_symbol(detector_th)
-#endif
-
 #ifndef IOD_SYMBOL_exp
 #define IOD_SYMBOL_exp
     iod_define_symbol(exp)
@@ -100,39 +80,14 @@
     iod_define_symbol(if_)
 #endif
 
-#ifndef IOD_SYMBOL_keypoint
-#define IOD_SYMBOL_keypoint
-    iod_define_symbol(keypoint)
-#endif
-
-#ifndef IOD_SYMBOL_keypoint_spacing
-#define IOD_SYMBOL_keypoint_spacing
-    iod_define_symbol(keypoint_spacing)
-#endif
-
-#ifndef IOD_SYMBOL_local_maxima
-#define IOD_SYMBOL_local_maxima
-    iod_define_symbol(local_maxima)
-#endif
-
-#ifndef IOD_SYMBOL_mask
-#define IOD_SYMBOL_mask
-    iod_define_symbol(mask)
+#ifndef IOD_SYMBOL_left_to_right
+#define IOD_SYMBOL_left_to_right
+    iod_define_symbol(left_to_right)
 #endif
 
 #ifndef IOD_SYMBOL_max
 #define IOD_SYMBOL_max
     iod_define_symbol(max)
-#endif
-
-#ifndef IOD_SYMBOL_max_points_per_block
-#define IOD_SYMBOL_max_points_per_block
-    iod_define_symbol(max_points_per_block)
-#endif
-
-#ifndef IOD_SYMBOL_max_trajectory_length
-#define IOD_SYMBOL_max_trajectory_length
-    iod_define_symbol(max_trajectory_length)
 #endif
 
 #ifndef IOD_SYMBOL_mem_backward
@@ -170,19 +125,14 @@
     iod_define_symbol(pitch)
 #endif
 
-#ifndef IOD_SYMBOL_row_backward
-#define IOD_SYMBOL_row_backward
-    iod_define_symbol(row_backward)
+#ifndef IOD_SYMBOL_right_to_left
+#define IOD_SYMBOL_right_to_left
+    iod_define_symbol(right_to_left)
 #endif
 
-#ifndef IOD_SYMBOL_row_forward
-#define IOD_SYMBOL_row_forward
-    iod_define_symbol(row_forward)
-#endif
-
-#ifndef IOD_SYMBOL_scores
-#define IOD_SYMBOL_scores
-    iod_define_symbol(scores)
+#ifndef IOD_SYMBOL_row_order
+#define IOD_SYMBOL_row_order
+    iod_define_symbol(row_order)
 #endif
 
 #ifndef IOD_SYMBOL_sum
@@ -203,6 +153,11 @@
 #ifndef IOD_SYMBOL_tie_arguments
 #define IOD_SYMBOL_tie_arguments
     iod_define_symbol(tie_arguments)
+#endif
+
+#ifndef IOD_SYMBOL_top_to_bottom
+#define IOD_SYMBOL_top_to_bottom
+    iod_define_symbol(top_to_bottom)
 #endif
 
 #ifndef IOD_SYMBOL_v

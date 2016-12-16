@@ -7,7 +7,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories(/usr/include/eigen3  $ENV{HOME}/local/include)
 
 link_directories($ENV{HOME}/local/lib)
-add_definitions(-O3 -std=c++1y -march=native -DNDEBUG -fopenmp)
+add_definitions(-O3 -std=c++1y -march=native -DNDEBUG)
 #add_definitions(-g -fno-omit-frame-pointer) # to profile
 
 if(${CMAKE_CXX_COMPILER} MATCHES ".*clang\\+\\+")

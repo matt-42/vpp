@@ -264,14 +264,14 @@ namespace vpp
   }
 
   template <typename V, unsigned N>
-  V*
+  V*&
   imageNd<V, N>::operator[](int r)
   {
     return ptr_->rows_array_start_[r];
   }
 
   template <typename V, unsigned N>
-  const V*
+  V* const &
   imageNd<V, N>::operator[](int r) const
   {
     return ptr_->rows_array_start_[r];

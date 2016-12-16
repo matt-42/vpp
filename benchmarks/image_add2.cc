@@ -24,10 +24,10 @@ void raw_naive(vpp::image2d<int> A, image2d<int> B, image2d<int> C)
   
   #pragma omp parallel for
   for (int r = 0; r < A.nrows(); r++)
-#pragma omp simd
     for (int c = 0; c < A.ncols(); c++)
   {
-    A(r, c) = B(r, c) + C(r, c);
+    //A(r, c) = B(r, c) + C(r, c);
+    A[r][c] = B[r][c] + C[r][c];
     //pa[r * A.ncols() + c] = pb[r * B.ncols() + c] + pc[r * C.ncols() + c];
     // equivalent to pa[r * A.ncols() + c] = pb[r * B.ncols() + c] + pc[r * C.ncols() + c];
   }
@@ -40,7 +40,7 @@ void raw_naive2d(int** pa, int** pb, int** pc, box2d A)
   const int nc = A.ncols();
   #pragma omp parallel for
   for (int r = 0; r < nr; r++)
-    #pragma omp simd
+    // #pragma omp simd
   for (int c = 0; c < nc; c++)
   {
     //A(r, c) = B(r, c) + C(r, c);
@@ -58,7 +58,7 @@ void naive_fast(vpp::image2d<int> A, image2d<int> B, image2d<int> C)
 
 #pragma omp parallel for
   for (int r = 0; r < nr; r++)
-#pragma omp simd
+// #pragma omp simd
   for (int c = 0; c < nc; c++)
     A[r][c] = B[r][c] + C[r][c];
 }
@@ -111,7 +111,7 @@ void raw_openmp_simd(image2d<int> A, image2d<int> B, image2d<int> C)
     //     ++curC;
     //   }
     //int i;
-#pragma omp simd aligned(curA, curB, curC : 8 * sizeof(int))
+// #pragma omp simd aligned(curA, curB, curC : 8 * sizeof(int))
     for (int i = 0; i < nc; i++)
      {
        curA[i] = curB[i] + curC[i];
@@ -133,7 +133,17 @@ void opencv(image2d<int>& A, image2d<int> B, image2d<int> C)
 
 void vpp_pixel_wise(image2d<int> A, image2d<int> B, image2d<int> C)
 {
-  vpp::pixel_wise2(A, B, C) | [] (int& a, int b, int c)
+  vpp::pixel_wise(A, B, C) | [] (int& a, int b, int c)
+  {
+    a = b + c;
+  };
+}
+
+
+void vpp_pixel_wise2(image2d<int> A, image2d<int> B, image2d<int> C)
+{
+  int sum = 0;
+  vpp::pixel_wise2(A, B, C) | [&] (int& a, auto b, auto c)
   {
     a = b + c;
   };
@@ -151,6 +161,23 @@ static void BM_pixel_wise(benchmark::State& state)
   while (state.KeepRunning())
   {
       vpp_pixel_wise(A, B, C);
+  }
+  check(A, B, C);
+}
+
+
+static void BM_pixel_wise2(benchmark::State& state)
+{
+  image2d<int> A(state.range(0), state.range(0));
+  image2d<int> B(state.range(0), state.range(0));
+  image2d<int> C(state.range(0), state.range(0));
+
+  fill(A, 1);
+  fill(B, 2);
+  fill(C, 3);
+  while (state.KeepRunning())
+  {
+      vpp_pixel_wise2(A, B, C);
   }
   check(A, B, C);
 }
@@ -284,12 +311,13 @@ static void piter2d_add(benchmark::State& state)
 }
 
 
+BENCHMARK(BM_pixel_wise)->Range(300, 2000);
+BENCHMARK(BM_pixel_wise2)->Range(300, 2000);
 BENCHMARK(BM_opencv)->Range(300, 2000);
 BENCHMARK(BM_raw_naive)->Range(300, 2000);
 BENCHMARK(BM_naive_fast)->Range(300, 2000);
 BENCHMARK(BM_raw_naive2d)->Range(300, 2000);
 BENCHMARK(BM_raw_openmp_simd)->Range(300, 2000);
-BENCHMARK(BM_pixel_wise)->Range(300, 2000);
 BENCHMARK(pixter2d_add)->Range(300, 2000);
 BENCHMARK(piter2d_add)->Range(300, 2000);
 

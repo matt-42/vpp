@@ -15,7 +15,6 @@
 # include <vpp/core/neighborhood.hh>
 # include <vpp/core/boxNd.hh>
 # include <vpp/core/window.hh>
-# include <vpp/core/box_nbh2d.hh>
 # include <vpp/core/pixel_wise.hh>
 # include <vpp/core/block_wise.hh>
 # include <vpp/core/copy.hh>

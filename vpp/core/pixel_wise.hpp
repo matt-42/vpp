@@ -1,136 +1,217 @@
-#pragma once
-
-#include <vpp/core/pixel_wise.hh>
+#include <iod/callable_traits.hh>
 
 namespace vpp
 {
+  using s::_left_to_right_t;
+  using s::_right_to_left_t;
+  using s::_top_to_bottom_t;
+  using s::_bottom_to_top_t;
+
+  template <typename I>
+  struct relative_access_{ I& img; };
+
+  template <typename I>
+  auto relative_access(I i)
+  {
+    return relative_access_<I>{i};
+  }
+    
   namespace pixel_wise_internals
   {
-    template <bool COL_REVERSE>
-    struct loop;
-
-    template <> struct loop<false>
+    struct iter_info
     {
-      template <typename F>
-      static void run(F f, int row_start, int row_end, bool parallel)
-      {
-        if (parallel)
-#pragma omp parallel for num_threads (std::min(omp_get_num_procs(), (1 + row_end - row_start)))
-          for (int r = row_start; r <= row_end; r++)
-            f(r);
-        else
-          for (int r = row_start; r <= row_end; r++)
-            f(r);
-      }
+      int r_start;
+      int r_end;
+      int c_start;
+      int c_end;      
     };
 
-    template <> struct loop<true>
+    template <typename V, typename C>
+    auto row_access(image2d<V>& img, C r)
     {
-      template <typename F>
-      static void run(F f, int row_start, int row_end, bool parallel)
-      {
-        if (parallel)
-#pragma omp parallel for num_threads (parallel ? std::min(omp_get_num_procs(), (1 + row_end - row_start)) : 1)
-          for (int r = row_end; r >= row_start; r--)
-            f(r);
-        else
-          for (int r = row_end; r >= row_start; r--)
-            f(r);
-      }
-    };
+      return [row = img[r]] (int c) -> decltype(auto) { return row[c]; };
+    }
 
+    template <typename V, typename C>
+    auto row_access(const image2d<V>& img, C r)
+    {
+      return [row = img[r]] (int c) -> decltype(auto) { return row[c]; };
+    }
+
+    template <typename C>
+    inline decltype(auto) row_access(const box2d&, C r)
+    {
+      return [r] (int c) { return vint2(r, c); };
+    }
+
+    template <typename I, typename C>
+    inline decltype(auto) row_access(const relative_access_<I>& ra, C r)
+    {
+      return [line=&ra.img[r]] (int col)
+      {
+        return [line, col] (int dr, int dc) -> decltype(auto) { return line[dr][col+dc]; };
+      };
+    }
+    
   }
+
+  template <typename F, typename... R>
+  void process_row(_left_to_right_t, F&& fun, int start, int end, R... ranges)
+  {
+    for (int c = start; c <= end; c++)
+      fun(ranges(c)...);
+  }
+
+  template <typename F, typename... R>
+  void process_row(_right_to_left_t, F&& fun, int start, int end, R... ranges)
+  {
+    for (int c = end; c >= start; c--)
+      fun(ranges(c)...);
+  }
+
+  // Multithread Top to bottom traversal.
+  template <typename F, typename ROW_ORDER, typename... R>
+  void pixel_wise_row_first_parallel_2d(_top_to_bottom_t,
+                                        ROW_ORDER ro,
+                                        pixel_wise_internals::iter_info i,
+                                        F&& fun, R&&... ranges)
+  {
+#pragma omp parallel for
+    for (int r = i.r_start; r <= i.r_end; r++)
+      process_row(ro, std::forward<F>(fun), i.c_start, i.c_end, pixel_wise_internals::row_access(ranges, r)...);
+  }
+
+  // Multithread bottom to top traversal.
+  template <typename F, typename ROW_ORDER, typename... R>
+  void pixel_wise_row_first_parallel_2d(_bottom_to_top_t,
+                                        ROW_ORDER ro,
+                                        pixel_wise_internals::iter_info i,
+                                        F&& fun, R&&... ranges)
+  {
+#pragma omp parallel for
+    for (int r = i.r_end; r >= i.r_start; r--)
+      process_row(ro, std::forward<F>(fun), i.c_start, i.c_end, pixel_wise_internals::row_access(ranges, r)...);
+  }
+
+  // Serial top to bottom traversal.
+  template <typename F, typename ROW_ORDER, typename... R>
+  void pixel_wise_row_first_serial_2d(_bottom_to_top_t,
+                                        ROW_ORDER ro,
+                                        pixel_wise_internals::iter_info i,
+                                        F&& fun, R&&... ranges)
+  {
+    for (int r = i.r_end; r >= i.r_start; r--)
+      process_row(ro, std::forward<F>(fun), i.c_start, i.c_end, pixel_wise_internals::row_access(ranges, r)...);
+  }
+
+  // Serial bottom to top traversal.
+  template <typename F, typename ROW_ORDER, typename... R>
+  void pixel_wise_row_first_serial_2d(_top_to_bottom_t,
+                                      ROW_ORDER ro,
+                                      pixel_wise_internals::iter_info i, F fun, R... ranges)
+  {
+    for (int r = i.r_start; r <= i.r_end; r++)
+      process_row(ro, fun, i.c_start, i.c_end, pixel_wise_internals::row_access(ranges, r)...);
+  }
+
   
   template <typename OPTS, typename... Params>
-  template <typename F>
-  void
-  parallel_for_pixel_wise_runner<openmp, OPTS, Params...>::run_row_first(F fun)
+  struct pixel_wise_impl
   {
-    auto p1 = std::get<0>(ranges_).first_point_coordinates();
-    auto p2 = std::get<0>(ranges_).last_point_coordinates();
+    // pixel_wise_impl(Params&&... t, OPTS&& opts)
+    //   : options(opts), ps(std::forward_as_tuple(t...)) {}
 
-    int row_start = p1[0];
-    int row_end = p2[0];
-
-    constexpr bool row_reverse = OPTS::has(_row_backward) || OPTS::has(_mem_backward);
-    constexpr bool col_reverse = OPTS::has(_col_backward) || OPTS::has(_mem_backward);
-    const int config[4] = { options_.has(_row_backward), options_.has(_row_forward),
-                            options_.has(_col_backward), options_.has(_col_forward) };
-    const int config_sum = config[0] + config[1] + config[2] + config[3];
-    const bool parallel =
-      (config_sum == 0 || !((config[0] || config[1]) && 
-                            (config[2] || config[3]))) && // no dependency or either row_* or col_* is activated (not both).
-      !options_.has(_no_threads); // user did not specify serial
+    pixel_wise_impl(std::tuple<Params...> t, OPTS opts)
+      : options(opts), ps(t) {}
     
-    auto process_row = [&] (int r)
+    auto make_orders()
     {
-      int col_start = p1[1];
-      int col_end = p2[1];
+      return D
+        (_col_order = iod::static_if<iod::has_symbol<OPTS, _bottom_to_top_t>::value>
+         ([] () { return _bottom_to_top; },
+          [] () { return _top_to_bottom; }),
+         _row_order = iod::static_if<iod::has_symbol<OPTS, _right_to_left_t>::value>
+         ([] () { return _right_to_left; },
+          [] () { return _left_to_right; }));
+    }
+    
+    template <typename F, std::size_t... I>
+    auto run(F fun, std::index_sequence<I...>)
+    {
+      auto p1 = std::get<0>(ps).first_point_coordinates();
+      auto p2 = std::get<0>(ps).last_point_coordinates();
+
+      auto ii = pixel_wise_internals::iter_info{p1[0], p2[0], p1[1], p2[1]};
       
-      if (row_reverse) std::swap(col_start, col_end);
-      const int inc = row_reverse ? -1 : 1;
-      auto cur_ = internals::tuple_transform(ranges_, [&] (auto& range) {
-          typedef get_row_iterator_t<decltype(range)> IT;
-          return IT(vint2{r, col_start}, range);
-        });
+      auto orders = make_orders();
+      if (options.has(_no_threads))
+        return pixel_wise_row_first_serial_2d(orders.col_order,
+                                              orders.row_order,
+                                              ii,
+                                              fun, std::get<I>(ps)...);
+      else
+        return pixel_wise_row_first_parallel_2d(orders.col_order,
+                                                orders.row_order,
+                                                ii,
+                                                fun, std::get<I>(ps)...);
+    }
 
-      typedef get_row_iterator_t<decltype(std::get<0>(ranges_))> IT1;
-      auto end0_ = IT1(vint2{r, col_end + inc}, std::get<0>(ranges_));
+    
+    template <typename ...A>
+    auto operator()(A... options)
+    {
+      auto new_options = iod::D(options...);
+      return pixel_wise_impl<decltype(new_options), Params...>
+        (ps, new_options);
+    }
 
-      while (std::get<0>(cur_) != end0_)
-      {
-        iod::static_if<OPTS::has(s::_tie_arguments)>
-          ([&cur_] (auto& fun) { // tie arguments into a tuple and pass it to fun.
-            auto t = internals::tuple_transform(cur_, [] (auto& i) -> decltype(auto) { return *i; });
-            fun(t);
-          },
-            [&cur_] (auto& fun) { // Directly apply arguments to fun.
-              internals::apply_args_star(cur_, fun);
-            }, fun);
+    template <typename ...A>
+    auto operator()(iod::sio<A...> new_options)
+    {
+      return pixel_wise_impl<decltype(new_options), Params...>
+        (ps, new_options);
+    }
+    
+    template <typename F>
+    using kernel_return_type =
+      decltype(std::declval<F>()(pixel_wise_internals::row_access(std::declval<Params>(), 0)(0)...));
+    
+    template <typename F>
+    auto operator|(F fun)
+    {
+      return iod::static_if<std::is_same<kernel_return_type<F>, void>::value>
+        (
+         // Basic version: fun returns void.
+         [this] (auto fun) { this->run(fun, std::make_index_sequence<sizeof...(Params)>()); },
 
-        internals::tuple_map(cur_, [this, row_reverse] (auto& it) { row_reverse ? it.prev() : it.next(); });
-      }
-    };
+         // Build a image: fun returns a pixel value.
+         [this] (auto fun) {
 
-    pixel_wise_internals::loop<col_reverse>::run(process_row, row_start, row_end, parallel);
+           auto p1 = std::get<0>(ps).first_point_coordinates();
+           auto p2 = std::get<0>(ps).last_point_coordinates();
 
-  }
+           typedef kernel_return_type<decltype(fun)> value_type;
+           image2d<value_type> out(box2d(p1, p2));
+
+           auto ranges = std::tuple_cat(std::make_tuple(out), ps);
+           make_pixel_wise_impl(ranges, this->options) |
+             [&fun] (auto& o,
+                     decltype(pixel_wise_internals::row_access(std::declval<Params>(), 0)(0))... pss)
+           { o = fun(pss...); };
+
+           return out;
+         },
+         fun);         
+    }
+    
+    std::tuple<Params...> ps;
+    OPTS options;
+  };
 
   template <typename OPTS, typename... Params>
-  template <typename F>
-  void
-  parallel_for_pixel_wise_runner<openmp, OPTS, Params...>::run_col_first_parallel(F fun)
+  auto make_pixel_wise_impl(std::tuple<Params...> ps, OPTS options)
   {
-    auto p1 = std::get<0>(ranges_).first_point_coordinates();
-    auto p2 = std::get<0>(ranges_).last_point_coordinates();
-
-    // int col_start = p1[1];
-    // int col_end = p2[1];
-
-    // const bool row_reverse = options_.has(_row_backward) || options_.has(_mem_backward);
-    // const bool col_reverse = options_.has(_col_backward) || options_.has(_mem_backward);
-    // const int config[4] = { options_.has(_row_backward), options_.has(_row_forward),
-    //                         options_.has(_col_backward), options_.has(_col_forward) };
-    // const int config_sum = config[0] + config[1] + config[2] + config[3];
-    // const bool parallel =
-    //   (config_sum == 0 || !((config[0] || config[1]) && 
-    //                         (config[2] || config[3]))) && // no dependency or either row_* or col_* is activated (not both).
-    //   !options_.has(_no_threads); // user did not specify serial
-
-    const int bs = std::min(options_.get(_block_size, 32), p2[1] - p1[1]);
-    block_wise(vint2{1 + p2[0] - p1[0], bs}, ranges_)(_tie_arguments) |
-      [this, &fun] (auto& b)
-    {
-      if (options_.has(_col_backward))
-        iod::static_if<OPTS().has(_tie_arguments)>(
-          [&b] (auto& fun) { return pixel_wise(b)(_col_backward, _no_threads, _tie_arguments) | fun; }, 
-          [&b] (auto& fun) { return pixel_wise(b)(_col_backward, _no_threads) | fun; }, fun);
-      else
-        iod::static_if<OPTS().has(_tie_arguments)>(
-          [&b] (auto& fun) { return pixel_wise(b)(_no_threads, _tie_arguments) | fun; }, 
-          [&b] (auto& fun) { return pixel_wise(b)(_no_threads) | fun; }, fun);
-    };
-
+    return pixel_wise_impl<OPTS, Params...>(ps, options);
   }
-
+  
 }

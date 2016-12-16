@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <vpp/vpp.hh>
+#include <vpp/core/pixel_wise2.hh>
 #include <vpp/utils/opencv_bridge.hh>
 #include <opencv2/opencv.hpp>
 
@@ -34,6 +35,8 @@ void check(image2d<int> A, image2d<int> B)
       for (int e = -2; e <= 2; e++)
         sum += B(r + d, c + e);
 
+    if (A(r, c) != sum / 25)
+      throw std::runtime_error("error!");
     assert(A(r, c) == sum / 25);
   }
 }
@@ -59,7 +62,7 @@ void raw_openmp_simd(image2d<int> A, image2d<int> B)
     for (int i = -2; i <= 2; i++)
       rows[i + 2] = &B(vint2(r + i, 0));
 
-    //#pragma omp simd
+    #pragma omp simd
     for (int i = 0; i < nc; i++)
     {
       int sum = 0;
@@ -206,6 +209,32 @@ void vpp_pixel_wise(image2d<int> B, image2d<int> A)
   };
 }
 
+
+void vpp_pixel_wise2(image2d<int> B, image2d<int> A)
+{
+  vpp::pixel_wise(B, relative_access(A)) | [&] (int& b, auto& a_nbh)
+  {
+    int sum = 0;
+    for (int i = -2; i <= 2; i++)
+    for (int j = -2; j <= 2; j++)
+      sum += a_nbh(i, j);
+    b = sum / 25;
+  };
+}
+
+
+void vpp_pixel_wise3(image2d<int> B, image2d<int> A)
+{
+  vpp::pixel_wise2(B, relative_access(A)) | [&] (int& b, auto a_nbh)
+  {
+    int sum = 0;
+    for (int i = -2; i <= 2; i++)
+    for (int j = -2; j <= 2; j++)
+      sum += a_nbh(i, j);
+    b = sum / 25;
+  };
+}
+
 void opencv(image2d<int> A, image2d<int> B)
 {
   cv::boxFilter(to_opencv(B), to_opencv(A), -1, cv::Size(5,5), cv::Point(-1, -1), true, cv::BORDER_CONSTANT);
@@ -215,8 +244,8 @@ void opencv(image2d<int> A, image2d<int> B)
 
 static void BM_pixel_wise(benchmark::State& state)
 {
-  image2d<int> A(state.range_x(), state.range_x(), _border = 2);
-  image2d<int> B(state.range_x(), state.range_x(), _border = 2);
+  image2d<int> A(state.range(0), state.range(0), _border = 2);
+  image2d<int> B(state.range(0), state.range(0), _border = 2);
 
   fill(A, 1);
   fill(B, 2);
@@ -226,10 +255,41 @@ static void BM_pixel_wise(benchmark::State& state)
   }
 }
 
+static void BM_pixel_wise2(benchmark::State& state)
+{
+  image2d<int> A(state.range(0), state.range(0), _border = 2);
+  image2d<int> B(state.range(0), state.range(0), _border = 2);
+
+  fill(A, 1);
+  fill(B, 2);
+  A(10, 10) = 49;
+  while (state.KeepRunning())
+  {
+      vpp_pixel_wise2(A, B);
+  }
+  check(A, B);
+}
+
+
+static void BM_pixel_wise3(benchmark::State& state)
+{
+  image2d<int> A(state.range(0), state.range(0), _border = 2);
+  image2d<int> B(state.range(0), state.range(0), _border = 2);
+
+  fill(A, 1);
+  fill(B, 2);
+  A(10, 10) = 49;
+  while (state.KeepRunning())
+  {
+      vpp_pixel_wise2(A, B);
+  }
+  check(A, B);
+}
+
 static void BM_opencv(benchmark::State& state)
 {
-  image2d<int> A(state.range_x(), state.range_x(), _border = 2);
-  image2d<int> B(state.range_x(), state.range_x(), _border = 2);
+  image2d<int> A(state.range(0), state.range(0), _border = 2);
+  image2d<int> B(state.range(0), state.range(0), _border = 2);
 
   fill(A, 1);
   fill(B, 2);
@@ -239,8 +299,8 @@ static void BM_opencv(benchmark::State& state)
 
 static void BM_raw_naive(benchmark::State& state)
 {
-  image2d<int> A(state.range_x(), state.range_x(), _border = 2);
-  image2d<int> B(state.range_x(), state.range_x(), _border = 2);
+  image2d<int> A(state.range(0), state.range(0), _border = 2);
+  image2d<int> B(state.range(0), state.range(0), _border = 2);
 
   fill(A, 1);
   fill(B, 2);
@@ -253,8 +313,8 @@ static void BM_raw_naive(benchmark::State& state)
 
 static void BM_raw_openmp_simd(benchmark::State& state)
 {
-  image2d<int> A(state.range_x(), state.range_x(), _border = 2);
-  image2d<int> B(state.range_x(), state.range_x(), _border = 2);
+  image2d<int> A(state.range(0), state.range(0), _border = 2);
+  image2d<int> B(state.range(0), state.range(0), _border = 2);
   fill(A, 1); fill(B, 2);
   while (state.KeepRunning())
     raw_openmp_simd(A, B);
@@ -262,8 +322,8 @@ static void BM_raw_openmp_simd(benchmark::State& state)
 
 static void BM_raw_serial(benchmark::State& state)
 {
-  image2d<int> A(state.range_x(), state.range_x(), _border = 2);
-  image2d<int> B(state.range_x(), state.range_x(), _border = 2);
+  image2d<int> A(state.range(0), state.range(0), _border = 2);
+  image2d<int> B(state.range(0), state.range(0), _border = 2);
   fill(A, 1); fill(B, 2);
   while (state.KeepRunning())
     raw_serial(A, B);
@@ -272,8 +332,8 @@ static void BM_raw_serial(benchmark::State& state)
 
 static void BM_raw_openmp_simd2(benchmark::State& state)
 {
-  image2d<int> A(state.range_x(), state.range_x(), _border = 2);
-  image2d<int> B(state.range_x(), state.range_x(), _border = 2);
+  image2d<int> A(state.range(0), state.range(0), _border = 2);
+  image2d<int> B(state.range(0), state.range(0), _border = 2);
   fill(A, 1); fill(B, 2);
   while (state.KeepRunning())
     raw_openmp_simd2(A, B);
@@ -281,18 +341,20 @@ static void BM_raw_openmp_simd2(benchmark::State& state)
 
 static void BM_raw_openmp_simd3(benchmark::State& state)
 {
-  image2d<int> A(state.range_x(), state.range_x(), _border = 2);
-  image2d<int> B(state.range_x(), state.range_x(), _border = 2);
+  image2d<int> A(state.range(0), state.range(0), _border = 2);
+  image2d<int> B(state.range(0), state.range(0), _border = 2);
   fill(A, 1); fill(B, 2);
   while (state.KeepRunning())
     raw_openmp_simd3(A, B);
 }
 
-BENCHMARK(BM_raw_openmp_simd)->Range(100, 2000);
-BENCHMARK(BM_raw_serial)->Range(100, 2000);
-
+BENCHMARK(BM_pixel_wise3)->Range(100, 2000);
+BENCHMARK(BM_pixel_wise2)->Range(100, 2000);
 BENCHMARK(BM_pixel_wise)->Range(100, 2000);
-BENCHMARK(BM_opencv)->Range(100, 2000);
-BENCHMARK(BM_raw_naive)->Range(100, 2000);
+BENCHMARK(BM_raw_serial)->Range(100, 2000);
+BENCHMARK(BM_raw_openmp_simd)->Range(100, 2000);
+
+//BENCHMARK(BM_opencv)->Range(100, 2000);
+//BENCHMARK(BM_raw_naive)->Range(100, 2000);
 
 BENCHMARK_MAIN();

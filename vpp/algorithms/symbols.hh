@@ -30,16 +30,6 @@
     iod_define_symbol(border)
 #endif
 
-#ifndef IOD_SYMBOL_col_backward
-#define IOD_SYMBOL_col_backward
-    iod_define_symbol(col_backward)
-#endif
-
-#ifndef IOD_SYMBOL_col_forward
-#define IOD_SYMBOL_col_forward
-    iod_define_symbol(col_forward)
-#endif
-
 #ifndef IOD_SYMBOL_descriptor
 #define IOD_SYMBOL_descriptor
     iod_define_symbol(descriptor)
@@ -148,16 +138,6 @@
 #ifndef IOD_SYMBOL_regularization_niters
 #define IOD_SYMBOL_regularization_niters
     iod_define_symbol(regularization_niters)
-#endif
-
-#ifndef IOD_SYMBOL_row_backward
-#define IOD_SYMBOL_row_backward
-    iod_define_symbol(row_backward)
-#endif
-
-#ifndef IOD_SYMBOL_row_forward
-#define IOD_SYMBOL_row_forward
-    iod_define_symbol(row_forward)
 #endif
 
 #ifndef IOD_SYMBOL_scores

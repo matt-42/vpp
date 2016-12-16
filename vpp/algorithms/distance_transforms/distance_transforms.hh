@@ -75,8 +75,8 @@ namespace vpp
 
     };
 
-    run(forward4, _col_forward, _row_forward, _row_backward, [] () { return vint2{0, 1}; });
-    run(backward4, _col_backward, _row_backward, _row_forward, [] () { return vint2{0, -1}; });
+    run(forward4, _top_to_bottom, _left_to_right, _right_to_left, [] () { return vint2{0, 1}; });
+    run(backward4, _bottom_to_top, _right_to_left, _left_to_right, [] () { return vint2{0, -1}; });
 
     // pixel_wise(sedt) | [] (auto& p) { p/=100; };
   }
@@ -121,8 +121,8 @@ namespace vpp
 
   //   };
 
-  //   run(forward4, _col_forward, _row_forward, _row_backward, [] () { return vint2{0, 1}; });
-  //   run(backward4, _col_backward, _row_backward, _row_forward, [] () { return vint2{0, -1}; });
+  //   run(forward4, _top_to_bottom, _left_to_right, _right_to_left, [] () { return vint2{0, 1}; });
+  //   run(backward4, _bottom_to_top, _right_to_left, _left_to_right, [] () { return vint2{0, -1}; });
 
   //   // pixel_wise(sedt) | [] (auto& p) { p/=100; };
   // }
@@ -164,8 +164,8 @@ namespace vpp
       };
     };
 
-    run(forward, forward_ws, _col_forward, _row_forward);
-    run(backward, backward_ws, _col_backward, _row_backward);
+    run(forward, forward_ws, _top_to_bottom, _left_to_right);
+    run(backward, backward_ws, _bottom_to_top, _right_to_left);
   }
   
   const auto d4_distance_transform = [] (auto& a, auto& b) {
