@@ -678,7 +678,7 @@ namespace vpp
   }
 
   template <typename V>
-  auto relative_accessor(image2d<V>& img, vint2 p)
+  auto relative_accessor(const image2d<V>& img, vint2 p)
   {
     return [line=&img[p[0]], col=p[1]] (int dr, int dc) -> decltype(auto)
     {

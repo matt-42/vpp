@@ -2,7 +2,6 @@
 # define VPP_PYRAMID_HH__
 
 # include <vpp/core/image2d.hh>
-# include <vpp/core/box_nbh2d.hh>
 # include <vpp/core/vector.hh>
 # include <vpp/core/fill.hh>
 

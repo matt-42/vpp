@@ -1,7 +1,7 @@
-#ifndef VPP_DRAW_HH_
-# define VPP_DRAW_HH_
-
+#pragma once
 #include <vpp/core/vector.hh>
+#include <vpp/draw/square.hh>
+#include <vpp/draw/symbols.hh>
 
 namespace vpp
 {
@@ -183,19 +183,5 @@ namespace vpp
         }
       }
     }
-    
-    template <typename I, typename V>
-    void square(I out, vint2 a, int size, V color)
-    {
-      for (int r = -size/2; r <= size/2; r++)
-        for (int c = -size/2; c <= size/2; c++)
-        {
-          vint2 n = a + vint2{r, c};
-          if (out.has(n))
-            out(n) = color;
-        }
-    }
   }
 }
-
-#endif

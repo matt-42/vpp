@@ -1,6 +1,4 @@
-#ifndef VPP_VPP_HH_
-# define VPP_VPP_HH_
-
+#pragma once
 
 # include <vpp/core/imageNd.hh>
 # include <vpp/core/image2d.hh>
@@ -36,5 +34,3 @@
 
 # include <vpp/draw/draw.hh>
 //# include <vpp/draw/draw_trajectories.hh>
-
-#endif

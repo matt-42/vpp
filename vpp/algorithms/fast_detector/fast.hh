@@ -3,6 +3,8 @@
 
 # include <vpp/vpp.hh>
 
+# include <vpp/algorithms/symbols.hh>
+
 namespace vpp
 {
 

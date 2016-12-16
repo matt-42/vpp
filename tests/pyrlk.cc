@@ -11,22 +11,17 @@ using namespace vpp;
 
 int main(int argc, char* argv[])
 {
-  image2d<vuchar1> i1(100,100);
-  image2d<vuchar1> i2(100,100);
+  image2d<uint8_t> i1(100,100);
+  image2d<uint8_t> i2(100,100);
 
-  image2d<vuchar1> i1_blur(100,100);
-  image2d<vuchar1> i2_blur(100,100);
+  image2d<uint8_t> i1_blur(100,100);
+  image2d<uint8_t> i2_blur(100,100);
 
-  fill(i1, vuchar1::Zero());
-  fill(i2, vuchar1::Zero());
+  fill(i1, 0);
+  fill(i2, 0);
 
-  box_nbh2d<vuchar1, 5, 5> box(i1);
-
-  box_nbh2d<vuchar1, 5, 5>(i1, vint2(50,50)).for_all([] (auto& n) { n[0] = 255; });
-  box_nbh2d<vuchar1, 5, 5>(i2, vint2(52,52)).for_all([] (auto& n) { n[0] = 255; });
-
-  // box(i1(50,50)) < [] (auto& n) { n[0] = 255; };
-  // box(i2(52,52)) < [] (auto& n) { n[0] = 255; };
+  draw::square(i1, _center = vint2(50,50), _width = 5, _fill = 255);
+  draw::square(i2, _center = vint2(52,52), _width = 5, _fill = 255);
 
   cv::GaussianBlur(to_opencv(i1), to_opencv(i1_blur), cv::Size(9,9), 3, 5, cv::BORDER_REPLICATE);
   cv::GaussianBlur(to_opencv(i2), to_opencv(i2_blur), cv::Size(9,9), 3, 5, cv::BORDER_REPLICATE);
@@ -37,8 +32,8 @@ int main(int argc, char* argv[])
 
   int nscales = 4;
 
-  pyramid2d<vuchar1> pyramid1(i1.domain(), nscales, 2, _border = 3);
-  pyramid2d<vuchar1> pyramid2(i1.domain(), nscales, 2, _border = 3);
+  pyramid2d<uint8_t> pyramid1(i1.domain(), nscales, 2, _border = 3);
+  pyramid2d<uint8_t> pyramid2(i1.domain(), nscales, 2, _border = 3);
   pyramid2d<vfloat2> pyramid1_grad(i1.domain(), nscales, 2, _border = 3);
 
   copy(i1_blur, pyramid1[0]);
@@ -67,5 +62,5 @@ int main(int argc, char* argv[])
 
   assert(keypoints.size() == 1);
   std::cout << keypoints[0].position.transpose() << std::endl;
-  assert((keypoints[0].position - vfloat2(52,52)).norm() < 0.2);
+  assert((keypoints[0].position - vfloat2(52,52)).norm() < 0.05);
 }

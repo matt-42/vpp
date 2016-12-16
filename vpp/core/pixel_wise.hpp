@@ -7,12 +7,24 @@ namespace vpp
   using s::_top_to_bottom_t;
   using s::_bottom_to_top_t;
 
+  template <typename V>
+  struct relative_access_kernel
+  {
+    decltype(auto) operator() (int dr, int dc) { return line[dr][col+dc]; };
+    decltype(auto) operator() (vint2 p) { return line[p[0]][col+p[1]]; };
+    
+    V line;
+    int col;
+  };
+  
   template <typename I>
   struct relative_access_
   {
+    auto first_point_coordinates() { return img.domain().p1(); }
+    auto last_point_coordinates() { return img.domain().p2(); }
     I& img;
   };
-
+  
   template <typename I>
   auto relative_access(I i)
   {
@@ -47,12 +59,13 @@ namespace vpp
       return [r] (int c) { return vint2(r, c); };
     }
 
+
     template <typename I, typename C>
     inline decltype(auto) row_access(const relative_access_<I>& ra, C r)
     {
       return [line=&ra.img[r]] (int col)
       {
-        return [line, col] (int dr, int dc) -> decltype(auto) { return line[dr][col+dc]; };
+        return relative_access_kernel<decltype(line)>{line, col};
       };
     }
     

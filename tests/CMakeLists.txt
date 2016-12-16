@@ -5,7 +5,9 @@ find_package(OpenCV REQUIRED)
 enable_testing()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/.. /usr/include/eigen3
-                    ${IOD_INCLUDE_DIR})
+  ${IOD_INCLUDE_DIR}
+  $ENV{HOME}/local/include
+  )
 
 add_definitions(-std=c++14)
 
