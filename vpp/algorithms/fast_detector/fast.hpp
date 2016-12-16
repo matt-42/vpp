@@ -19,6 +19,16 @@
 namespace vpp
 {
 
+  template <typename V>
+  auto relative_accessor(const image2d<V>& img, vint2 p)
+  {
+    return [line=&img[p[0]], col=p[1]] (int dr, int dc) -> decltype(auto)
+    {
+      return line[dr][col+dc];
+    };
+  };
+  
+  
   namespace FAST_internals
   {
 
@@ -517,8 +527,7 @@ namespace vpp
       int nr = A.nrows();
       int pitch = A.pitch();
 
-      auto n = box_nbh2d<V, 7, 7>(A);
-      pixel_wise(B, n) | [&] (U& b, auto& n)
+      pixel_wise(B, relative_access(A)) | [&] (U& b, auto n)
       {
         V v = n(0, 0);
 
@@ -558,9 +567,7 @@ namespace vpp
   template <typename V>
   void local_maxima_filter(const image2d<V>& A, int nbh_size) // At the moment nbh_size is ignored.
   {
-    auto nbh = box_nbh2d<V, 3, 3>(A);
-
-    pixel_wise(A, nbh) | [] (V& a, auto& nn)
+    pixel_wise(A, relative_access(A)) | [] (V& a, auto nn)
     {
       V v = a;
       int is_max = 1;
@@ -653,7 +660,7 @@ namespace vpp
     scores.resize(keypoints.size());
 #pragma omp parallel for
     for (int i = 0; i < keypoints.size(); i++)
-      scores[i] = FAST_internals::fast9_score(const_box_nbh2d<V, 7, 7>(A, keypoints[i]), th);
+      scores[i] = FAST_internals::fast9_score(relative_accessor(A, keypoints[i]), th);
   }
 
   template <typename V>
@@ -661,7 +668,7 @@ namespace vpp
                   int th,
                   vint2 p)
   {
-    return FAST_internals::fast9_score(const_box_nbh2d<V, 7, 7>(A, p), th);
+    return FAST_internals::fast9_score(relative_accessor(A, p), th);
   }
 
   template <typename V>
@@ -677,15 +684,6 @@ namespace vpp
     return std::move(kps);
   }
 
-  template <typename V>
-  auto relative_accessor(const image2d<V>& img, vint2 p)
-  {
-    return [line=&img[p[0]], col=p[1]] (int dr, int dc) -> decltype(auto)
-    {
-      return line[dr][col+dc];
-    };
-  };
-  
   template <typename V, typename F, typename M>
   auto fast_detector9_maxima(const image2d<V>& A,
                              int th,
@@ -738,7 +736,7 @@ namespace vpp
     for (int i = 0; i < kps.size(); i++)
     {
       auto p = kps[i];
-      int s = FAST_internals::fast9_score(box_nbh2d<V, 7, 7>(A, p), th);
+      int s = FAST_internals::fast9_score(relative_accessor(A, p), th);
       scores_img(p) = s;
     }
 
@@ -855,7 +853,7 @@ namespace vpp
                                                if (v > 0)
                                                {
                                                  vint2 p(r + br, bc);
-                                                 auto nn = box_nbh2d<unsigned int, 3, 3>(S, p);
+                                                 auto nn = relative_accessor(S, p);
                                                  unsigned int a = nn(0, 0);
                                                  int is_max = 1;
                                                  is_max &= a > nn(-1, -1);
@@ -917,7 +915,7 @@ namespace vpp
                                      for (int i = 0; i < kps.size(); i++)
                                      {
                                        auto p = kps[i];
-                                       auto nn = box_nbh2d<unsigned char, 3, 3>(img, p);
+                                       auto nn = relative_accessor(img, p);
                                        unsigned int a = nn(0, 0);
                                        int is_max = 1;
                                        is_max &= a > nn(-1, -1);

@@ -104,7 +104,7 @@ int main(int argc, const char* argv[])
       video_extruder_update(ctx, prev_frame, frame_gl,
                             _detector_th = opts.detector_th,
                             _keypoint_spacing = opts.keypoint_spacing,
-                            _detector_period = 5,
+                            _detector_period = 1,
                             _nscales = 3,
                             _winsize = 9,
                             _patchsize = 5,

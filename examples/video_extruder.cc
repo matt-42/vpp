@@ -41,8 +41,10 @@ int main(int argc, const char* argv[])
   int nframes = 0;
 
   int us_cpt = 0;
-  foreach_videoframe(opts.video.c_str()) | [&] (const image2d<vuchar3>& frame)
+  foreach_videoframe(opts.video.c_str()) | [&] (const image2d<vuchar3>& frame_cv)
   {
+    auto frame = clone(frame_cv, _border = 3);
+    fill_border_mirror(frame);
     auto frame_gl = rgb_to_graylevel<unsigned char>(frame);
     timer t;
     t.start();
@@ -50,7 +52,7 @@ int main(int argc, const char* argv[])
       video_extruder_update(ctx, prev_frame, frame_gl,
                             _detector_th = opts.detector_th,
                             _keypoint_spacing = opts.keypoint_spacing,
-                            _detector_period = 5,
+                            _detector_period = 1,
                             _max_trajectory_length = 100);
     else first = false;
     t.end();
