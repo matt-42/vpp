@@ -8,7 +8,10 @@ namespace vpp
   using s::_bottom_to_top_t;
 
   template <typename I>
-  struct relative_access_{ I& img; };
+  struct relative_access_
+  {
+    I& img;
+  };
 
   template <typename I>
   auto relative_access(I i)
@@ -55,6 +58,7 @@ namespace vpp
     
   }
 
+  // Apply \fun to all pixels of a row from left to right.
   template <typename F, typename... R>
   void process_row(_left_to_right_t, F&& fun, int start, int end, R... ranges)
   {
@@ -62,6 +66,7 @@ namespace vpp
       fun(ranges(c)...);
   }
 
+  // Apply \fun to all pixels of a row from right to left.
   template <typename F, typename... R>
   void process_row(_right_to_left_t, F&& fun, int start, int end, R... ranges)
   {
@@ -118,9 +123,6 @@ namespace vpp
   template <typename OPTS, typename... Params>
   struct pixel_wise_impl
   {
-    // pixel_wise_impl(Params&&... t, OPTS&& opts)
-    //   : options(opts), ps(std::forward_as_tuple(t...)) {}
-
     pixel_wise_impl(std::tuple<Params...> t, OPTS opts)
       : options(opts), ps(t) {}
     

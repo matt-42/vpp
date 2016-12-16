@@ -8,7 +8,6 @@
 
 using namespace vpp;
 
-
 void raw_naive(image2d<int> A, image2d<int> B)
 {
   for (int r = 0; r < A.nrows(); r++)
@@ -51,6 +50,7 @@ void raw_openmp_simd(image2d<int> A, image2d<int> B)
     for (int i = -2; i <= 2; i++)
       rows[i + 2] = &B(vint2(r + i, 0));
 
+#pragma omp simd
     for (int i = 0; i < nc; i++)
     {
       int sum = 0;

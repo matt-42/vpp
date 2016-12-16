@@ -37,10 +37,10 @@ namespace vpp
 
     template <typename N>
     inline
-    int fast9_score(const N& nbh,
+    int fast9_score(N nbh,
                     int th)
     {
-      typedef typename N::value_type V;
+      typedef decltype(nbh(0, 0)) V;
       V v = nbh(0, 0);
       int sum_inf = 0;
       int sum_sup = 0;
@@ -677,6 +677,15 @@ namespace vpp
     return std::move(kps);
   }
 
+  template <typename V>
+  auto relative_accessor(image2d<V>& img, vint2 p)
+  {
+    return [line=&img[p[0]], col=p[1]] (int dr, int dc) -> decltype(auto)
+    {
+      return line[dr][col+dc];
+    };
+  };
+  
   template <typename V, typename F, typename M>
   auto fast_detector9_maxima(const image2d<V>& A,
                              int th,
@@ -690,11 +699,11 @@ namespace vpp
     image2d<unsigned char> scores_img(A.domain(), _border = 1);
     fill_with_border(scores_img, 0);
 
-    #pragma omp parallel for simd
+    #pragma omp parallel for
     for (int i = 0; i < kps.size(); i++)
     {
       auto p = kps[i];
-      int s = FAST_internals::fast9_score(const_box_nbh2d<V, 7, 7>(A, p), th);
+      int s = FAST_internals::fast9_score(relative_accessor(A, p), th);
       scores_img(p) = s / 16;
     }
 
@@ -938,6 +947,9 @@ namespace vpp
                            OPTS... opts_)
   {
     auto opts = iod::D(opts_...);
+
+    if (A.border() < 3)
+      throw std::runtime_error("Image need a border of 3px at least for the FAST detector");
     
     image2d<unsigned char> mask = opts.get(_mask, image2d<unsigned char>());
     std::vector<int>* scores = opts.get(_scores, nullptr);

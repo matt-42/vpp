@@ -117,8 +117,6 @@ namespace vpp
 
         ctx.keypoints.compact();
         ctx.keypoints.sync_attributes(ctx.trajectories, keypoint_trajectory(ctx.frame_id));
-        //ctx.keypoints.sync_attributes(ctx.trajectories);
-
       }
     }
 

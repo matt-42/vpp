@@ -78,7 +78,7 @@ int main(int argc, const char* argv[])
   box2d domain = videocapture_domain(opts.video.c_str());
   video_extruder_ctx ctx = video_extruder_init(domain);
 
-  image2d<unsigned char> prev_frame(domain);
+  image2d<unsigned char> prev_frame(domain, _border = 3);
   image2d<vuchar4> paint_buffer(domain);
   fill(paint_buffer, vuchar4(0,0,0,0));
   
@@ -93,8 +93,10 @@ int main(int argc, const char* argv[])
   }
 
   int us_cpt = 0;
-  foreach_videoframe(opts.video.c_str()) | [&] (const image2d<vuchar3>& frame)
+  foreach_videoframe(opts.video.c_str()) | [&] (const image2d<vuchar3>& frame_cv)
   {
+    auto frame = clone(frame_cv, _border = 3);
+    fill_border_mirror(frame);
     auto frame_gl = rgb_to_graylevel<unsigned char>(frame);
     timer t;
     t.start();

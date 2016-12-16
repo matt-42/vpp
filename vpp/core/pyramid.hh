@@ -94,7 +94,6 @@ namespace vpp
       V* out_row = &out(r, 0);
       const V* row1 = &in(int(r * factor), 0);
       const V* row2 = &in(int(r * factor) + 1, 0);
-#pragma omp simd
       for (int c = 0; c < nc; c++)
       {
         out_row[c] = row1[int(c * factor)];
