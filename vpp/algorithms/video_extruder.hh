@@ -42,7 +42,13 @@ namespace vpp
                              const image2d<unsigned char>& frame1,
                              const image2d<unsigned char>& frame2,
                              OPTS... options);
-  
+
+  // Synchronize an array of tr
+  // template <typename... OPTS>
+  // void sync_trajectory_attributes(video_extruder_ctx& ctx,
+  //                                 T& attrs,
+  //                                 OPTS... options);
+                             
 }
 
 // Implementation

@@ -131,7 +131,9 @@ void opencv(image2d<int>& A, image2d<int> B, image2d<int> C)
   cv::add(to_opencv(C), to_opencv(B), to_opencv(A));
 }
 
-void vpp_pixel_wise(image2d<int> A, image2d<int> B, image2d<int> C)
+void vpp_pixel_wise(image2d<int> A,
+                    image2d<int> B,
+                    image2d<int> C)
 {
   vpp::pixel_wise(A, B, C) | [] (int& a, int b, int c)
   {
