@@ -161,69 +161,35 @@ two 2d images of integers:
 ```c++
 // Compute C, the parallel pixel wise sum of A and B.
 auto C = pixel_wise(A, B) | [] (int& a, int& b) { return a + b; };
-```
-while being much shorter, runs as fast as the following OpenMP optimized code:
 
-```c++
-image2d<int> C(A.domain());
-int nr = A.nrows();
-int nc = A.nrows();
-
-#pragma omp parallel for
-for (int r = 0; r < nr; r++)
-{
-  int* curA = &A(r, 0);
-  int* curB = &B(r, 0);
-  int* curC = &C(r, 0);
-
-  for (int i = 0; i < nc; i++)
-    curA[i] = curB[i] + curC[i];
-}
+// Compute the average of the c4 neighborhood.
+pixel_wise(relative_access(A), B) | [] (auto a, int& b) {
+  b = (a(-1, 0) + a(1, 0) + a(0, 1) + a(0, -1)) / 4;
+};
 ```
 
 ### Kernel arguments
 
 Given ```pixel_wise(I_0, ..., I_N) | my_kernel```, ```pixel_wise``` will
-traverse the definition domain and for every pixel location P call
+traverse the domain of I_0 and for every pixel location P call
 ```my_kernel(I_0(P), ..., I_N(P))``` with ```I_N(P)``` a reference to the
 pixel of I_N located at location P.
 
-### Parallelism and computational dependencies
+### Parallelism and traversal directions
 
-By default, ```pixel_wise``` generates a parallel execution of the
-kernel processing a batch of image row per processor core. However,
-some recursive pixel wise kernels imply a dependency between the
-computation of neighbor pixels. The ```pixel_wise``` construct let you
-express these constraints. For example, the following set the
-```_col_backward``` dependency to integrate pixel values along the
-columns, from the bottom to the top of the image:
+By default, ```pixel_wise``` traverses the image from left to right
+and top to bottom and spread the processing of different row on
+different cores. The following options allow to change this defaut behavior:
 
-```c++
-pixel_wise(A_nbh)(_col_backward) |
-  [] (auto& nbh) { nbh(0,0) += nbh(1, 0); }
-```
+  - **_no_thread**: disable the parallelism.
 
-The following are valid options:
+  - **_left_to_right**: Traverse each row from left to right.
 
-  - **_row_forward**: the computation of the i th pixel of row X depends
-    on the computation of the i-1 th pixel of the same row.
+  - **_right_to_left**: Traverse each row from right to left.
 
-  - **_row_backward**: the computation of the i-1th pixel of row X depends
-    on the computation of the i th pixel of the same row.
+  - **_top_to_bottom**: Traverse the rows from top to bottom.
 
-  - **_col_forward**: the computation of the i th pixel of col X depends
-    on the computation of the i-1 th pixel of the same col.
-
-  - **_col_backward**: the computation of the i-1th pixel of col X depends
-    on the computation of the i th pixel of the same col.
-
-  - **_no_thread**: disable the parallelism without specifying a dependency.
-
-To take these constraints into account, video++ change the way
-pixel_wise iterate on images while keeping as much parallelism as
-possible. For example, if **_col_backward** is specified, each thread
-will process a batch of consecutive rows, in order to leverage
-multiple cores and SIMD instructions.
+  - **_bottom_to_top**: Traverse the rows from bottom to top.
 
 ### Accessing Neighborhood
 
@@ -245,16 +211,13 @@ pixel, and ```nbh(0,0)``` refers to the current pixel.
 // Note that for performance reasons, the boundaries
 // of the neighborhood are static.
 
-auto BN = box_nbh2d<int, 3, 3>(B);
-
-pixel_wise(S, BN) | [&] (auto& s, auto& b_nbh) {
+pixel_wise(S, relative_access(B)) | [&] (auto& s, auto b) {
 
   // Average the pixels in the c4 neighborhood.
-  s = (b_nbh(-1,0) + b_nbh(0, -1) +
-      b_nbh(1,0) + b_nbh(0,1)) / 4;
+  s = (b(-1,0) + b(0, -1) +
+      b(1,0) + b(0,1)) / 4;
 };
 ```
-
 
 ## Block Wise Kernels
 
@@ -290,139 +253,6 @@ row_wise(A, A.domain()) | [] (auto& a, vint2 coord)
   sums[coord[0]] += a;
 };
 ```
-
-
-## 2D Image Expressions
-
-**Warning: This feature is experimental and is currently very slow to compile.**
-
-
-Video++ embeds into C++14 a domain specific language allowing to build
-image expressions that will be evaluated using ```eval```. While
-leveraging the power of multi-core SIMD architectures, it enables the developer
-to shorten tens of lines of code into one line, easy to write and to
-read.
-
-For example, the following expression formulates the an operation on the
-pixels of two images using the ```_v``` accessor:
-
-```c++
-_v(A) + _v(B) * 2
-```
-
-The ```eval``` routine actually runs this expression against each
-pixels of A and B and returns the resulting image such that, given two
-images A and B with same dimensions and pixels with type ```pixel_type```:
-
-```c++
-auto C = eval(_v(A) + _v(B) * 2);
-```
-is equivalent to
-
-```c++
-image2d<pixel_type> C(A.domain());
-for (int r = 0; r < A.nrows(); r++)
-for (int c = 0; c < A.ncols(); c++)
-  C(r, c) = A(r, c) + B(r, c) * 2;
-```
-
-Placeholders can also be used to refer to images passed as arguments
-to eval. Using placeholders, the use of _v to access pixels is not required:
-
-```c++
-auto C = eval(A, B, _1 + _2 * 2);
-```
-
-```eval``` generates code spanning one thread per processor
-core. Depending on your compiler, there is a good chance that the
-loops will be optimized with SIMD vector instructions.
-
-Note that no technical challenge but some time constraints prevented
-us to implement N-dimensional image expressions.
-
-The following explains the different types of valid expressions.
-
-### Assignments
-
-In many cases, creating new images when evaluating an expression is not
-needed and can affect the performances of an algorithm. To avoid this
-extra image creation, assignments allows storing the result of an
-expression in an existing image as in the following. Given A, B and C
-three images of the same dimensions:
-
-```c++
-// No image allocation here:
-eval(_v(C) = _v(A) + _v(B) * 2);
-```
-
-### Conditional branching
-
-The language of image expression support conditional branching with a
-construct similar to the ?: ternary operator of C++:
-
-```c++
-eval(_v(C) = _if(_v(A) > _v(B))
-                (_v(A))
-                (_v(B))
-   );
-```
-
-### Global expressions
-
-Image expressions are not limited to pixel wise operations. Global
-expressions integrate information over the whole definition domain.
-
-#### Sum
-
-Sum an expression over the whole definition domain:
-
-```c++
-int sum = eval(_sum(_v(A) + _v(B)));
-```
-
-#### Min, Max
-
-Find the minimum/maximum value of an expression:
-
-```c++
-auto min_value = eval(_min(_v(A) + _v(B)));
-auto max_value = eval(_max(_v(A) + _v(B)));
-```
-
-#### Argmin, Argmax
-
-Find the position (row, column) of the minimum/maximum value of an expression:
-
-```c++
-vint2 argmin = eval(_argmin(_v(A) + _v(B)));
-vint2 argmax = eval(_argmax(_v(A) + _v(B)));
-```
-
-### Mixing global expression in pixel wise image expressions
-
-In opposition to pixel wise image expressions, global expressions are
-evaluated only once per expression. However, it is possible to include
-them in pixel wise image expression without impacting
-performances. The eval function first traverses the expression
-abstract syntax tree (AST), replace them with their actual value and
-then finally launch the pixel wise evaluation. As a result, the global
-expressions are still evaluated once:
-
-```c++
-
-// Normalize pixel values and generate an image of float.
-auto C_normalized = eval(_v(C) * 1.f / _max(C));
-
-// Note: The multiplication with 1.f allows to force conversion from int
-// pixel to float pixel values.
-```
-
-### Limitations
-
-Because embedded domain specific languages such as image expressions involve
-heavy C++ meta-programming, compilation time and compiler memory
-consumption can increase significantly with the use of long and
-complex image expressions.
 
 ## Contributing
 
