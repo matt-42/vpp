@@ -67,4 +67,14 @@ namespace vpp
     return block_wise_runner<iod::sio<>, PS...>(block_size, std::forward_as_tuple(params...));
   }
 
+  template <typename P0, typename... PS>
+  auto row_wise(P0&& a0, PS&&... params)
+  {
+    auto p1 = a0.first_point_coordinates();
+    auto p2 = a0.last_point_coordinates();
+
+    return block_wise(vint2(1, 1 + p2[1] - p1[1]),
+                      std::forward<P0>(a0), std::forward<PS>(params)...);
+  }
+  
 }
