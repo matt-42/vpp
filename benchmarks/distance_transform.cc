@@ -6,7 +6,6 @@
 
 #include <iod/symbols.hh>
 #include <vpp/vpp.hh>
-#include <vpp/core/liie.hh>
 
 #include "get_time.hh"
 
@@ -21,26 +20,28 @@ float benchmark(F f, A&&... args)
   return (get_time_in_seconds() - time) / K;
 }
 
+using namespace vpp;
+
+const vint2 north(-1, 0);
+const vint2 south(1, 0);
+const vint2 east(0, 1);
+const vint2 west(0, -1);
 
 template <typename T, typename U>
 void manual_d4_distance_transform(vpp::image2d<T>& input, vpp::image2d<U>& sedt)
 {
-  using namespace vpp;
   fill_with_border(sedt, INT_MAX / 2);
   pixel_wise(input, sedt) | [] (auto& i, auto& s) { if (i == 0) s = 0; };
 
-  auto sedt_nbh = box_nbh2d<U, 3, 3>(sedt);
-  row_wise(sedt)(_col_forward) | [&] (auto sedt_row)
+  pixel_wise(relative_access(sedt))(_top_to_bottom, _left_to_right, _no_threads) | [&] (auto sn)
   {
-    auto sedt_nbh = box_nbh2d<U, 3, 3>(sedt_row);
-    pixel_wise(sedt_nbh)(_no_threads) | [&] (auto sn) {
-      U min_dist = std::min(sn(0,0), U(sn.north() + 1));
-      sn(0,0) = std::min(min_dist, U(sn.west() + 1));
-    };
+    U min_dist = std::min(sn(0,0), U(sn(north) + 1));
+    sn(0,0) = std::min(min_dist, U(sn(west) + 1));
   };
-  pixel_wise(sedt_nbh)(_col_backward, _row_backward) | [&] (auto sn) {
-    U min_dist = std::min(sn(0,0), U(sn.south() + 1));
-    sn(0,0) = std::min(min_dist, U(sn.east() + 1));
+
+  pixel_wise(relative_access(sedt))(_bottom_to_top, _right_to_left, _no_threads) | [&] (auto sn) {
+    U min_dist = std::min(sn(0,0), U(sn(south) + 1));
+    sn(0,0) = std::min(min_dist, U(sn(east) + 1));
   };
 }
 
@@ -106,9 +107,13 @@ int main(int argc, char* argv[])
   {
     using namespace vpp;
     image2d<vuchar3> A = from_opencv<vuchar3>(cv::imread(argv[1]));
-    image2d<int> B = pixel_wise(A)(vpp::_no_threads) | [] (auto& a) -> int {
+    image2d<int> B = pixel_wise(A) | [] (auto& a) -> int {
       return a.norm() > 0 ? 255 : 0;
     };
+
+    // image2d<int> B(300, 300);
+    // fill(B, 255);
+    // B(150, 150) = 0;
     image2d<int> C4(B.domain(), _border = 2);
     image2d<int> C8(B.domain(), _border = 2);
     image2d<int> CE(B.domain(), _border = 2);
@@ -133,7 +138,7 @@ int main(int argc, char* argv[])
     cv::imwrite("d711.pgm", to_opencv(D711));
   }
 
-  vector<vector<pair<int, float>>> results;
+  std::vector<std::vector<pair<int, float>>> results;
 
   auto add = [] (auto a, auto b) {
     vpp::pixel_wise(a, b) | [] (auto& aa, auto& bb)
@@ -144,7 +149,7 @@ int main(int argc, char* argv[])
 
   auto image_size_bench = [&] (auto f)
   {
-    vector<pair<int, float>> res;
+    std::vector<pair<int, float>> res;
     for (int s = 10; s < 2000; s += 100)
     {
       using namespace vpp;
@@ -166,7 +171,7 @@ int main(int argc, char* argv[])
   image_size_bench(vpp::euclide_distance_transform<int, int>);
   image_size_bench(vpp::d5_7_11_distance_transform);
 
-  vector<string> files = {"bench_add.txt", "manual_d4.txt", "d4.txt",
+  std::vector<string> files = {"bench_add.txt", "manual_d4.txt", "d4.txt",
                           "d8.txt", "d34.txt", "euclide.txt", "d5_7_11.txt"};
 
   int i = 0;

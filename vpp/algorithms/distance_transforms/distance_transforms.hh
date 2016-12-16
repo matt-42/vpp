@@ -7,7 +7,6 @@
 #include <iod/symbols.hh>
 #include <vpp/core/image2d.hh>
 #include <vpp/core/vector.hh>
-#include <vpp/core/liie.hh>
 #include <vpp/core/make_array.hh>
 
 namespace vpp
@@ -28,11 +27,11 @@ namespace vpp
     auto run = [&] (auto neighborhood, auto col_direction,
                     auto row_direction1, auto row_direction2, auto spn) {
 
-      row_wise(sedt, R)(col_direction) | [&] (auto sedt_row, auto R_row)
+      row_wise(sedt, R)(col_direction, _no_threads) | [&] (auto sedt_row, auto R_row)
       {
         // Forward pass
-        pixel_wise(relative_access(sedt_row), relative_access(R_row))(row_direction1)
-        | [&] (auto& sedt_nbh, auto& R_nbh)
+        pixel_wise(relative_access(sedt_row), relative_access(R_row))(row_direction1, _no_threads)
+        | [&] (auto sedt_nbh, auto R_nbh)
         {
           vint2 min_rel_coord = neighborhood()[0];
           int min_dist = INT_MAX;
@@ -98,7 +97,7 @@ namespace vpp
     auto run = [&] (auto neighb, auto ws,
                     auto col_direction,
                     auto row_direction) {
-      pixel_wise(relative_access(sedt))(col_direction, row_direction) | [neighb, ws] (auto sn) {
+      pixel_wise(relative_access(sedt))(col_direction, row_direction, _no_threads) | [neighb, ws] (auto sn) {
         int min_dist = sn(0,0);
 
         auto nbh = neighb();
