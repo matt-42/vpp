@@ -8,7 +8,6 @@
 #include <vpp/core/image2d.hh>
 #include <vpp/core/vector.hh>
 #include <vpp/core/liie.hh>
-#include <vpp/core/box_nbh2d.hh>
 #include <vpp/core/make_array.hh>
 
 namespace vpp
@@ -32,10 +31,7 @@ namespace vpp
       row_wise(sedt, R)(col_direction) | [&] (auto sedt_row, auto R_row)
       {
         // Forward pass
-        auto sedt_row_nbh = box_nbh2d<U, 3, 3>(sedt_row);
-        auto R_row_nbh = box_nbh2d<vshort2, 3, 3>(R_row);
-      
-        pixel_wise(sedt_row_nbh, R_row_nbh)(row_direction1)
+        pixel_wise(relative_access(sedt_row), relative_access(R_row))(row_direction1)
         | [&] (auto& sedt_nbh, auto& R_nbh)
         {
           vint2 min_rel_coord = neighborhood()[0];
@@ -61,7 +57,8 @@ namespace vpp
         };
 
         // Backward pass
-        pixel_wise(sedt_row_nbh, R_row_nbh)(row_direction2, _no_threads) | [&] (auto& sedt_nbh, auto& R_nbh)
+        pixel_wise(relative_access(sedt_row), relative_access(R_row))
+        (row_direction2, _no_threads) | [&] (auto sedt_nbh, auto R_nbh)
         {
           int d = sedt_nbh(spn()) + 2 * std::abs(R_nbh(spn())[1]) + 1;
           if (d < sedt_nbh(0, 0))
@@ -80,52 +77,6 @@ namespace vpp
 
     // pixel_wise(sedt) | [] (auto& p) { p/=100; };
   }
-
-  // template <typename T, typename U>
-  // void euclide_distance_transform(image2d<T>& input, image2d<U>& sedt)
-  // {
-  //   image2d<vshort2> R(input.domain(), _border = 1);
-  //   fill_with_border(R, vshort2{0,0});
-
-  //   auto forward4 = [] () { return make_array(vint2{-1, -1}, vint2{-1, 0}, vint2{-1, 1}, vint2{0, -1}); };
-  //   auto backward4 = [] () { return make_array(vint2{1, 1}, vint2{1, 0}, vint2{1, -1}, vint2{0, 1}); };
-
-  //   fill_with_border(sedt, INT_MAX / 2);
-  //   pixel_wise(input, sedt) | [] (auto& i, auto& s) { if (i == 0) s = 0; };
-
-  //   auto run = [&] (auto neighborhood, auto col_direction,
-  //                   auto row_direction1, auto row_direction2, auto spn) {
-
-  //     row_wise(sedt, R)(col_direction) | [&] (auto sedt_row, auto R_row)
-  //     {
-  //       // Forward pass
-  //       auto sedt_row_nbh = box_nbh2d<int, 3, 3>(sedt_row);
-  //       auto R_row_nbh = box_nbh2d<vshort2, 3, 3>(R_row);
-      
-  //       pixel_wise(sedt_row_nbh, R_row_nbh)(row_direction1, _no_threads)
-  //       | [&] (auto& sedt_nbh, auto& R_nbh)
-  //       {
-  //         int min_dist = INT_MAX;
-  //         for (vint2 nc : neighborhood())
-  //         {
-  //           int d = sedt_nbh(nc) + 1;
-  //           if (d < min_dist)
-  //             min_dist = d;
-  //         }
-
-  //         if (min_dist < sedt_nbh(0, 0))
-  //           sedt_nbh(0, 0) = min_dist;
-  //       };
-
-  //     };
-
-  //   };
-
-  //   run(forward4, _top_to_bottom, _left_to_right, _right_to_left, [] () { return vint2{0, 1}; });
-  //   run(backward4, _bottom_to_top, _right_to_left, _left_to_right, [] () { return vint2{0, -1}; });
-
-  //   // pixel_wise(sedt) | [] (auto& p) { p/=100; };
-  // }
 
   template <unsigned N, typename F>
   void loop_unroll(F f, std::enable_if_t<N == 0>* = 0) { f(N); }
@@ -147,8 +98,7 @@ namespace vpp
     auto run = [&] (auto neighb, auto ws,
                     auto col_direction,
                     auto row_direction) {
-      auto sedt_nbh = box_nbh2d<int, WS, WS>(sedt);
-      pixel_wise(sedt_nbh)(col_direction, row_direction) | [neighb, ws] (auto sn) {
+      pixel_wise(relative_access(sedt))(col_direction, row_direction) | [neighb, ws] (auto sn) {
         int min_dist = sn(0,0);
 
         auto nbh = neighb();
