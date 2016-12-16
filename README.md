@@ -38,12 +38,11 @@ welcome to cite us :
 
 ## Getting Started
 
-### Installation.
+### Installation
 
 Before installing Video++, you need to get Eigen3 and Boost on your
-system. Most package managers deliver these libraries.
-
-To install Video++ and its dependency Iod, follow these steps:
+system. Your package managers will probably help you to install these
+libraries. Then, use the install.sh script to install iod and vpp :
 
 ```
 git clone https://github.com/matt-42/vpp.git
@@ -51,14 +50,8 @@ cd vpp
 ./install.sh your_install_prefix # Install iod and vpp in a given prefix
 ```
 
-The script install.sh will install the iod and vpp headers.
-
-
-Video++ is a header-only library,
-
-
-To start coding, include the vpp.hh
-header to access the core of the library:
+Video++ is a header-only library, so you just need include the vpp.hh
+header to access all the basic features of the library:
 
 ```c++
 #include <vpp/vpp.hh>
@@ -66,7 +59,7 @@ header to access the core of the library:
 
 If you use the parallel constructs of Video++ and need to target multiple cores, activate the OpenMP optimizations:
 ```sh
-g++ -I __path_to_vpp__ main.cc -fopenmp -lgomp
+g++ -I __your_isntall_prefix__ main.cc -fopenmp -lgomp
 ```
 
 ## Image Containers
