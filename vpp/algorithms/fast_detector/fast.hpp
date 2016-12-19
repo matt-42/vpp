@@ -1,5 +1,4 @@
-#ifndef VPP_FAST9_DETECTOR_HPP_
-# define VPP_FAST9_DETECTOR_HPP_
+#pragma once
 
 #ifdef __ARM_NEON__
 #  include <arm_neon.h>
@@ -9,25 +8,14 @@
 # include "immintrin.h"
 #endif
 
-//# include <omp.h>
-# include <bitset>
-# include <thread>
-# include <vpp/vpp.hh>
-# include <stdint.h>
-# include <float.h>
+#include <bitset>
+#include <thread>
+#include <vpp/vpp.hh>
+#include <stdint.h>
+#include <float.h>
 
 namespace vpp
 {
-
-  template <typename V>
-  auto relative_accessor(const image2d<V>& img, vint2 p)
-  {
-    return [line=&img[p[0]], col=p[1]] (int dr, int dc) -> decltype(auto)
-    {
-      return line[dr][col+dc];
-    };
-  };
-  
   
   namespace FAST_internals
   {
@@ -967,5 +955,3 @@ namespace vpp
   }
   
 }
-
-#endif
