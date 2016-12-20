@@ -34,7 +34,18 @@ matrix:
           - key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'
         packages: ['clang-3.9', 'g++-6', 'libboost1.54-dev', 'libopencv-dev', 'libeigen3-dev' ]
     env: COMPILER=clang++-3.9
+  - os: osx
+    osx_image: xcode7.3
+    compiler: clang
+    env: COMPILER=clang++
+    before_install:
+      - brew update
+      - brew tap homebrew/science
+      - brew install opencv3 boost
 
+
+brew tap homebrew/science
+brew install opencv3 --with-contrib
 script:
 - export CXX=${COMPILER}
 - ${CXX} --version
