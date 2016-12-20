@@ -1,3 +1,5 @@
+![Travis build status](https://travis-ci.org/matt-42/vpp.svg?branch=phd_work)
+
 Video++
 =============
 
