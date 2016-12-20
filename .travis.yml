@@ -35,7 +35,12 @@ matrix:
     compiler: clang
     addons:
       apt:
-        sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.9', 'boost-latest']
+        sources:
+          - 'ubuntu-toolchain-r-test',
+          - 'boost-latest'
+          - deadsnakes
+          - sourceline: 'ppa:ubuntu-toolchain-r/test'
+          - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main'
         packages: ['g++-6', 'clang-3.9', 'libboost1.54-dev', 'libopencv-dev', 'libeigen3-dev' ]
     env: COMPILER=clang++-3.9
 
