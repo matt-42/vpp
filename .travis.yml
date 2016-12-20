@@ -10,8 +10,8 @@ matrix:
       - brew update
       - brew tap homebrew/science
       - brew install eigen
-      - brew install opencv3 --without-python --without-test --without-opencl
-      - brew ln opencv3 --force
+      - brew install opencv --without-python --without-test --without-opencl
+      - brew ln opencv --force
   - os: linux
     dist: trusty
     sudo: false
