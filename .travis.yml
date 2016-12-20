@@ -2,6 +2,14 @@ language: cpp
 
 matrix:
   include:
+  - os: osx
+    osx_image: xcode7.3
+    compiler: clang
+    env: COMPILER=clang++
+    before_install:
+      - brew update
+      - brew tap homebrew/science
+      - brew install opencv3 --without-python
   - os: linux
     dist: trusty
     sudo: false
@@ -34,14 +42,6 @@ matrix:
           - key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'
         packages: ['clang-3.9', 'g++-6', 'libboost1.54-dev', 'libopencv-dev', 'libeigen3-dev' ]
     env: COMPILER=clang++-3.9
-  - os: osx
-    osx_image: xcode7.3
-    compiler: clang
-    env: COMPILER=clang++
-    before_install:
-      - brew update
-      - brew tap homebrew/science
-      - brew install opencv3
 
 script:
 - export CXX=${COMPILER}
