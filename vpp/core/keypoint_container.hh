@@ -13,7 +13,7 @@ namespace vpp
   struct keypoint
   {
     keypoint() : age(0) {}
-    keypoint(vector<C, 2> pos) : position(pos), velocity(zero<vector<C, 2>>()),
+    keypoint(vector<C, 2> pos) : position(pos), velocity(0,0),
                                  age(1) {}
 
     vector<C, 2> position;
