@@ -3,6 +3,8 @@ language: cpp
 matrix:
   include:
   - os: linux
+    dist:trusty
+    sudo: false
     compiler: gcc
     addons:
       apt:
@@ -10,6 +12,8 @@ matrix:
         packages: ['g++-6', 'libboost1.54-dev', 'libopencv-dev', 'libeigen3-dev']
     env: COMPILER=g++-6
   - os: linux
+    dist:trusty
+    sudo: false
     compiler: clang
     addons:
       apt:
