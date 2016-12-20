@@ -12,7 +12,7 @@ int main()
 
   auto it = b.begin();
 
-  assert(vint2(it) == vint2(10, 5));
+  assert(*it == vint2(10, 5));
   it.next();
   assert(*it == vint2(10, 6));
   it.next();
