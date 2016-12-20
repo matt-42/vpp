@@ -18,7 +18,7 @@ matrix:
     addons:
       apt:
         sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.8', 'boost-latest']
-        packages: ['clang-3.8', 'libboost1.54-dev', 'libopencv-dev', 'libeigen3-dev' ]
+        packages: ['g++-6', 'clang-3.8', 'libboost1.54-dev', 'libopencv-dev', 'libeigen3-dev' ]
     env: COMPILER=clang++-3.8
 
 script:
