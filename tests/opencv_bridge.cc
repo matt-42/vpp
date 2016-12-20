@@ -4,10 +4,10 @@
 
 void check_cv_refcount(const cv::Mat& m, int i)
 {
-#if ((defined(CV_VERSION_EPOCH) && CV_VERSION_EPOCH == 2) || ((defined(CV_VERSION_MAJOR) && CV_VERSION_MAJOR == 2)))
-      assert(*(m.refcount) == i);      
-#else
+#if (((defined(CV_VERSION_MAJOR) && CV_VERSION_MAJOR == 3)))
       assert((m.u->refcount) == i);
+#else
+      assert(*(m.refcount) == i);      
 #endif
 
 }
