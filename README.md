@@ -14,7 +14,7 @@ optimize. Its main features are:
   - Zero-cost abstractions to easily write image processing algorithms for multicore SIMD processors.
   - An embedded language to evaluate image expressions.
 
-Tested compilers: **G++ 4.9.1, Clang++ 3.5.0**
+Tested compilers: **G++6, Clang++ 3.8.0**
 Dependencies:
   - [the iod library](http://github.com/matt-42/iod)
   - [Eigen 3](http://eigen.tuxfamily.org)
