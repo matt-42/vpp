@@ -10,13 +10,15 @@
 # include <vpp/core/colorspace_conversions.hh>
 
 # include <vpp/core/vector.hh>
-# include <vpp/core/neighborhood.hh>
-# include <vpp/core/boxNd.hh>
 # include <vpp/core/window.hh>
+# include <vpp/core/boxNd.hh>
+# include <vpp/core/relative_accessor.hh>
 # include <vpp/core/pixel_wise.hh>
 # include <vpp/core/block_wise.hh>
 # include <vpp/core/copy.hh>
 # include <vpp/core/clone.hh>
+
+# include <vpp/core/patch.hh>
 
 # include <vpp/core/make_array.hh>
 

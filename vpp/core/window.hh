@@ -1,59 +1,63 @@
-#ifndef VPP_WINDOW_HPP__
-# define VPP_WINDOW_HPP__
+#pragma once
 
-# include <vpp/core/imageNd.hh>
+#include <vpp/core/boxNd.hh>
+#include <vpp/core/vector.hh>
+#include <vpp/core/make_array.hh>
 
 namespace vpp
 {
 
-  template <typename V>
-  struct window_runner
+  template <typename N>
+  struct window
   {
-    inline window_runner(const std::vector<int>& offsets, V& pix)
-      : offsets_(offsets),
-        pix_((char*)&pix)
-    {
-    }
+    window(N n) : offsets(n) {}
 
-    template <typename F>
-    inline void operator<(F f)
-    {
-      for (auto off : offsets_)
-        f(*(V*)(pix_ + off));
-    }
-
-    const std::vector<int>& offsets_;
-    char* pix_;
+    decltype(auto) operator()() { return offsets(); }
+    N offsets;
   };
 
-  template <typename I>
-  class window
+  // Apply a function on a set of relative coordinates.
+  //
+  // Example:
+  //
+  // pixel_wise(relative_access(img)) | [] (auto& a) {
+  //     foreach(c4, [&] (vint2 n) { a(n) += a(0,0); });
+  // };
+  template <typename N, typename F>  
+  auto foreach(window<N> n, F f)
   {
-  public:
-    typedef typename I::coord_type coord_type;
-    typedef typename I::value_type value_type;
-    typedef typename I::iterator I_iterator;
-    window(const I& img, const std::vector<coord_type>& cds)
-    {
-      for (auto p : cds)
-        offsets_.push_back(img.offset_of(p));
-    }
-
-    inline window_runner<value_type> operator()(value_type& p) const
-    {
-      return window_runner<value_type>(offsets_, p);
-    }
-
-  private:
-    std::vector<int> offsets_;
-  };
-
-  template <typename I>
-  window<I> make_window(const I& img, const std::vector<typename I::coord_type>& cds)
-  {
-    return window<I>(img, cds);
+    for (int i = 0; i < n().size(); i++)
+      f(vint2(n()[i][0], n()[i][1]));
   }
 
-};
+  template <typename F>  
+  auto make_window(F f) { return window<F>(f); }
 
-#endif
+  // Define window with lambda function to allow inlining
+  // of neighbor offsets.
+
+  auto c9 = make_window
+    ([] () { return vpp::make_array
+             (vint2{-1,-1}, vint2{-1, 0}, vint2{-1, 1},
+         vint2{ 0, -1}, vint2{ 0, 0}, vint2{0, 1},
+         vint2{1,-1}, vint2{1, 0}, vint2{1, 1}); });
+    
+  auto c8 = make_window
+    ([] { return make_array
+        (vint2{-1,-1}, vint2{-1, 0}, vint2{-1, 1},
+         vint2{ 0, -1}, vint2{0, 1},
+         vint2{1,-1}, vint2{1, 0}, vint2{1, 1}); });
+
+  auto c5 = make_window
+    ([] { return make_array
+        (vint2{-1, 0},
+         vint2{ 0, -1}, vint2{ 0, 0}, vint2{0, 1},
+         vint2{1, 0}); });
+
+  auto c4 = make_window
+    ([] { return make_array
+        (vint2{-1, 0},
+         vint2{ 0, -1}, vint2{0, 1},
+         vint2{1, 0}); });
+
+};

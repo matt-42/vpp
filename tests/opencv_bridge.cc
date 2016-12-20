@@ -2,6 +2,16 @@
 #include <vpp/vpp.hh>
 #include <vpp/utils/opencv_bridge.hh>
 
+void check_cv_refcount(const cv::Mat& m, int i)
+{
+#if (defined(CV_VERSION_EPOCH) && CV_VERSION_EPOCH == 2)
+      assert(*(m.refcount) == i);      
+#else
+      assert((m.u->refcount) == i);
+#endif
+
+}
+
 int main()
 {
   using vpp::image2d;
@@ -18,10 +28,10 @@ int main()
       assert(v.nrows() == 100);
       assert(v.ncols() == 200);
 
-      assert((m.u->refcount) == 2);
+      check_cv_refcount(m, 2);
 
     }
-    assert((m.u->refcount) == 1);
+    check_cv_refcount(m, 1);
   }
 
   // from_opencv, vpp releases memory.
@@ -36,7 +46,8 @@ int main()
       assert(v.ncols() == 200);
 
       m.at<int>(50, 50) = 41;
-      assert((m.u->refcount) == 2);
+
+      check_cv_refcount(m, 2);
     }
 
     assert(v(50, 50) == 41);

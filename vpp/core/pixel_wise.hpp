@@ -1,4 +1,7 @@
+#pragma once
+
 #include <iod/callable_traits.hh>
+#include <vpp/core/relative_accessor.hh>
 
 namespace vpp
 {
@@ -6,16 +9,6 @@ namespace vpp
   using s::_right_to_left_t;
   using s::_top_to_bottom_t;
   using s::_bottom_to_top_t;
-
-  template <typename V>
-  struct relative_access_kernel
-  {
-    decltype(auto) operator() (int dr, int dc) { return line[dr][col+dc]; };
-    decltype(auto) operator() (vint2 p) { return line[p[0]][col+p[1]]; };
-    
-    V line;
-    int col;
-  };
   
   template <typename I>
   struct relative_access_
