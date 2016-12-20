@@ -9,7 +9,7 @@ matrix:
     before_install:
       - brew update
       - brew tap homebrew/science
-      - brew install opencv3 --without-python
+      - brew install opencv3 --without-python --without-test --without-opencl
   - os: linux
     dist: trusty
     sudo: false
