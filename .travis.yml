@@ -43,9 +43,6 @@ matrix:
       - brew tap homebrew/science
       - brew install opencv3 boost
 
-
-brew tap homebrew/science
-brew install opencv3 --with-contrib
 script:
 - export CXX=${COMPILER}
 - ${CXX} --version
