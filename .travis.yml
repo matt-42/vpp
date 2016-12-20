@@ -10,6 +10,7 @@ matrix:
       - brew update
       - brew tap homebrew/science
       - brew install opencv3 --without-python --without-test --without-opencl
+      - brew ln opencv3 --force
   - os: linux
     dist: trusty
     sudo: false
