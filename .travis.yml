@@ -41,7 +41,7 @@ matrix:
     before_install:
       - brew update
       - brew tap homebrew/science
-      - brew install opencv3 boost
+      - brew install opencv3
 
 script:
 - export CXX=${COMPILER}
