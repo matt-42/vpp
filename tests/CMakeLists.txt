@@ -2,9 +2,13 @@ cmake_minimum_required(VERSION 2.8)
 
 find_package(OpenCV REQUIRED)
 
+find_package(PkgConfig)
+pkg_search_module(Eigen3 REQUIRED eigen3)
+include_directories(${Eigen3_INCLUDE_DIRS})
+
 enable_testing()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/.. /usr/include/eigen3
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..
   ${IOD_INCLUDE_DIR}
   $ENV{HOME}/local/include
   )

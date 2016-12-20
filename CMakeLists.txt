@@ -2,7 +2,9 @@ cmake_minimum_required (VERSION 2.8)
 
 project (vpp)
 
-include_directories(/usr/include/eigen3)
+find_package(PkgConfig)
+pkg_search_module(Eigen3 REQUIRED eigen3)
+include_directories(${Eigen3_INCLUDE_DIRS})
 
 set(CMAKE_CXX_STANDARD 14)
 
