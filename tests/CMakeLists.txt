@@ -31,14 +31,14 @@ add_executable(imageNd_iterator imageNd_iterator.cc)
 add_test(imageNd_iterator imageNd_iterator)
 
 add_executable(pixel_wise pixel_wise.cc)
-target_link_libraries(pixel_wise gomp)
+#target_link_libraries(pixel_wise gomp)
 add_test(pixel_wise pixel_wise)
 
 add_executable(sandbox sandbox.cc)
 add_test(sandbox sandbox)
 
 add_executable(window window.cc)
-target_link_libraries(window gomp)
+#target_link_libraries(window gomp)
 add_test(window window)
 
 add_executable(opencv_bridge opencv_bridge.cc)
@@ -64,7 +64,7 @@ add_executable(tuple_utils tuple_utils.cc)
 add_test(tuple_utils tuple_utils)
 
 add_executable(block_wise block_wise.cc)
-target_link_libraries(block_wise gomp)
+#target_link_libraries(block_wise gomp)
 add_test(block_wise block_wise)
 
 add_executable(colorspace_conversions colorspace_conversions.cc)
