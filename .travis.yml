@@ -33,6 +33,6 @@ script:
 
 - cd $VPP_DIR
 - mkdir -p build && cd build
-- cmake .. && make -j4
+- cmake .. -DIOD_INCLUDE_DIR=~/local/include && make -j4
 - cd tests
 - ctest --output-on-failure
