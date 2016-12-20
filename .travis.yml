@@ -14,15 +14,6 @@ matrix:
   - os: linux
     dist: trusty
     sudo: false
-    compiler: gcc
-    addons:
-      apt:
-        sources: ['ubuntu-toolchain-r-test', 'boost-latest']
-        packages: ['g++-5', 'libboost1.54-dev', 'libopencv-dev', 'libeigen3-dev']
-    env: COMPILER=g++-5
-  - os: linux
-    dist: trusty
-    sudo: false
     compiler: clang
     addons:
       apt:
@@ -36,15 +27,12 @@ matrix:
     addons:
       apt:
         sources:
-          - deadsnakes
-          - sourceline: 'ppa:ubuntu-toolchain-r/test'
-          - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main'
-        packages: ['clang-3.9']
-      apt:
-        sources:
           - ubuntu-toolchain-r-test
           - boost-latest
-        packages: ['g++-6', 'libboost1.54-dev', 'libopencv-dev', 'libeigen3-dev' ]
+          - sourceline: 'ppa:ubuntu-toolchain-r/test'
+          - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main'
+          - key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'
+        packages: ['clang-3.9', 'g++-6', 'libboost1.54-dev', 'libopencv-dev', 'libeigen3-dev' ]
     env: COMPILER=clang++-3.9
 
 script:
