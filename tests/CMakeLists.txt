@@ -85,3 +85,5 @@ target_link_libraries(pyrlk ${OpenCV_LIBS})
 target_link_libraries(opencv_bridge ${OpenCV_LIBS})
 #target_link_libraries(liie gomp)
 
+add_executable(descriptor_matcher descriptor_matcher.cc)
+add_test(descriptor_matcher descriptor_matcher)

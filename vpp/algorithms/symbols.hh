@@ -30,6 +30,16 @@
     iod_define_symbol(border)
 #endif
 
+#ifndef IOD_SYMBOL_bottom_to_top
+#define IOD_SYMBOL_bottom_to_top
+    iod_define_symbol(bottom_to_top)
+#endif
+
+#ifndef IOD_SYMBOL_bruteforce
+#define IOD_SYMBOL_bruteforce
+    iod_define_symbol(bruteforce)
+#endif
+
 #ifndef IOD_SYMBOL_descriptor
 #define IOD_SYMBOL_descriptor
     iod_define_symbol(descriptor)
@@ -45,6 +55,16 @@
     iod_define_symbol(detector_th)
 #endif
 
+#ifndef IOD_SYMBOL_distance
+#define IOD_SYMBOL_distance
+    iod_define_symbol(distance)
+#endif
+
+#ifndef IOD_SYMBOL_epipolar_filter
+#define IOD_SYMBOL_epipolar_filter
+    iod_define_symbol(epipolar_filter)
+#endif
+
 #ifndef IOD_SYMBOL_epipolar_flow
 #define IOD_SYMBOL_epipolar_flow
     iod_define_symbol(epipolar_flow)
@@ -53,6 +73,16 @@
 #ifndef IOD_SYMBOL_epipolar_line_filter
 #define IOD_SYMBOL_epipolar_line_filter
     iod_define_symbol(epipolar_line_filter)
+#endif
+
+#ifndef IOD_SYMBOL_flann
+#define IOD_SYMBOL_flann
+    iod_define_symbol(flann)
+#endif
+
+#ifndef IOD_SYMBOL_flow
+#define IOD_SYMBOL_flow
+    iod_define_symbol(flow)
 #endif
 
 #ifndef IOD_SYMBOL_fundamental_matrix
@@ -75,14 +105,39 @@
     iod_define_symbol(keypoint_spacing)
 #endif
 
+#ifndef IOD_SYMBOL_keypoints
+#define IOD_SYMBOL_keypoints
+    iod_define_symbol(keypoints)
+#endif
+
+#ifndef IOD_SYMBOL_left_to_right
+#define IOD_SYMBOL_left_to_right
+    iod_define_symbol(left_to_right)
+#endif
+
+#ifndef IOD_SYMBOL_lk_iterations
+#define IOD_SYMBOL_lk_iterations
+    iod_define_symbol(lk_iterations)
+#endif
+
 #ifndef IOD_SYMBOL_local_maxima
 #define IOD_SYMBOL_local_maxima
     iod_define_symbol(local_maxima)
 #endif
 
+#ifndef IOD_SYMBOL_local_search
+#define IOD_SYMBOL_local_search
+    iod_define_symbol(local_search)
+#endif
+
 #ifndef IOD_SYMBOL_mask
 #define IOD_SYMBOL_mask
     iod_define_symbol(mask)
+#endif
+
+#ifndef IOD_SYMBOL_match
+#define IOD_SYMBOL_match
+    iod_define_symbol(match)
 #endif
 
 #ifndef IOD_SYMBOL_max_points_per_block
@@ -100,6 +155,16 @@
     iod_define_symbol(min_scale)
 #endif
 
+#ifndef IOD_SYMBOL_nchecks
+#define IOD_SYMBOL_nchecks
+    iod_define_symbol(nchecks)
+#endif
+
+#ifndef IOD_SYMBOL_niterations
+#define IOD_SYMBOL_niterations
+    iod_define_symbol(niterations)
+#endif
+
 #ifndef IOD_SYMBOL_no_threads
 #define IOD_SYMBOL_no_threads
     iod_define_symbol(no_threads)
@@ -115,6 +180,11 @@
     iod_define_symbol(patchsize)
 #endif
 
+#ifndef IOD_SYMBOL_prediction
+#define IOD_SYMBOL_prediction
+    iod_define_symbol(prediction)
+#endif
+
 #ifndef IOD_SYMBOL_propagation
 #define IOD_SYMBOL_propagation
     iod_define_symbol(propagation)
@@ -123,6 +193,21 @@
 #ifndef IOD_SYMBOL_qr_ratio
 #define IOD_SYMBOL_qr_ratio
     iod_define_symbol(qr_ratio)
+#endif
+
+#ifndef IOD_SYMBOL_query
+#define IOD_SYMBOL_query
+    iod_define_symbol(query)
+#endif
+
+#ifndef IOD_SYMBOL_query_positions
+#define IOD_SYMBOL_query_positions
+    iod_define_symbol(query_positions)
+#endif
+
+#ifndef IOD_SYMBOL_radius
+#define IOD_SYMBOL_radius
+    iod_define_symbol(radius)
 #endif
 
 #ifndef IOD_SYMBOL_regularisation
@@ -135,9 +220,9 @@
     iod_define_symbol(regularization)
 #endif
 
-#ifndef IOD_SYMBOL_regularization_niters
-#define IOD_SYMBOL_regularization_niters
-    iod_define_symbol(regularization_niters)
+#ifndef IOD_SYMBOL_right_to_left
+#define IOD_SYMBOL_right_to_left
+    iod_define_symbol(right_to_left)
 #endif
 
 #ifndef IOD_SYMBOL_scores
@@ -145,9 +230,44 @@
     iod_define_symbol(scores)
 #endif
 
+#ifndef IOD_SYMBOL_search_radius
+#define IOD_SYMBOL_search_radius
+    iod_define_symbol(search_radius)
+#endif
+
+#ifndef IOD_SYMBOL_size1
+#define IOD_SYMBOL_size1
+    iod_define_symbol(size1)
+#endif
+
+#ifndef IOD_SYMBOL_size2
+#define IOD_SYMBOL_size2
+    iod_define_symbol(size2)
+#endif
+
+#ifndef IOD_SYMBOL_subpixelic
+#define IOD_SYMBOL_subpixelic
+    iod_define_symbol(subpixelic)
+#endif
+
+#ifndef IOD_SYMBOL_top_to_bottom
+#define IOD_SYMBOL_top_to_bottom
+    iod_define_symbol(top_to_bottom)
+#endif
+
 #ifndef IOD_SYMBOL_train
 #define IOD_SYMBOL_train
     iod_define_symbol(train)
+#endif
+
+#ifndef IOD_SYMBOL_train_positions
+#define IOD_SYMBOL_train_positions
+    iod_define_symbol(train_positions)
+#endif
+
+#ifndef IOD_SYMBOL_trees
+#define IOD_SYMBOL_trees
+    iod_define_symbol(trees)
 #endif
 
 #ifndef IOD_SYMBOL_winsize
