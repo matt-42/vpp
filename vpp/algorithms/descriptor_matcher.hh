@@ -20,7 +20,7 @@ namespace vpp
   //   _size1: Size of the first set
   //   _size2: Size of the second set
   //
-  // For the all matchers except bruteforce:
+  // For the _flann and _index1d indexes:
   //
   //   _query = descriptors1, // or a lambda [] (int i) { return kps[i].descriptor; }
   //   _train = descriptors2,
@@ -30,9 +30,11 @@ namespace vpp
   //   _bruteforce
   //   _index1d(_approximation = 2) TODO
   //   _flann(_trees = 4, _nchecks = 50) TODO
-  //   _local_search(_query_positions = positions1,
-  //                 _train_positions = positions2,
-  //                 _search_radius = 100)
+
+  // Spatial indexes:
+  //   _grid_index(_query_positions = positions1,
+  //               _train_positions = positions2,
+  //               _search_radius = 100)
   //
 
   template <typename... OPTS>
