@@ -2,6 +2,8 @@
 
 #include <vpp/vpp.hh>
 #include <vpp/algorithms/symbols.hh>
+#include <vpp/algorithms/epipolar_geometry.hh>
+#include <vpp/algorithms/optical_flow/epipolar_match.hh>
 #include "gradient_descent.hh"
 
 namespace vpp
@@ -41,21 +43,28 @@ namespace vpp
 
   }
 
-  template <typename K, typename F, typename... OPTS>
+  template <typename K, typename MC, typename... OPTS>
   inline void
   semi_dense_optical_flow(const K& keypoints,
-                          F match_callback,
+                          MC match_callback,
                           const image2d<unsigned char>& i1,
                           const image2d<unsigned char>& i2,
                           OPTS... options)
   {
+    using Eigen::Matrix3f;
+    
     auto opts = D(options...);
     const int winsize = opts.get(_winsize, 7);
     const int nscales = opts.get(_nscales, 4);
     const int min_scale = opts.get(_min_scale, 0);
     const int propagation_niters = opts.get(_propagation, 2);
     const int patchsize = opts.get(_patchsize, 5);
-
+    const bool f_provided = opts.has(_fundamental_matrix);
+    const Matrix3f F = opts.get(_fundamental_matrix, Matrix3f::Zero());
+    constexpr bool epipolar_flow = opts.has(_epipolar_flow);
+    constexpr bool epipolar_filter = opts.has(_epipolar_filter);
+    const bool epipolar_filter_th = opts.get(_epipolar_filter, 2);
+      
     auto pf_domain = make_box2d(i1.domain().nrows() / patchsize,
                                 i1.domain().ncols() / patchsize);
     pyramid2d<vint2> pyr_flow_map(pf_domain, nscales, 2, _border = nscales);
@@ -66,6 +75,20 @@ namespace vpp
 
     assert(pyr_flow_map_mark.size() == nscales);
 
+    // Compute epipole for epipolar flow.
+    vfloat2 epipole = epipole_right(F);
+    // Scale fundamental matrix.
+    std::vector<Matrix3f> Fs(nscales, F);
+    for (int scale = nscales - 1; scale >= 0; scale--)
+    {
+      Matrix3f downscale;
+      downscale <<
+        2, 2, 1,
+        2, 2, 1,
+        1, 1, 0.5;
+      Fs[scale] = Fs[scale + 1].cwiseProduct(downscale);
+    }
+    
     for (int scale = nscales - 1; scale >= min_scale; scale--)
     {
       int scale_div= std::pow(2, scale);
@@ -92,8 +115,6 @@ namespace vpp
       for (int i = 0; i < keypoints.size(); i++)
       {
         vint2 p = keypoints[i] / scale_div;
-
-
         
         // Descent
         if (!pyr_flow_map_mark[scale](p / patchsize))
@@ -107,13 +128,16 @@ namespace vpp
             prediction = p + pyr_flow_map[scale + 1](pfm) * 2;
           
           pyr_flow_map_mark[scale](p / patchsize) = 1;
-          auto m = gradient_descent_match(p, prediction, distance, 5);
+
+          auto m = iod::static_if<epipolar_flow>
+            ([&] { return epipolar_match(p, prediction, epipole, Fs[scale], distance); },
+             [&] { return gradient_descent_match(p, prediction, distance, 5); });
 
           // Register match.
-          vint2 match = p + m.first;
+          vint2 match = p + m.flow;
           assert(pyr_flow_map_mark[scale].domain_with_border().has(p / patchsize));
           pyr_flow_map[scale](p / patchsize) = match - p;
-          distance_map[scale](p / patchsize) = m.second;
+          distance_map[scale](p / patchsize) = m.distance;
           pyr_flow_map_mark[scale](p / patchsize) = 2;
         }
       }
@@ -146,15 +170,17 @@ namespace vpp
 
                   if (d2 < d1)
                   {
-                    auto m = gradient_descent_match(p, p + flow_map(pfn), distance, 3);
+                    auto m = iod::static_if<epipolar_flow>
+                      ([&] { return epipolar_match(p, vint2(p + flow_map(pfn)), epipole, Fs[scale], distance); },
+                       [&] { return gradient_descent_match(p, p + flow_map(pfn), distance, 5); });
 
                     // Register match.
-                    vint2 match = p + m.first;
-                    if (m.second < d1)
+                    vint2 match = p + m.flow;
+                    if (m.distance < d1)
                     {
                       pyr_flow_map_mark[scale](pf) = true;
                       pyr_flow_map[scale](pf) = match - p;
-                      distance_map[scale](pf) = m.second;
+                      distance_map[scale](pf) = m.distance;
                     }
                 
                   }

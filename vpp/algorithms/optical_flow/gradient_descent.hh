@@ -7,10 +7,10 @@ namespace vpp
 
   template <typename D>
   inline
-  std::pair<vint2, float> gradient_descent_match(const vint2 p,
-                                                 vint2 prediction,
-                                                 D distance,
-                                                 int max_iteration = 10)
+  auto gradient_descent_match(const vint2 p,
+                              vint2 prediction,
+                              D distance,
+                              int max_iteration = 10)
   {
     typedef std::pair<vint2, float> ret;
     vint2 match = prediction;
@@ -85,7 +85,7 @@ namespace vpp
 
     }
 
-    return ret(match - p, match_distance);
+   return iod::D(_flow = vint2(match - p), _distance = match_distance);
   }
 
   

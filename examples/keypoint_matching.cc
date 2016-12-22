@@ -9,23 +9,20 @@ int main()
   
   // Classical neareast neighbor search.
   match_keypoints(
-    nkeypoints,
+
+    _distance = [] (int q, int t) { return (descriptors2[q] - descriptors[t]).norm(); },
+    _match = [] (int q, int t, float dist) { matches.push_back({q, t, dist}); },
+    
+    // Only for bruteforce
+    _size1 = descriptors1.size()
+    _size2 = descriptors2.size()
+
+    // For all methods except bruteforce
     _query = descriptors2, // or a lambda [] (int i) { return kps[i].descriptor; }
     _train = descriptors,
    
-    _distance = [] (int q, int t) { return (descriptors2[q] - descriptors[t]).norm(); },
 
-    _match = [] (int q, int t, float dist) { matches.push_back({q, t, dist}); },
-
-    _type = _nearest | _knn(4)
-    _restrict = [] ()
-    _flann, // or _bruteforce or _index1d
-
-    _knn = 3
-    // FLANN parameters.
-    _trees = 2,
-    _nchecks = 10, ..
-
+    _bruteforce
     _flann(_trees = 4, _nchecks = 10),
     _index1d(_approximation = 1),
 

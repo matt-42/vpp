@@ -6,6 +6,7 @@ namespace vpp
   // Compute a semi dense flow field with the following assumptions :
   //   - The keypoint set should be dense enough to let the estimation rely on spatial regularity.
   //   - The nscales and winsize parameters should be large enough to recover the motion.
+  //
   // Parameters:
   //   nscales = 3: The number of scales used by multiscales approaches.
   //   winsize = 9: The window size support for SSD computation
@@ -48,19 +49,29 @@ namespace vpp
   //                    const image2d<unsigned char>& i2,
   //                    OPTS... options);
 
+  // Computes the flow vectors of a sparse set of keypoints. This
+  // relies on detecting FAST keypoints in \i1 and \i2 and matching
+  // them with the set of keypoint.
+  //
   // Parameters:
   //   search_radius = 100
   //   winsize = 11
-  // template <typename K, typename F, typename... OPTS>
-  // inline void
-  // sparse_optical_flow(const K& keypoints,
-  //                     F match_callback,
-  //                     const image2d<unsigned char>& i1,
-  //                     const image2d<unsigned char>& i2,
-  //                     OPTS... options);
+  template <typename K, typename F, typename... OPTS>
+  inline void
+  sparse_optical_flow(const K& keypoints,
+                      F match_callback,
+                      const image2d<unsigned char>& i1,
+                      const image2d<unsigned char>& i2,
+                      OPTS... options);
 
+  template <typename K, typename F, typename... OPTS>
+  inline void
+  sparse_optical_flow(const image2d<unsigned char>& i1,
+                      const image2d<unsigned char>& i2,
+                      OPTS... options);
+  
 }
 
 #include <vpp/algorithms/optical_flow/semi_dense_optical_flow.hpp>
 #include <vpp/algorithms/optical_flow/dense_optical_flow.hpp>
-//#include <vpp/algorithms/optical_flow/sparse_optical_flow.hh>
+#include <vpp/algorithms/optical_flow/sparse_optical_flow.hh>

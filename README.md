@@ -16,16 +16,13 @@ optimize. Its main features are:
 
 Tested compilers: **G++6, Clang++ 3.8.0**
 Dependencies:
-  - [the iod library](http://github.com/matt-42/iod)
+  - C++14
   - [Eigen 3](http://eigen.tuxfamily.org)
   - [Boost](http://www.boost.org/)
+  - [the iod library](http://github.com/matt-42/iod) installed by the install.sh script
 
-
-**Because Video++ relies on C++14 features, only compilers fully supporting this standard are able to
-compile the library.**
-
-Video++ is free of use (BSD). But if you you are using Video++ in research related work, you are more than
-welcome to cite us :
+Video++ is free of use (BSD). If you you are using Video++ in
+research related work, you are welcome to cite us :
 
 ```
 @inproceedings{garrigues2014video++,

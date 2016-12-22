@@ -46,8 +46,7 @@ namespace vpp
       (iod::array_view(ctx.keypoints.size(),
                        [&] (int i) { return ctx.keypoints[i].position; }),
        [&] (int i, vint2 pos, int distance) {
-        if (frame1.has(pos) // and distance < (20 * winsize * winsize)
-          )
+        if (frame1.has(pos))
           ctx.keypoints.move(i, pos);
         else ctx.keypoints.remove(i); },
        frame1, frame2,

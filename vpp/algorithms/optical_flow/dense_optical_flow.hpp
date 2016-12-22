@@ -136,13 +136,13 @@ namespace vpp
           auto m = gradient_descent_match(p, prediction, distance, 3);
 
           // Register match.
-          vint2 match = p + m.first;
+          vint2 match = p + m.flow;
           //if (m.second < (PC * PC * winsize * winsize * 40) and i1.domain().has(match))
           //if (m.second < (16 * 15) and i1.domain().has(match))
           {
             pyr_flow_map_mark[scale](p / winsize) = true;
             pyr_flow_map[scale](p / winsize) = match - p;
-            distance_map[scale](p / winsize) = m.second;
+            distance_map[scale](p / winsize) = m.distance;
           }
         }
       }
@@ -182,15 +182,15 @@ namespace vpp
                     auto m = gradient_descent_match(p, p + flow_map(pfn), distance, 3);
                     //auto m = std::make_pair(flow_map(pfn), d2);
                     // Register match.
-                    vint2 match = p + m.first;
-                    if (m.second < d1 // and
+                    vint2 match = p + m.flow;
+                    if (m.distance < d1 // and
                         // m.second < (PC * PC * winsize * winsize * 40) and i1.domain().has(match)
                         )
                       //if (m.second < (16 * 15) and i1.domain().has(match))
                     {
                       pyr_flow_map_mark[scale](pf) = true;
                       pyr_flow_map[scale](pf) = match - p;
-                      distance_map[scale](pf) = m.second;
+                      distance_map[scale](pf) = m.distance;
                     }
                 
                   }
