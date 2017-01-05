@@ -28,7 +28,7 @@ set(LIBS
 
 link_directories(${THIRDPARTY}/lib)
 
-add_definitions(-std=c++1y -g  -Rpass-missed=loop-vectorized)
+add_definitions(-std=c++1y -g)
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -march=native -fopenmp -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1 -march=native")
 
