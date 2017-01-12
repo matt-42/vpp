@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vpp/vpp.hh>
-#include <vpp/algorithms/fast_detector.hh>
+#include <vpp/algorithms/fast_detector/fast.hh>
 
 
 namespace vpp
@@ -14,7 +14,7 @@ namespace vpp
     auto sad_distance(const F& i1, const F& i2, int size, int th = INT_MAX)
     {
       const int RS = 128;
-      D err = 0;
+      int err = 0;
       for (int r = 0; r < (size)/RS and err <= th; r++)
       {
 #pragma omp simd
@@ -32,6 +32,8 @@ namespace vpp
       return err;
     }
   }
+
+#if 0 // FIXME: Reactivate when it compiles.
   
   template <typename K, typename F, typename... OPTS>
   inline void
@@ -107,4 +109,5 @@ namespace vpp
     }
   }
 
+  #endif
 }

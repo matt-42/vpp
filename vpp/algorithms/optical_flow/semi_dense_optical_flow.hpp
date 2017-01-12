@@ -205,9 +205,9 @@ namespace vpp
     for (int pi = 0; pi < keypoints.size(); pi++)
     {
       vint2 pos = keypoints[pi];
-      vint2 pos2 = pos / (patchsize * std::pow(2, min_scale));
+      vint2 pos2 = pos / int(patchsize * std::pow(2, min_scale));
       if (pyr_flow_map_mark[min_scale].has(pos2) and pyr_flow_map_mark[min_scale](pos2))
-        match_callback(pi, pos + pyr_flow_map[min_scale](pos2) * std::pow(2, min_scale),
+        match_callback(pi, pos + pyr_flow_map[min_scale](pos2) * int(std::pow(2, min_scale)),
                        distance_map[min_scale](pos2));
     }
     

@@ -7,10 +7,9 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 
 find_package(OpenCV REQUIRED)
 
-find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL REQUIRED)
 find_package(OpenGL REQUIRED)
 
-include(${QT_USE_FILE})
+#include(${QT_USE_FILE})
 
 SET(THIRDPARTY ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/install)
 
