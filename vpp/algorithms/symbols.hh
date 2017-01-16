@@ -5,6 +5,46 @@
     iod_define_number_symbol(1)
 #endif
 
+#ifndef IOD_SYMBOL__ARM_NEON
+#define IOD_SYMBOL__ARM_NEON
+    iod_define_symbol(_ARM_NEON)
+#endif
+
+#ifndef IOD_SYMBOL__ARM_NEON__
+#define IOD_SYMBOL__ARM_NEON__
+    iod_define_symbol(_ARM_NEON__)
+#endif
+
+#ifndef IOD_SYMBOL__AVX2__
+#define IOD_SYMBOL__AVX2__
+    iod_define_symbol(_AVX2__)
+#endif
+
+#ifndef IOD_SYMBOL__SSE4_1__
+#define IOD_SYMBOL__SSE4_1__
+    iod_define_symbol(_SSE4_1__)
+#endif
+
+#ifndef IOD_SYMBOL__aarch64__
+#define IOD_SYMBOL__aarch64__
+    iod_define_symbol(_aarch64__)
+#endif
+
+#ifndef IOD_SYMBOL__builtin_assume_aligned
+#define IOD_SYMBOL__builtin_assume_aligned
+    iod_define_symbol(_builtin_assume_aligned)
+#endif
+
+#ifndef IOD_SYMBOL__m128i
+#define IOD_SYMBOL__m128i
+    iod_define_symbol(_m128i)
+#endif
+
+#ifndef IOD_SYMBOL__m256i
+#define IOD_SYMBOL__m256i
+    iod_define_symbol(_m256i)
+#endif
+
 #ifndef IOD_SYMBOL_approximation
 #define IOD_SYMBOL_approximation
     iod_define_symbol(approximation)
@@ -40,6 +80,16 @@
     iod_define_symbol(bruteforce)
 #endif
 
+#ifndef IOD_SYMBOL_cell_width
+#define IOD_SYMBOL_cell_width
+    iod_define_symbol(cell_width)
+#endif
+
+#ifndef IOD_SYMBOL_delta
+#define IOD_SYMBOL_delta
+    iod_define_symbol(delta)
+#endif
+
 #ifndef IOD_SYMBOL_descriptor
 #define IOD_SYMBOL_descriptor
     iod_define_symbol(descriptor)
@@ -70,11 +120,6 @@
     iod_define_symbol(epipolar_flow)
 #endif
 
-#ifndef IOD_SYMBOL_epipolar_line_filter
-#define IOD_SYMBOL_epipolar_line_filter
-    iod_define_symbol(epipolar_line_filter)
-#endif
-
 #ifndef IOD_SYMBOL_flann
 #define IOD_SYMBOL_flann
     iod_define_symbol(flann)
@@ -88,6 +133,11 @@
 #ifndef IOD_SYMBOL_fundamental_matrix
 #define IOD_SYMBOL_fundamental_matrix
     iod_define_symbol(fundamental_matrix)
+#endif
+
+#ifndef IOD_SYMBOL_idx
+#define IOD_SYMBOL_idx
+    iod_define_symbol(idx)
 #endif
 
 #ifndef IOD_SYMBOL_index1d
@@ -150,14 +200,104 @@
     iod_define_symbol(max_trajectory_length)
 #endif
 
+#ifndef IOD_SYMBOL_min_ev
+#define IOD_SYMBOL_min_ev
+    iod_define_symbol(min_ev)
+#endif
+
 #ifndef IOD_SYMBOL_min_scale
 #define IOD_SYMBOL_min_scale
     iod_define_symbol(min_scale)
 #endif
 
-#ifndef IOD_SYMBOL_nchecks
-#define IOD_SYMBOL_nchecks
-    iod_define_symbol(nchecks)
+#ifndef IOD_SYMBOL_mm256_adds_epu8
+#define IOD_SYMBOL_mm256_adds_epu8
+    iod_define_symbol(mm256_adds_epu8)
+#endif
+
+#ifndef IOD_SYMBOL_mm256_load_si256
+#define IOD_SYMBOL_mm256_load_si256
+    iod_define_symbol(mm256_load_si256)
+#endif
+
+#ifndef IOD_SYMBOL_mm256_loadu_si256
+#define IOD_SYMBOL_mm256_loadu_si256
+    iod_define_symbol(mm256_loadu_si256)
+#endif
+
+#ifndef IOD_SYMBOL_mm256_min_epu8
+#define IOD_SYMBOL_mm256_min_epu8
+    iod_define_symbol(mm256_min_epu8)
+#endif
+
+#ifndef IOD_SYMBOL_mm256_set1_epi8
+#define IOD_SYMBOL_mm256_set1_epi8
+    iod_define_symbol(mm256_set1_epi8)
+#endif
+
+#ifndef IOD_SYMBOL_mm256_slli_epi16
+#define IOD_SYMBOL_mm256_slli_epi16
+    iod_define_symbol(mm256_slli_epi16)
+#endif
+
+#ifndef IOD_SYMBOL_mm256_storeu_si256
+#define IOD_SYMBOL_mm256_storeu_si256
+    iod_define_symbol(mm256_storeu_si256)
+#endif
+
+#ifndef IOD_SYMBOL_mm256_subs_epu8
+#define IOD_SYMBOL_mm256_subs_epu8
+    iod_define_symbol(mm256_subs_epu8)
+#endif
+
+#ifndef IOD_SYMBOL_mm256_testz_si256
+#define IOD_SYMBOL_mm256_testz_si256
+    iod_define_symbol(mm256_testz_si256)
+#endif
+
+#ifndef IOD_SYMBOL_mm_adds_epu8
+#define IOD_SYMBOL_mm_adds_epu8
+    iod_define_symbol(mm_adds_epu8)
+#endif
+
+#ifndef IOD_SYMBOL_mm_load_si128
+#define IOD_SYMBOL_mm_load_si128
+    iod_define_symbol(mm_load_si128)
+#endif
+
+#ifndef IOD_SYMBOL_mm_loadu_si128
+#define IOD_SYMBOL_mm_loadu_si128
+    iod_define_symbol(mm_loadu_si128)
+#endif
+
+#ifndef IOD_SYMBOL_mm_min_epu8
+#define IOD_SYMBOL_mm_min_epu8
+    iod_define_symbol(mm_min_epu8)
+#endif
+
+#ifndef IOD_SYMBOL_mm_set1_epi8
+#define IOD_SYMBOL_mm_set1_epi8
+    iod_define_symbol(mm_set1_epi8)
+#endif
+
+#ifndef IOD_SYMBOL_mm_slli_epi16
+#define IOD_SYMBOL_mm_slli_epi16
+    iod_define_symbol(mm_slli_epi16)
+#endif
+
+#ifndef IOD_SYMBOL_mm_storeu_si128
+#define IOD_SYMBOL_mm_storeu_si128
+    iod_define_symbol(mm_storeu_si128)
+#endif
+
+#ifndef IOD_SYMBOL_mm_subs_epu8
+#define IOD_SYMBOL_mm_subs_epu8
+    iod_define_symbol(mm_subs_epu8)
+#endif
+
+#ifndef IOD_SYMBOL_mm_testz_si128
+#define IOD_SYMBOL_mm_testz_si128
+    iod_define_symbol(mm_testz_si128)
 #endif
 
 #ifndef IOD_SYMBOL_niterations
@@ -180,6 +320,11 @@
     iod_define_symbol(patchsize)
 #endif
 
+#ifndef IOD_SYMBOL_position
+#define IOD_SYMBOL_position
+    iod_define_symbol(position)
+#endif
+
 #ifndef IOD_SYMBOL_prediction
 #define IOD_SYMBOL_prediction
     iod_define_symbol(prediction)
@@ -188,11 +333,6 @@
 #ifndef IOD_SYMBOL_propagation
 #define IOD_SYMBOL_propagation
     iod_define_symbol(propagation)
-#endif
-
-#ifndef IOD_SYMBOL_qr_ratio
-#define IOD_SYMBOL_qr_ratio
-    iod_define_symbol(qr_ratio)
 #endif
 
 #ifndef IOD_SYMBOL_query
@@ -208,16 +348,6 @@
 #ifndef IOD_SYMBOL_radius
 #define IOD_SYMBOL_radius
     iod_define_symbol(radius)
-#endif
-
-#ifndef IOD_SYMBOL_regularisation
-#define IOD_SYMBOL_regularisation
-    iod_define_symbol(regularisation)
-#endif
-
-#ifndef IOD_SYMBOL_regularization
-#define IOD_SYMBOL_regularization
-    iod_define_symbol(regularization)
 #endif
 
 #ifndef IOD_SYMBOL_right_to_left
@@ -263,11 +393,6 @@
 #ifndef IOD_SYMBOL_train_positions
 #define IOD_SYMBOL_train_positions
     iod_define_symbol(train_positions)
-#endif
-
-#ifndef IOD_SYMBOL_trees
-#define IOD_SYMBOL_trees
-    iod_define_symbol(trees)
 #endif
 
 #ifndef IOD_SYMBOL_winsize

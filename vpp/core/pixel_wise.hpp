@@ -130,7 +130,7 @@ namespace vpp
   struct pixel_wise_impl
   {
     pixel_wise_impl(std::tuple<Params...> t, OPTS opts)
-      : options(opts), ps(t) {}
+      : ps(t), options(opts)  {}
     
     auto make_orders()
     {

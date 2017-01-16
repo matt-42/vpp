@@ -1,23 +1,24 @@
 #pragma once
 
 #include <limits>
+#include <iod/sio_utils.hh>
+#include <vpp/algorithms/symbols.hh>
 
 namespace vpp
 {
 
   template <typename... OPTS>
-  void bruteforce_matcher(OPTS... opts)
+  void bruteforce_matcher(int query_size, int train_size,
+			  OPTS... opts)
   {
     auto options = D(opts...);
     typedef decltype(options) O;
 
-    static_assert(iod::has_symbol<O, s::_size1_t>::value, "bruteforce_matcher: _size1 options missing.");
-    static_assert(iod::has_symbol<O, s::_size2_t>::value, "bruteforce_matcher: _size2 options missing.");
     static_assert(iod::has_symbol<O, s::_distance_t>::value, "bruteforce_matcher: _distance options missing.");
     static_assert(iod::has_symbol<O, s::_match_t>::value, "bruteforce_matcher: _match callback is missing.");
     
-    int set1_size = options.size1;
-    int set2_size = options.size2;
+    int set1_size = query_size;
+    int set2_size = train_size;
 
     auto distance = options.distance;
     auto match = options.match;

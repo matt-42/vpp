@@ -28,7 +28,6 @@ int main()
 
   image2d<int> img(4,4);
   vint2 b(2,2);
-  int i = 0;
 
   auto test_dependency = [&] (int* ref_data, auto dep, int dim)
   {

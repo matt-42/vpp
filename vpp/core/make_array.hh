@@ -9,7 +9,8 @@ namespace vpp
   decltype(auto) make_array(T1&& t1, T&&... t)
   {
     return std::array<T1, 1 + sizeof...(t)>
-    {std::forward<T1>(t1), std::forward<T>(t)...};
+      {{std::forward<T1>(t1),
+	    std::forward<T>(t)...}};
   }
 
 }

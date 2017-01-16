@@ -42,10 +42,9 @@ int main(int argc, char* argv[])
   	       _winsize = 5,
   	       _min_ev = 0.001,
   	       _delta = 0.01,
-  	       _nscales = 1,
+  	       _nscales = 2,
   	       _flow = [] (vfloat2 p, vfloat2 f, int d)
   		 {
-  		   std::cout << f << std::endl;
   		   assert(p == vfloat2(50.f, 50.f));
   		   assert((f - vfloat2(2.f, 2.f)).norm() < 0.05);
   		 });

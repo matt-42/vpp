@@ -10,7 +10,6 @@ namespace vpp
 #pragma omp parallel for
     for (int r = 0; r < nr; r++)
     {
-      V* curA = &A(vint2(r, 0));
       U* curB = &B(vint2(r, 0));
       int nc = A.ncols();
 

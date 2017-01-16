@@ -13,7 +13,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..
   $ENV{HOME}/local/include
   )
 
-add_definitions(-std=c++14)
+add_definitions(-std=c++14 -Wall -g)
 
 add_executable(imageNd imageNd.cc)
 add_test(imageNd imageNd)
@@ -85,5 +85,5 @@ target_link_libraries(pyrlk ${OpenCV_LIBS})
 target_link_libraries(opencv_bridge ${OpenCV_LIBS})
 #target_link_libraries(liie gomp)
 
-#add_executable(descriptor_matcher descriptor_matcher.cc)
+add_executable(descriptor_matcher descriptor_matcher.cc)
 #add_test(descriptor_matcher descriptor_matcher)

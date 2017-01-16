@@ -62,13 +62,12 @@ namespace vpp
     int nr = out.nrows();
     int nc = out.ncols();
 
-    typedef plus_promotion<V> S;
 #pragma omp parallel for
     for (int r = 0; r < nr; r++)
     {
       V* out_row = &out(r, 0);
       const V* row1 = &in(r * 2, 0);
-      const V* row2 = &in(r * 2 + 1, 0);
+
 #pragma omp simd
       for (int c = 0; c < nc; c++)
       {
@@ -86,13 +85,12 @@ namespace vpp
     int nr = out.nrows();
     int nc = out.ncols();
 
-    typedef plus_promotion<V> S;
+
 #pragma omp parallel for
     for (int r = 0; r < nr; r++)
     {
       V* out_row = &out(r, 0);
       const V* row1 = &in(int(r * factor), 0);
-      const V* row2 = &in(int(r * factor) + 1, 0);
       for (int c = 0; c < nc; c++)
       {
         out_row[c] = row1[int(c * factor)];

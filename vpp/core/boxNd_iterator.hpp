@@ -6,8 +6,7 @@ namespace vpp
 
   template <unsigned N, typename C>
   boxNd_iterator<N, C>::boxNd_iterator(const coord_type cur, const boxNd<N, C>& box)
-    : cur_(cur),
-      box_(&box)
+    : box_(&box), cur_(cur)
   {}
 
   template <unsigned N, typename C>

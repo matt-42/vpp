@@ -17,8 +17,8 @@ namespace vpp
   //
   // For the bruteforce matcher only:
   //
-  //   _size1: Size of the first set
-  //   _size2: Size of the second set
+  //   _query_size: Size of the first set
+  //   _train_size: Size of the second set
   //
   // For the _flann and _index1d indexes:
   //
@@ -40,6 +40,22 @@ namespace vpp
   template <typename... OPTS>
   void descriptor_matcher(OPTS&&... opts);
 
+  template <typename... OPTS>
+  void bruteforce_matcher(int query_size, int train_size,
+			  OPTS... opts);
+
+  template <typename... OPTS>
+  void local_index1d_sad_descriptor_matcher(OPTS... opts);
+
+  // Todo
+  // template <typename D, typename E, typename... OPTS>
+  // void flann_descriptor_matcher(int query_size,
+  // 				int train_size,
+  // 				OPTS... opts);
+
 }
 
-#include "descriptor_matcher/dispatch.hh"
+//#include "descriptor_matcher/dispatch.hh"
+#include "descriptor_matcher/bruteforce_matcher.hh"
+#include "descriptor_matcher/distances.hh"
+#include "descriptor_matcher/local_index1d_sad_descriptor_matcher.hh"

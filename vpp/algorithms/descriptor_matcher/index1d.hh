@@ -17,12 +17,25 @@ namespace vpp
     template <typename O>
     index1d(O&& o)
     {
+      approximation_ = o.get(_approximation, 1);
     }
-    
+
+    int size() const { return points_.size(); }
+
+    template <typename O>
+    int project(const O& o)
+    {
+      int projection = 0;
+      for (int i = 0; i < o.size(); i++)
+	projection += o[i];
+      return projection;
+    }
+
     template <typename O>
     void index(O&& o)
     {
-      points_.push_back(kp_info{i, kp, projection});
+      int projection = project(o.descriptor);
+      points_.push_back(kp_info{o.idx, projection});
     }
 
     void finalize()
@@ -37,28 +50,28 @@ namespace vpp
       int inf = 0;
       int sup = points_.size() - 1;
 
-      while (points_[inf].proj < points_[sup].proj)
+      while (points_[inf].projection < points_[sup].projection)
       {
         int pivot = (inf + sup) / 2;
-        if (points_[pivot].proj < proj)
+        if (points_[pivot].projection < proj)
           inf = pivot;
         else sup = pivot;
 
-        if (points_[inf].proj == proj) sup = inf;
-        if (points_[sup].proj == proj) inf = sup;
+        if (points_[inf].projection == proj) sup = inf;
+        if (points_[sup].projection == proj) inf = sup;
       }
 
       return inf;
     }
 
-    template <typename C>
-    auto search(O&& o, F distance, int distance_th)
+    template <typename O, typename F>
+    auto search(O&& o, F distance, int distance_th = std::numeric_limits<int>::max())
     {
       int projection = project(o.descriptor);
-      int projection_idx = index_of_projection(projection);
+      int projection_idx = position_of_projection(projection);
 
-      int best_idx = projection;
-      int best_distance = distance(o.idx, projection, distance_th);
+      int best_idx = projection_idx;
+      int best_distance = distance(o.idx, projection_idx, distance_th);
       distance_th = std::min(distance_th, best_distance);
       
       auto test_ith = [&] (int i)
@@ -67,7 +80,7 @@ namespace vpp
           if (best_distance > dist)
           {
             best_distance = dist;
-            best_idx = o.idx;
+            best_idx = i;
             distance_th = std::min(distance_th, best_distance);
           }
         };
@@ -76,25 +89,24 @@ namespace vpp
       for (int i = projection_idx - 1, j = projection_idx + 1; !done; i--, j++)
       {
         done = true;
-        if (i >= 0 and (approximation * (projection - points_[i].second)) <= best_distance)
+        if (i >= 0 and (approximation_ * (projection - points_[i].projection)) <= best_distance)
         {
           done = false;
-          test_ith(points_[i].idx);
+          test_ith(points_[i].id);
         }
 
-        if (j < points_.size() and (approximation * (points_[j].second - projection)) <= best_distance)
+        if (j < points_.size() and (approximation_ * (points_[j].projection - projection)) <= best_distance)
         { 
           done = false;
-          test_ith(points_[j].idx);
+          test_ith(points_[j].id);
         }
       }
       return D(_idx = best_idx, _distance = best_distance);
     }
     
   private:
-    const int max_projection_;
     int approximation_;
-    std::vector<kp_info<int>> points_;
+    std::vector<kp_info> points_;
     std::vector<int> projection_index_;
   };
 
