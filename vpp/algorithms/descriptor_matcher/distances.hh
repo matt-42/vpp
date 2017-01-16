@@ -25,8 +25,8 @@ namespace vpp
         err += std::abs((i1[i]) - (i2[i]));
     }
 
-    // for (int i = 0; i < i1.size(); i++)
-    //   err += std::abs((i1[i]) - (i2[i]));
+    // // for (int i = 0; i < i1.size(); i++)
+    // //   err += std::abs((i1[i]) - (i2[i]));
     
     return err;
   }

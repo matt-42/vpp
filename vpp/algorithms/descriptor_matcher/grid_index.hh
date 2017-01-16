@@ -13,7 +13,7 @@ namespace vpp
 
     template <typename O>
     grid_index(O&& o) :
-      s(o.get(s::_cell_width, 5)),
+      s(o.get(s::_cell_width, 300)),
       search_radius(o.get(s::_search_radius, 300))
     {
       vint2 pmax(0,0);
@@ -38,10 +38,19 @@ namespace vpp
     template <typename O>
     void index(O&& o)
     {
+      assert(idx.has(o.position / s));
       idx(o.position / s).index(o);
     }
 
-    void finalize() {}
+    void finalize()
+    {
+
+      pixel_wise(idx) | [&] (SI& si)
+      {
+        si.finalize();
+      };
+
+    }
     
     template <typename O, typename F>
     auto search(O&& o, F distance)

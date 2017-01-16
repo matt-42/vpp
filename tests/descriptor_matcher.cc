@@ -53,7 +53,8 @@ int main()
      _query = image_as_array_of_rows(D1),
      _train = image_as_array_of_rows(D2),
      _approximation = 1,
-     _search_radius = 1000,
+     _search_radius = 10000,
+     _cell_width = 300,
      _distance = [&] (int i, int j, int d) {
       assert(i < D1.nrows());
       assert(j < D2.nrows());
@@ -61,11 +62,8 @@ int main()
      },
      _match = [&] (int i, int j, int d) { matches[i] = match{j, d}; });
 
-
-
   for (int i = 0; i < D1.nrows(); i++)
   {
-    std::cout << D2.nrows() << " " << matches[i].j << std::endl;
     assert(matches[i].j < D2.nrows());
     assert(matches[i].j >= 0);
     int d = sad_distance<int>(D1.ncols(), D1[i], D2[matches[i].j]);

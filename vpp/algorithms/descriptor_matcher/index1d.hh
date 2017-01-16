@@ -50,7 +50,7 @@ namespace vpp
       int inf = 0;
       int sup = points_.size() - 1;
 
-      while (points_[inf].projection < points_[sup].projection)
+      while (((inf + 1) < sup) and points_[inf].projection < points_[sup].projection)
       {
         int pivot = (inf + sup) / 2;
         if (points_[pivot].projection < proj)
@@ -69,9 +69,9 @@ namespace vpp
     {
       int projection = project(o.descriptor);
       int projection_idx = position_of_projection(projection);
-
-      int best_idx = projection_idx;
-      int best_distance = distance(o.idx, projection_idx, distance_th);
+      
+      int best_idx = points_[projection_idx].id;
+      int best_distance = distance(o.idx, best_idx, distance_th);
       distance_th = std::min(distance_th, best_distance);
       
       auto test_ith = [&] (int i)

@@ -7,6 +7,7 @@ pkg_search_module(Eigen3 REQUIRED eigen3)
 include_directories(${Eigen3_INCLUDE_DIRS})
 
 set(CMAKE_CXX_STANDARD 14)
+enable_testing()
 
 add_subdirectory(tests)
 #add_subdirectory(examples)
