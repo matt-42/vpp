@@ -47,7 +47,7 @@ namespace vpp
     }
   };
 
-  pixel_wise_caller pixel_wise;
+  static pixel_wise_caller pixel_wise;
 }
 
 
