@@ -1,7 +1,10 @@
 #pragma once
 
+#include <vpp/algorithms/symbols.hh>
+
 namespace vpp
 {
+  using namespace s;
 
   // Match two set of descritors.
 

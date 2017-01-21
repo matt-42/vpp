@@ -7,9 +7,9 @@ template <typename I>
 decltype(auto) image_as_array_of_rows(I& img)
 {
   return iod::array_view(img.nrows(), [&] (int i) {
-      return iod::array_view(img.ncols(), img[i]); });
-  
+      return iod::array_view(img.ncols(), img[i]); });  
 }
+
 int main()
 {
   using namespace vpp;

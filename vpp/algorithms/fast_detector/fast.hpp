@@ -119,19 +119,19 @@ namespace vpp
 
       static V check(V x, V hi, V lo)
       {
-        __m256i _1 = _mm256_set1_epi8(1);
-        __m256i a = _mm256_min_epu8(_1, _mm256_subs_epu8(x, hi));
-        __m256i b = _mm256_min_epu8(_1, _mm256_subs_epu8(lo, x));        
-        return _mm256_slli_epi16(a, 4) | b;
+        __m256i _1 = ::_mm256_set1_epi8(1);
+        __m256i a = ::_mm256_min_epu8(_1, ::_mm256_subs_epu8(x, hi));
+        __m256i b = ::_mm256_min_epu8(_1, _mm256_subs_epu8(lo, x));        
+        return ::_mm256_slli_epi16(a, 4) | b;
       };
 
-      static V u_subs(V a, V b) { return _mm256_subs_epu8(a, b); }
-      static V u_adds(V a, V b) { return _mm256_adds_epu8(a, b); }
-      static bool all_equal_zero(V a) {return _mm256_testz_si256(a, _mm256_set1_epi8(255)) == 1;}
-      static V repeat(int v) { return _mm256_set1_epi8(v); }
-      static V load(const void* ptr) { return _mm256_load_si256((const __m256i*) (ptr)); }
-      static V loadu(const void* ptr) { return _mm256_loadu_si256((const __m256i*) (ptr)); }
-      static void storeu(void* ptr, V x) { _mm256_storeu_si256((__m256i*) (ptr), x); }
+      static V u_subs(V a, V b) { return ::_mm256_subs_epu8(a, b); }
+      static V u_adds(V a, V b) { return ::_mm256_adds_epu8(a, b); }
+      static bool all_equal_zero(V a) {return ::_mm256_testz_si256(a, ::_mm256_set1_epi8(255)) == 1;}
+      static V repeat(int v) { return ::_mm256_set1_epi8(v); }
+      static V load(const void* ptr) { return ::_mm256_load_si256((const _::_m256i*) (ptr)); }
+      static V loadu(const void* ptr) { return ::_mm256_loadu_si256((const __m256i*) (ptr)); }
+      static void storeu(void* ptr, V x) { ::_mm256_storeu_si256((__m256i*) (ptr), x); }
     };
 #else
 
@@ -143,19 +143,19 @@ namespace vpp
 
       static V check(V x, V hi, V lo)
       {
-        V _1 = _mm_set1_epi8(1);
-        V a = _mm_min_epu8(_1, _mm_subs_epu8(x, hi));
-        V b = _mm_min_epu8(_1, _mm_subs_epu8(lo, x));
-        return _mm_slli_epi16(a, 4) | b;
+        V _1 = ::_mm_set1_epi8(1);
+        V a = ::_mm_min_epu8(_1, ::_mm_subs_epu8(x, hi));
+        V b = ::_mm_min_epu8(_1, ::_mm_subs_epu8(lo, x));
+        return ::_mm_slli_epi16(a, 4) | b;
       };
 
-      static V u_subs(V a, V b) { return _mm_subs_epu8(a, b); }
-      static V u_adds(V a, V b) { return _mm_adds_epu8(a, b); }
-      static bool all_equal_zero(V a) { return _mm_testz_si128(a, _mm_set1_epi8(255)) == 1; }
-      static V repeat(int v) { return _mm_set1_epi8(v); }
-      static V load(const void* ptr) { return _mm_load_si128((const V*) (ptr)); }
-      static V loadu(const void* ptr) { return _mm_loadu_si128((const V*) (ptr)); }
-      static void storeu(void* ptr, V x) { _mm_storeu_si128((V*) (ptr), x); }
+      static V u_subs(V a, V b) { return ::_mm_subs_epu8(a, b); }
+      static V u_adds(V a, V b) { return ::_mm_adds_epu8(a, b); }
+      static bool all_equal_zero(V a) { return ::_mm_testz_si128(a, ::_mm_set1_epi8(255)) == 1; }
+      static V repeat(int v) { return ::_mm_set1_epi8(v); }
+      static V load(const void* ptr) { return ::_mm_load_si128((const V*) (ptr)); }
+      static V loadu(const void* ptr) { return ::_mm_loadu_si128((const V*) (ptr)); }
+      static void storeu(void* ptr, V x) { ::_mm_storeu_si128((V*) (ptr), x); }
     };
 
 #  else

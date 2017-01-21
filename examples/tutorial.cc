@@ -24,9 +24,7 @@ int main()
   pixel_wise(img) | [&] (auto& i) { i += vuchar3(1,1,1); };
 
   // 3x3 box filter on img
-  auto nbh = box_nbh2d<vuchar3, 3, 3>(img);
-
-  pixel_wise(nbh, out) | [] (auto& n, auto& b) {
+  pixel_wise(relative_access(img), out) | [] (auto n, auto& b) {
     vint3 sum = vint3::Zero();
 
     sum += n(0, -1).template cast<int>();

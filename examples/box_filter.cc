@@ -19,10 +19,8 @@ int main(int argc, char* argv[])
   I A = clone(from_opencv<vuchar3>(cv::imread(argv[1])), vpp::_border = 1);
   I B(A.domain());
 
-  auto nbh = box_nbh2d<vuchar3, 3, 3>(A);
-
   // Parallel Loop over pixels of in and out.
-  pixel_wise(nbh, B) | [] (auto& n, auto& b) {
+  pixel_wise(relative_access(A), B) | [] (auto n, auto& b) {
     vint3 sum = vint3::Zero();
 
     sum += n(0, -1).template cast<int>();
