@@ -89,8 +89,12 @@ namespace vpp
 
     char gs_buffer[WS * WS * sizeof(vfloat2)];
     vfloat2* gs = (vfloat2*) gs_buffer;
+    // was: vfloat2 gs[WS * WS];
+
     typedef plus_promotion<V> S;
-    S as[WS * WS];
+    char as_buffer[WS * WS * sizeof(S)];
+    S* as = (S*) as_buffer;
+    // was: S as[WS * WS];
     {
       for(int i = 0, r = -hws; r <= hws; r++)
       {
