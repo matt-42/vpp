@@ -74,6 +74,21 @@ namespace vpp
     return m;
   }
 
+  template <typename V>
+  cv::Mat to_opencv(image2d<V>&& v)
+  {
+    if (!v.has_data()) return cv::Mat();
+
+    // v is a rvalue (won't survive after the function call)
+    // so we need to copy its buffer.
+    cv::Mat m(v.nrows(), v.ncols(), opencv_typeof<V>::ret);
+
+    image2d<V> out = from_opencv<V>(m);
+    copy(v, out);
+
+    return m;
+  }
+
 };
 
 #endif

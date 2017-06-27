@@ -23,7 +23,7 @@ int main()
   // Iterate on img
   pixel_wise(img) | [&] (auto& i) { i += vuchar3(1,1,1); };
 
-  // 3x3 box filter on img
+  // Access to the neighborhood in pixel wise kernels :
   pixel_wise(relative_access(img), out) | [] (auto n, auto& b) {
     vint3 sum = vint3::Zero();
 
