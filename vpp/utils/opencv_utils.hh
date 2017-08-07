@@ -6,6 +6,7 @@
 # include <opencv2/highgui/highgui.hpp>
 # include <vpp/core/boxNd.hh>
 # include <vpp/core/image2d.hh>
+# include <vpp/utils/opencv_bridge.hh>
 
 inline bool open_videocapture(const char* str, cv::VideoCapture& cap)
 {
