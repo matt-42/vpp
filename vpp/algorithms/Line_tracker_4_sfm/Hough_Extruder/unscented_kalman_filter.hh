@@ -42,8 +42,6 @@ public:
 
   VectorXd weights_;
 
-  double NIS;
-
   /**
    * Constructor
    */
