@@ -74,52 +74,5 @@ void line2d_hough(vint2 a, vint2 b, V paint, U paint_border,image2d<unsigned cha
     }
 }
 
-template <typename V, typename U>
-void line2d_hough_particles(std::list<vint2> list_points,vint2 a, vint2 b, V paint, U paint_border, int line_width = 5)
-{
-    int x0 = a[1]; int y0 = a[0];
-    int x1 = b[1]; int y1 = b[0];
-
-    int steep = ::abs(y1 - y0) > ::abs(x1 - x0);
-
-    if (steep)
-    {
-        std::swap(x0, y0);
-        std::swap(x1, y1);
-    }
-
-    if (x0 > x1)
-    {
-        std::swap(x0, x1);
-        std::swap(y0, y1);
-    }
-
-    for (auto &list_point : list_points)
-    {
-        vint2 to_plot;
-        vint2 d1,d2; // point.
-        if (steep)
-        {
-            to_plot = list_point;
-            d1 = vint2{0, -1};
-            d2 = vint2{0, +1};
-        }
-        else
-        {
-            to_plot = list_point;
-            d1 = vint2{-1, 0};
-            d2 = vint2{+1, 0};
-        }
-
-        float interp = float((list_point)[0] - x0) / (x1 - x0);
-        paint(to_plot, interp);
-        for (int bi = 1; bi < line_width / 2; bi++)
-        {
-            paint_border(to_plot + bi * d1, interp, bi);
-            paint_border(to_plot + bi * d2, interp, bi);
-        }
-
-    }
-}
 
 }
