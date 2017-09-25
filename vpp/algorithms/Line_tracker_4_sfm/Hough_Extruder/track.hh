@@ -23,6 +23,7 @@ struct track {
     bool alive;
     bool recently_updated;
     std::vector<vint2> positions;
+    std::vector<vint2> stabled_positions;
     std::vector<image2d<uchar>> list_grad_img;
     std::vector<int> fil_ariane;
     std::vector<vint4> pos_img;
@@ -111,6 +112,34 @@ struct track {
 };
 
 
+inline
+vuchar3 generate_color()
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<> d(5,2);
+    float h = d(gen)*M_PI;
+    float s = d(gen)*M_PI;
+    float v = d(gen)*M_PI;
+    vuchar3 colr;
+    colr = hsv_to_rgb(h, s, v);
+    int r,g,b;
+    b = (int)colr[0];
+    g = (int)colr[1];
+    r = (int)colr[2];
+    if(r + g + b < 200)
+    {
+        std::normal_distribution<> dn(10,5);
+        b = 10 * dn(gen);
+        g = 10 * dn(gen);
+        r = 10 * dn(gen);
+        b = sign_of_number(b)*b;
+        g = sign_of_number(g)*g;
+        r = sign_of_number(r)*r;
+        colr = vuchar3(b,g,r);
+    }
+    return colr;
+}
 
 struct higher_gradient
 {
