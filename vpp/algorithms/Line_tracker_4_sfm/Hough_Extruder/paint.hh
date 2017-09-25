@@ -128,9 +128,9 @@ void paint_original_video(std::vector<track>& trs,
         }
     }
 }
-  
-  
-  void paint_original_video_particle(std::vector<track>& trs,
+
+
+void paint_original_video_particle(std::vector<track>& trs,
                           image2d<vuchar4>& paint_buffer,int T_theta,
                           int nrows,int ncols)
 {
