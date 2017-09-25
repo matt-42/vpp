@@ -59,9 +59,6 @@ Unscented_Kalman_Filter::Unscented_Kalman_Filter() {
     weights_ = VectorXd::Zero(2*augmented_state_dimension+1);
 
 
-    ///* the current NIS for laser
-    NIS = 0.0;
-
     // set weights
     double weight_0 = sigma_point_spreading_parameter/(sigma_point_spreading_parameter+augmented_state_dimension);
     weights_(0) = weight_0;
@@ -372,8 +369,6 @@ void Unscented_Kalman_Filter::Update(vint2 values, float dt, VectorXd &z_pred, M
     //update state mean and covariance matrix
     state_vector = state_vector + K * z_diff;
     covariance_matrix = covariance_matrix - K*S*K.transpose();
-    NIS = z_diff.transpose() * S.inverse() * z_diff;
-
     return;
 
 }
