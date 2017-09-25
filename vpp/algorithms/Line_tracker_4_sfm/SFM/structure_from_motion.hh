@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 #include <vpp/vpp.hh>
-#include "algorithms/Line_tracker_4_sfm/miscellanous/operations.hh"
+#include "vpp/algorithms/Line_tracker_4_sfm/miscellanous/operations.hh"
 
 #include <Eigen/Core>
 #include <Eigen/SVD>
