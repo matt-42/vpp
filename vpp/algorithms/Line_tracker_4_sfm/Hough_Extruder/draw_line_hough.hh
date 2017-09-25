@@ -3,6 +3,7 @@
 #include <vpp/core/vector.hh>
 #include <vpp/draw/square.hh>
 #include <vpp/draw/symbols.hh>
+#include <list>
 
 namespace vpp
 {
@@ -72,8 +73,8 @@ void line2d_hough(vint2 a, vint2 b, V paint, U paint_border,image2d<unsigned cha
         }
     }
 }
-    
-    template <typename V, typename U>
+
+template <typename V, typename U>
 void line2d_hough_particles(std::list<vint2> list_points,vint2 a, vint2 b, V paint, U paint_border, int line_width = 5)
 {
     int x0 = a[1]; int y0 = a[0];
