@@ -474,4 +474,6 @@ float cosinus_lut(float angle)
 }
 
 
+
+
 #endif // OPERATIONS_HH
