@@ -2,7 +2,7 @@
 #define CORDIC_HH
 
 #include <vpp/vpp.hh>
-#include <eigen3/Eigen/Core>
+#include <Eigen/Core>
 
 using namespace vpp;
 using namespace std;
