@@ -11,8 +11,6 @@
 
 namespace vpp {
 
-float val_diff = 0;
-int nb_diff = 0;
 
 struct feature_matching_hough_ctx {
     feature_matching_hough_ctx(box2d domain) : keypoints(domain), frame_id(0) {}
@@ -41,50 +39,34 @@ template <typename... OPTS>
 void feature_matching_hough_update_three_first(feature_matching_hough_ctx& ftx,
                                                std::vector<float>& frame1,
                                                std::vector<float>& frame2,
-                                               image2d<uchar> &frame_gradient,image2d<uchar> &frame_point,
+                                               image2d<uchar> &frame_grad,
+                                               image2d<uchar> &frame_point,
+                                               Sclare_rho scale,
                                                int type_video,image2d<uchar> img,
-                                               int T_theta,int rhomax,bool first, Type_output type_sortie,
-                                               int &id_trackers,Type_Lines type_line,Frequence freq,std::vector<vint2>& old_vects,
+                                               int T_theta,int rhomax,bool first,
+                                               Type_output type_sortie,int &id_trackers,
+                                               Type_Lines type_line,Frequence freq,
+                                               std::vector<vint2>& old_clusters,
                                                int wkf,
                                                OPTS... options);
 
 template <typename... OPTS>
-void feature_matching_hough_update_three_first_3_frames(feature_matching_hough_ctx& ftx,
-                                                        std::vector<float>& frame1,
-                                                        std::vector<float>& frame2,
-                                                        std::vector<float>& frame3,
-                                                        int nb_matcher,
-                                                        image2d<uchar> &frame_grad,
-                                                        image2d<uchar> &frame_point,
-                                                        std::vector<vint2>& new_values1,
-                                                        int type_video,
-                                                        image2d<uchar> img,
-                                                        int T_theta,int rhomax,bool first,
-                                                        Type_output type_sortie,int &id_trackers,
-                                                        Type_Lines type_line,Frequence freq,std::list<vint2>& old_vects,
-                                                        //float precision_runtime_balance = 0,
-                                                        OPTS... options);
-
-template <typename... OPTS>
-void feature_matching_hough_update_three_first_mat(feature_matching_hough_ctx& ftx,
+void feature_matching_hough_update_N_first(feature_matching_hough_ctx& ftx,
                                                std::vector<float>& frame1,
                                                std::vector<float>& frame2,
-                                               Mat &frame_grad,Sclare_rho scale,
-                                               int type_video,image2d<uchar> img, Mat &img_ori,
+                                               image2d<uchar> &frame_grad,
+                                               image2d<uchar> &frame_point,
+                                               Sclare_rho scale,
+                                               int type_video,image2d<uchar> img,
                                                int T_theta,int rhomax,bool first,
                                                Type_output type_sortie,int &id_trackers,
-                                               Type_Lines type_line,Frequence freq,std::list<vint2>& old_vects,
-                                               //float precision_runtime_balance = 0,
+                                               Type_Lines type_line,Frequence freq,
+                                               std::vector<vint2>& old_clusters,
+                                               int wkf,int N, std::list<image2d<uchar>> liste_images,
                                                OPTS... options);
 
-template <typename... OPTS>
-void feature_matching_hough_update_local(feature_matching_hough_ctx& ftx,
-                                    std::vector<float>& frame1,
-                                    std::vector<float>& frame2,int type_video,image2d<vuchar1> img,
-                                   int T_theta,int rhomax,bool first, std::vector<vint2>& old_values,
-                                   int &id_trackers,
-                                   //float precision_runtime_balance = 0,
-                                   OPTS... options);
+
+
 
 float Distance_between_curve_L1(std::vector<float> frame1, std::vector<float>  frame2, int taille);
 
