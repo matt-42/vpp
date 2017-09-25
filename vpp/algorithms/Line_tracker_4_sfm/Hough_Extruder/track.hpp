@@ -18,31 +18,7 @@ track::track(vint2 pt, int id, int max_tr, float grd, int id_of_frame, float mot
     this->frame_without_update = 0;
     this->motion_threshold_track = motion_threshold;
     this->use_kf = wkf;
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::normal_distribution<> d(5,2);
-    float h = d(gen)*M_PI;
-    float s = d(gen)*M_PI;
-    float v = d(gen)*M_PI;
-    //cout << " h " << h <<" s " << s << " v " << v << endl;
-    color = hsv_to_rgb(h, s, v);
-    int r,g,b;
-    b = (int)color[0];
-    g = (int)color[1];
-    r = (int)color[2];
-    //cout << (int)color[0] << "   " << (int)color[1] << "   " << (int)color[2] << endl;
-    if(r + g + b < 200)
-    {
-        std::normal_distribution<> dn(10,5);
-        b = 10 * dn(gen);
-        g = 10 * dn(gen);
-        r = 10 * dn(gen);
-        b = sign_of_number(b)*b;
-        g = sign_of_number(g)*g;
-        r = sign_of_number(r)*r;
-        color = vuchar3(b,g,r);
-    }
-    //cout << (int)color[0] << "   " << (int)color[1] << "   " << (int)color[2] << endl;
+    this->color = generate_color();
     if(this->use_kf)
     {
         this->ukf = std::make_unique<Unscented_Kalman_Filter>();
@@ -63,19 +39,7 @@ track::track(vint2 pt, int id, int max_tr, float grd, int id_of_frame, float mot
     this->frame_without_update = 0;
     this->motion_threshold_track = motion_threshold;
     this->use_kf = wkf;
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::normal_distribution<> d(5,2);
-    //RNG rng(12345);
-    //srand(time(NULL));
-    float h = d(gen)*M_PI;
-    //srand(time(NULL));
-    float s = d(gen)*M_PI;
-    //srand(time(NULL));
-    float v = d(gen)*M_PI;
-    //cout << " h " << h <<" s " << s << " v " << v << endl;
-    color = hsv_to_rgb(h, s, v);
-    //cout << color[0] << "   " << color[1] << "   " << color[2] << endl;
+    this->color = generate_color();
     if(this->use_kf)
     {
         this->ukf = std::make_unique<Unscented_Kalman_Filter>();
@@ -95,35 +59,7 @@ track::track(vint2 pt, vint4 pimg, int id, int max_tr, float grd, int id_of_fram
     this->age = -1;
     this->frame_without_update = 0;
     this->motion_threshold_track = motion_threshold;
-    RNG rng(12345);
-    srand(time(NULL));
-    //color = vuchar3(rand()%200+rand()%55,rand()%200+rand()%55,rand()%200+rand()%55);
-
-    if(id%5==0)
-    {
-        //bleu
-        color = vuchar3(rng.uniform(100,255),rng.uniform(0,100),rng.uniform(0,100));
-    }
-    else if (id%5==1)
-    {
-        //vert
-        color = vuchar3(rng.uniform(0,100),rng.uniform(100,255),rng.uniform(0,100));
-    }
-    else if (id%5==2)
-    {
-        //rouge
-        color = vuchar3(rng.uniform(0,100),rng.uniform(0,100),rng.uniform(100,255));
-    }
-    else if (id%5==3)
-    {
-        //vert
-        color = vuchar3(rng.uniform(0,200),rng.uniform(200,255),rng.uniform(0,200));
-    }
-    else if (id%5==4)
-    {
-        //rouge
-        color = vuchar3(rng.uniform(0,200),rng.uniform(0,200),rng.uniform(200,255));
-    }
+    this->color = generate_color();
     addNewPoint(pt,pimg);
 }
 
@@ -138,33 +74,7 @@ track::track(vint2 pt, std::list<vint2> list_p, int id, int max_tr, float grd, i
     this->age = -1;
     this->frame_without_update = 0;
     this->motion_threshold_track = motion_threshold;
-    RNG rng(12345);
-    //color = vuchar3(rand()%200+rand()%55,rand()%200+rand()%55,rand()%200+rand()%55);
-    if(id%5==0)
-    {
-        //bleu
-        color = vuchar3(rng.uniform(100,255),rng.uniform(0,100),rng.uniform(0,100));
-    }
-    else if (id%5==1)
-    {
-        //vert
-        color = vuchar3(rng.uniform(0,255),rng.uniform(100,255),rng.uniform(0,255));
-    }
-    else if (id%5==2)
-    {
-        //rouge
-        color = vuchar3(rng.uniform(0,100),rng.uniform(0,100),rng.uniform(100,255));
-    }
-    else if (id%5==3)
-    {
-        //vert
-        color = vuchar3(rng.uniform(0,200),rng.uniform(200,255),rng.uniform(0,200));
-    }
-    else if (id%5==4)
-    {
-        //rouge
-        color = vuchar3(rng.uniform(0,200),rng.uniform(0,200),rng.uniform(200,255));
-    }
+    this->color = generate_color();
     addNewPoint(pt,list_p);
 }
 
@@ -334,6 +244,8 @@ void track::addNewPoint(vint2 pt,std::list<vint2> list_p, float grd, int id_of_f
     this->frame_id = id_of_frame;
     this->frame_without_update = 0;
 }
+
+
 
 }
 
