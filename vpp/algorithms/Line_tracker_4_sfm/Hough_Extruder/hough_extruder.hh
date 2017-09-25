@@ -129,13 +129,13 @@ private:
 
 template <typename... OPTS>
 void hough_feature_matching_in_n_frames(int T_theta,const char* link,
-                            Sclare_rho scale,
-                            Type_video_hough type_video,
-                            Type_output type_sortie,
-                            Type_Lines type_line,
-                            Frequence freq,
-                            int wkf,int N,
-                            OPTS... options)
+                                        Sclare_rho scale,
+                                        Type_video_hough type_video,
+                                        Type_output type_sortie,
+                                        Type_Lines type_line,
+                                        Frequence freq,
+                                        int wkf,int N,
+                                        OPTS... options)
 {
 
     auto opts = D(options...);
@@ -163,7 +163,7 @@ void hough_feature_matching_in_n_frames(int T_theta,const char* link,
     /*************************************/
     image2d<uchar> frame_gradient(make_box2d(1,1));
     image2d<uchar> frame_point(make_box2d(1,1));
-    vpp:feature_matching_hough_ctx ctx= feature_matching_hough_init(make_box2d(1,1));
+vpp:feature_matching_hough_ctx ctx= feature_matching_hough_init(make_box2d(1,1));
     int modulo_cp = 0;
     int us_cpt = 0;
     timer gt;
@@ -625,18 +625,10 @@ vpp:feature_matching_hough_ctx ctx= feature_matching_hough_init(make_box2d(1,1))
 
             if(Type_output::VIDEO_HOUGH == type_sortie || Type_output::GRADIENT_VIDEO == type_sortie)
             {
-
                 if(Type_output::GRADIENT_VIDEO == type_sortie)
                 {
                     auto display = graylevel_to_rgb<vuchar3>(frame_gradient);
-                    if(Type_Lines::ALL_POINTS==type_line)
-                    {
-                        paint_original_video_particle(ctx.list_track, paint_buffer,T_theta,nrows,ncols);
-                    }
-                    else if(Type_Lines::ONLY_POLAR==type_line)
-                    {
-                        paint_original_video(ctx.list_track, paint_buffer,T_theta,nrows,ncols);
-                    }
+                    paint_original_video(ctx.list_track, paint_buffer,T_theta,nrows,ncols);
                     pixel_wise(paint_buffer, display) | [] (auto p, auto& d)
                     {
                         d = ((d.template cast<int>() * (255 - p[3]) + p.template segment<3>(0).template cast<int>() * p[3]) / 255).template cast<unsigned char>();
@@ -660,14 +652,7 @@ vpp:feature_matching_hough_ctx ctx= feature_matching_hough_init(make_box2d(1,1))
             {
                 image2d<vuchar3> display(make_box2d(nrows,ncols));
                 vpp::copy(frame_cv,display);
-                if(Type_Lines::ALL_POINTS==type_line)
-                {
-                    paint_original_video_particle(ctx.list_track, paint_buffer,T_theta,nrows,ncols);
-                }
-                else if(Type_Lines::ONLY_POLAR==type_line)
-                {
-                    paint_original_video(ctx.list_track, paint_buffer,T_theta,nrows,ncols);
-                }
+                paint_original_video(ctx.list_track, paint_buffer,T_theta,nrows,ncols);
                 pixel_wise(paint_buffer, display) | [] (auto p, auto& d)
                 {
                     d = ((d.template cast<int>() * (255 - p[3]) + p.template segment<3>(0).template cast<int>() * p[3]) / 255).template cast<unsigned char>();
