@@ -71,4 +71,34 @@ enum class Type_video_hough : int8_t { ONLY_CLUSTERS = 1 , ALL_POINTS = 2 };
 
 ```
 
+The parameter Frequence is used to set if the dense hough transform is performed through all frames or only in certain frames.
+
+```c++
+enum class Frequence : int8_t { ALL_FRAME = 0 , NOT_ALL = 1 };
+
+```
+
+The parameter With_Kalman_Filter expresses the fact if a Kalman is used to predict the position of clusters in such a way that even if a line does not appear in certain frames, this line next positions of this line will be predict and when it will reappear the tracking will continue. Here we use an unscented kalman filter. _nombre_max_frame_without_update defines the sucessive number of frames we keep a line in the list even if it is not visible in the field of view.
+
+```c++
+enum class With_Kalman_Filter : int8_t { YES = 1 , NO = 0 };
+
+```
+
+The parameter With_Transparency is used to set if for the output video, we'll use or not the alpha transparency to draw lines trajectories.
+
+```c++
+enum class With_Transparency : int8_t { YES = 1 , NO = 0 };
+```
+
+The parameter With_Entries is used to take into account of entries or not during the tracking.
+
+```c++
+enum class With_Entries : int8_t { YES = 1 , NO = 0 };
+
+```
+
+
+
+
 
