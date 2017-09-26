@@ -21,7 +21,7 @@ The program is furnished as headers so it is enough to install Video++. There a 
 You can launch the program by calling :
 
 ```c++
-Capture_Image(feature_matching_video,Theta_max::SMALL, Sclare_rho::HALF,
+Capture_Image(feature_matching_video,Theta_max::SMALL, Sclare_rho::SAME,
                   Type_video_hough::ALL_POINTS,
                   Type_output::ORIGINAL_VIDEO,
                   Type_Lines::ONLY_POLAR,
@@ -39,5 +39,21 @@ Capture_Image(feature_matching_video,Theta_max::SMALL, Sclare_rho::HALF,
                   _nombre_max_frame_without_update =5);
 ```
 
+With this function you can either detect lines in a image or track lines in a video. To detect lines we can use mode_capture_photo rather than feature_matching_video. 
+
+
+The parameter Theta_max::SMALL allows to define the size of the accumulator in the sens of theta (the angle discretized). There are many values : 
+
+```c++
+enum class Theta_max : int32_t { XXSMALL = 67 , XSMALL = 127 , SMALL = 255, MEDIUM = 500, LARGE = 1000 , XLARGE = 1500};
+
+```
+
+The parameter Sclare_rho allows to define the scale to use reduce the size of the diagonal of the image used for the accumulator.
+
+```c++
+enum class Sclare_rho : int32_t { ONE_QUART = 3, HALF = 2 , THREE_QUART = 1 , SAME = 0};
+
+```
 
 
