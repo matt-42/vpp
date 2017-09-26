@@ -56,4 +56,19 @@ enum class Sclare_rho : int32_t { ONE_QUART = 3, HALF = 2 , THREE_QUART = 1 , SA
 
 ```
 
+The parameter Type_output is used to define the type of video to output after the tracking
+
+```c++
+enum class Type_output : int16_t { VIDEO_HOUGH = 0 , ORIGINAL_VIDEO = 1 , GRADIENT_VIDEO = 2,ORIGINAL_AND_HOUGH_VIDEO = 3   };
+
+```
+
+
+The parameter Type_video_hough is used to define the type of output of tracking video.
+
+```c++
+enum class Type_video_hough : int8_t { ONLY_CLUSTERS = 1 , ALL_POINTS = 2 };
+
+```
+
 
