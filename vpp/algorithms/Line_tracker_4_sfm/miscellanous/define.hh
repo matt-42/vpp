@@ -31,20 +31,11 @@ enum class Frequence : int8_t { ALL_FRAME = 0 , NOT_ALL = 1 };
 enum class Mode : int8_t { ONLY_VPP = 0 , OPTIMIZED = 1 };
 enum class With_Kalman_Filter : int8_t { YES = 1 , NO = 0 };
 enum class With_Transparency : int8_t { YES = 1 , NO = 0 };
+enum class With_Entries : int8_t { YES = 1 , NO = 0 };
 
 float  motion_threshold = 100;
-#define hough_sequentiel 1
-#define hough_parallel 2
-#define hough_modified_kmeans 3
-#define hough_parallel_map 7
-#define hough_test 8
-#define mode_capture_webcam 1
-#define mode_capture_photo 2
-#define mode_capture_video 3
-#define video_extruder_video 4
-#define mode_capture_vid_try 5
-#define mode_capture_kalman 6
-#define feature_matching_video 7
+#define dense_ht 2
+#define feature_matching 7
 Matrix<float,3,3> GySobel3x3;
 Matrix<float,3,3> GxSobel3x3;
 Matrix<float,5,5> GySobel5x5;
