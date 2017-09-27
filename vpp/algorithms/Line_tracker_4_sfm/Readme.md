@@ -22,18 +22,18 @@ https://www.dropbox.com/s/bh980ucuxcmci40/original_video.avi?dl=0
 You can launch the program by calling :
 
 ```c++
-Capture_Image(feature_matching_video,Theta_max::SMALL, Sclare_rho::SAME,
+    Fast_DHT_Matching(feature_matching,Theta_max::SMALL, Sclare_rho::SAME,
                   Type_video_hough::ALL_POINTS,
                   Type_output::ORIGINAL_VIDEO,
                   Type_Lines::ONLY_POLAR,
                   Frequence::ALL_FRAME,
                   With_Kalman_Filter::NO,
                   With_Transparency::YES,
-                  With_Entries::NO,
+                  With_Entries::YES,
                   _rayon_exclusion_theta = 15,
                   _rayon_exclusion_rho = 12,
                   _slot_hough = 1,
-                  _link_of_video_image = "videos/work1.avi",
+                  _link_of_video_image = "videos/corridor2.mp4",
                   _acc_threshold = 100,
                   _m_first_lines = 5,
                   _max_trajectory_length = 5,
