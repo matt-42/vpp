@@ -320,7 +320,7 @@ void hough_feature_matching(int T_theta,const char* link,
                             Type_output type_sortie,
                             Type_Lines type_line,
                             Frequence freq,
-                            int wkf,
+                            int wkf,With_Entries we,
                             OPTS... options)
 {
 
@@ -391,7 +391,7 @@ vpp:feature_matching_hough_ctx ctx= feature_matching_hough_init(make_box2d(1,1))
 
                 feature_matching_hough_update_three_first(ctx, prev_acc, _acc_gl,frame_gradient,frame_point,scale,
                                                           int(type_video),frame_img,T_theta,rhomax,first, type_sortie,
-                                                          id_trackers,type_line,freq,old_vects,wkf,
+                                                          id_trackers,type_line,freq,old_vects,wkf,we,
                                                           _detector_th = detector_th,
                                                           _slot_hough = slot_hough,
                                                           _keypoint_spacing = keypoint_spacing,
@@ -407,7 +407,7 @@ vpp:feature_matching_hough_ctx ctx= feature_matching_hough_init(make_box2d(1,1))
             {
                 feature_matching_hough_update_three_first(ctx, prev_acc, _acc_gl,frame_gradient,frame_point,scale,
                                                           int(type_video),frame_img,T_theta,rhomax,first, type_sortie,
-                                                          id_trackers, type_line,freq,old_vects, wkf,
+                                                          id_trackers, type_line,freq,old_vects, wkf,we,
                                                           _detector_th = detector_th,
                                                           _slot_hough = slot_hough,
                                                           _keypoint_spacing = keypoint_spacing,
@@ -504,7 +504,7 @@ void hough_feature_matching_paint(int T_theta,const char* link,
                                   Type_output type_sortie,
                                   Type_Lines type_line,
                                   Frequence freq,
-                                  int wkf,
+                                  int wkf,With_Entries we,
                                   OPTS... options)
 {
 
@@ -540,7 +540,7 @@ vpp:feature_matching_hough_ctx ctx= feature_matching_hough_init(make_box2d(1,1))
     gt.start();
     image2d<vuchar4> paint_buffer;
     foreach_videoframe1(link)| [&] (const image2d<vuchar3>& frame_cv){
-        if(nframes>=0 && nframes<600)
+        if(nframes>=0 && nframes<60000)
         {
             timer t;
             t.start();
@@ -582,7 +582,7 @@ vpp:feature_matching_hough_ctx ctx= feature_matching_hough_init(make_box2d(1,1))
 
                 feature_matching_hough_update_three_first(ctx, prev_acc, _acc_gl,frame_gradient,frame_point,scale,
                                                           int(type_video),frame_img,T_theta,rhomax,first, type_sortie,
-                                                          id_trackers,type_line,freq,old_vects,wkf,
+                                                          id_trackers,type_line,freq,old_vects,wkf,we,
                                                           _detector_th = detector_th,
                                                           _slot_hough = slot_hough,
                                                           _keypoint_spacing = keypoint_spacing,
@@ -598,7 +598,7 @@ vpp:feature_matching_hough_ctx ctx= feature_matching_hough_init(make_box2d(1,1))
             {
                 feature_matching_hough_update_three_first(ctx, prev_acc, _acc_gl,frame_gradient,frame_point,scale,
                                                           int(type_video),frame_img,T_theta,rhomax,first, type_sortie,
-                                                          id_trackers, type_line,freq,old_vects, wkf,
+                                                          id_trackers, type_line,freq,old_vects, wkf,we,
                                                           _detector_th = detector_th,
                                                           _slot_hough = slot_hough,
                                                           _keypoint_spacing = keypoint_spacing,
@@ -669,15 +669,15 @@ vpp:feature_matching_hough_ctx ctx= feature_matching_hough_init(make_box2d(1,1))
 
 
 template <typename... OPTS>
-void Capture_Image(int mode, Theta_max discr, Sclare_rho scale,
+void Fast_DHT_Matching(int mode, Theta_max discr, Sclare_rho scale,
                    Type_video_hough type_video, Type_output type_sortie,
-                   Type_Lines type_line, Frequence freq, With_Kalman_Filter wkf,With_Transparency wt,
+                   Type_Lines type_line, Frequence freq, With_Kalman_Filter wkf,With_Transparency wt,With_Entries we,
                    OPTS... options)
 {
 
     auto opts = D(options...);
     const int max_trajectory_length = opts.get(_max_trajectory_length, 15);
-    const char* link = opts.get(_link_of_video, "videos/traindrivers.avi");
+    const char* link = opts.get(_link_of_video_image, "videos/traindrivers.avi");
     const int rayon_exclusion_theta = opts.get(_rayon_exclusion_theta, 15);
     const int rayon_exclusion_rho = opts.get(_rayon_exclusion_rho, 12);
     const int slot_hough = opts.get(_slot_hough, 5);
@@ -689,16 +689,16 @@ void Capture_Image(int mode, Theta_max discr, Sclare_rho scale,
     int T_theta = getThetaMax(discr);
     int wkff = getWKF(wkf);
 
-    if(mode==mode_capture_photo)
+    if(mode==dense_ht)
     {
         hough_image(T_theta,acc_threshold);
     }
-    else if(mode == feature_matching_video)
+    else if(mode == feature_matching)
     {
         cout << "feature_matching_video" << endl;
         if(With_Transparency::YES == wt)
         {
-            hough_feature_matching_paint( T_theta,  link,  scale, type_video,type_sortie, type_line,freq,wkff,
+            hough_feature_matching_paint( T_theta,  link,  scale, type_video,type_sortie, type_line,freq,wkff,we,
                                           _max_trajectory_length = max_trajectory_length,
                                           _slot_hough = slot_hough,
                                           _m_first_lines = m_first_lines,
@@ -709,7 +709,7 @@ void Capture_Image(int mode, Theta_max discr, Sclare_rho scale,
         }
         else
         {
-            hough_feature_matching( T_theta,  link,  scale, type_video,type_sortie, type_line,freq,wkff,
+            hough_feature_matching( T_theta,  link,  scale, type_video,type_sortie, type_line,freq,wkff,we,
                                     _max_trajectory_length = max_trajectory_length,
                                     _slot_hough = slot_hough,
                                     _m_first_lines = m_first_lines,
