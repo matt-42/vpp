@@ -27,7 +27,7 @@ using namespace cv;
 namespace vpp{
 
 float getVectorVal(std::vector<float> t_array, int vert,int hori,int i ,int j);
-void Hough_Accumulator(image2d<uchar> img, int mode , int T_theta, Mat &bv, float acc_threshold);
+void Hough_Accumulator(image2d<uchar> img, int T_theta, Mat &bv, float acc_threshold);
 cv::Mat Hough_Accumulator_Video_Map_and_Clusters(image2d<vuchar1> img, int mode , int T_theta,
                                                  std::vector<float>& t_accumulator, std::list<vint2>& interestedPoints,
                                                  float rhomax);
