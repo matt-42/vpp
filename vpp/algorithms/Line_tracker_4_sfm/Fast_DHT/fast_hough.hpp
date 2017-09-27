@@ -41,10 +41,8 @@ public:
 
 
 
-void Hough_Accumulator(image2d<uchar> img, int mode, int T_theta,Mat &bv,float acc_threshold)
+void Hough_Accumulator(image2d<uchar> img, int T_theta,Mat &bv,float acc_threshold)
 {
-    typedef vfloat3 F;
-    typedef vuchar3 V;
     int ncols,nrows;
     ncols = img.ncols();
     nrows = img.nrows();
@@ -53,42 +51,27 @@ void Hough_Accumulator(image2d<uchar> img, int mode, int T_theta,Mat &bv,float a
     float max_of_accu = 0;
     image2d<uchar> out(img.domain());
     std::vector<float> t_accumulator(rhomax*thetamax,0);
-    if(mode==hough_parallel)
-    {
         Hough_Lines_Parallel(img,t_accumulator,thetamax,rhomax,max_of_accu,out,acc_threshold);
-    }
 }
 
 Mat Hough_Accumulator_Video_Map_and_Clusters(image2d<vuchar1> img, int mode, int T_theta,
                                              std::vector<float>& t_accumulator, std::list<vint2> &interestedPoints, float rhomax)
 {
-    typedef vfloat3 F;
-    typedef vuchar3 V;
     float max_of_accu = 0;
-
-    if(mode==hough_parallel)
-    {
         cout << "Parallel" << endl;
         //interestedPoints = Hough_Lines_Parallel(img,t_accumulator,T_theta,max_of_accu,5);
         return accumulatorToFrame(t_accumulator,
                                   max_of_accu
                                   ,rhomax,T_theta);
-    }
 }
 
 cv::Mat Hough_Accumulator_Video_Clusters(image2d<vuchar1> img, int mode , int T_theta,
                                          std::vector<float>& t_accumulator, std::list<vint2>& interestedPoints, float rhomax)
 {
-    typedef vfloat3 F;
-    typedef vuchar3 V;
     float max_of_accu = 0;
-
-    if(mode==hough_parallel)
-    {
         cout << "Parallel" << endl;
         //interestedPoints = Hough_Lines_Parallel(img,t_accumulator,T_theta,max_of_accu,5);
         return accumulatorToFrame(interestedPoints,rhomax,T_theta);
-    }
 }
 
 
@@ -170,7 +153,7 @@ void hough_image(int T_theta,float acc_threshold)
     //t.start();
     //for(int i=0 ; i < 1000 ; i++)
     {
-        Hough_Accumulator(img,hough_parallel,T_theta,bv,acc_threshold);
+        Hough_Accumulator(img,T_theta,bv,acc_threshold);
     }
     //t.end();
     //cout << " temps d'execution " << t.us()/1000.0 << endl;
