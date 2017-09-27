@@ -7,7 +7,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/videoio.hpp>
 #include <vpp/vpp.hh>
-#include <Eigen/Core>
+#include <eigen3/Eigen/Core>
 #include <vpp/utils/opencv_bridge.hh>
 #include <iod/timer.hh>
 
