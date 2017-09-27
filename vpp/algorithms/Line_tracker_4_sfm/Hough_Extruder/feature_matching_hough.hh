@@ -7,6 +7,7 @@
 #include <vpp/algorithms/descriptor_matcher.hh>
 #include "track.hh"
 #include "vpp/algorithms/Line_tracker_4_sfm/miscellanous/define.hh"
+//#include "vpp/algorithms/Line_tracker_4_sfm/miscellanous/kdtree.hh"
 
 
 namespace vpp {
@@ -24,7 +25,6 @@ struct feature_matching_hough_ctx {
     std::vector<keypoint_trajectory> trajectories;
 
     std::vector<track> list_track;
-
 
 
     // Current frame id.
