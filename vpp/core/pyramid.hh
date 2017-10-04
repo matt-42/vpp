@@ -33,6 +33,8 @@ namespace vpp
       }
     }
 
+    fill_border_mirror(tmp);
+
     #pragma omp parallel for
     for (int r = 0; r < nr; r++)
     {
@@ -104,9 +106,19 @@ namespace vpp
   image2d<V> antialias_subsample2(const image2d<V>& in)
   {
     auto tmp = clone(in, _border = std::max(in.border(), 1));
-    antialiasing_lowpass_filter(in, tmp);
-    image2d<V> tmp2(1 + (in.nrows() / 2), 1 + (in.ncols() / 2), _border = std::max(in.border(), 1));
+    fill_border_mirror(tmp);
+
+    image2d<V> in2 = in;
+    if (in2.border() < 2)
+    {
+      in2 = clone(in2, _border = 2);
+      fill_border_mirror(in2);
+    }
+
+    antialiasing_lowpass_filter(in2, tmp);
+    image2d<V> tmp2(1 + (in.nrows() / 2), 1 + (in.ncols() / 2), _border = std::max(in.border(), 0));
     subsample2(tmp, tmp2);
+    fill_border_mirror(tmp2);
     return tmp2;
   }
 

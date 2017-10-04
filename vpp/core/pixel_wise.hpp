@@ -66,7 +66,7 @@ namespace vpp
 
   // Apply \fun to all pixels of a row from left to right.
   template <typename F, typename... R>
-  void process_row(_left_to_right_t, F&& fun, int start, int end, R... ranges)
+  void process_row(_left_to_right_t, F&& fun, int start, int end, R&&... ranges)
   {
     for (int c = start; c <= end; c++)
       fun(ranges(c)...);
@@ -74,7 +74,7 @@ namespace vpp
 
   // Apply \fun to all pixels of a row from right to left.
   template <typename F, typename... R>
-  void process_row(_right_to_left_t, F&& fun, int start, int end, R... ranges)
+  void process_row(_right_to_left_t, F&& fun, int start, int end, R&&... ranges)
   {
     for (int c = end; c >= start; c--)
       fun(ranges(c)...);
@@ -89,7 +89,7 @@ namespace vpp
   {
 #pragma omp parallel for
     for (int r = i.r_start; r <= i.r_end; r++)
-      process_row(ro, std::forward<F>(fun), i.c_start, i.c_end, pixel_wise_internals::row_access(ranges, r)...);
+      process_row(ro, std::forward<F>(fun), i.c_start, i.c_end, pixel_wise_internals::row_access(std::forward<R>(ranges), r)...);
   }
 
   // Multithread bottom to top traversal.
@@ -101,7 +101,7 @@ namespace vpp
   {
 #pragma omp parallel for
     for (int r = i.r_end; r >= i.r_start; r--)
-      process_row(ro, std::forward<F>(fun), i.c_start, i.c_end, pixel_wise_internals::row_access(ranges, r)...);
+      process_row(ro, std::forward<F>(fun), i.c_start, i.c_end, pixel_wise_internals::row_access(std::forward<R>(ranges), r)...);
   }
 
   // Serial top to bottom traversal.
@@ -112,7 +112,7 @@ namespace vpp
                                         F&& fun, R&&... ranges)
   {
     for (int r = i.r_end; r >= i.r_start; r--)
-      process_row(ro, std::forward<F>(fun), i.c_start, i.c_end, pixel_wise_internals::row_access(ranges, r)...);
+      process_row(ro, std::forward<F>(fun), i.c_start, i.c_end, pixel_wise_internals::row_access(std::forward<R>(ranges), r)...);
   }
 
   // Serial bottom to top traversal.
@@ -122,7 +122,7 @@ namespace vpp
                                       pixel_wise_internals::iter_info i, F fun, R... ranges)
   {
     for (int r = i.r_start; r <= i.r_end; r++)
-      process_row(ro, fun, i.c_start, i.c_end, pixel_wise_internals::row_access(ranges, r)...);
+      process_row(ro, fun, i.c_start, i.c_end, pixel_wise_internals::row_access(std::forward<R>(ranges), r)...);
   }
 
   
