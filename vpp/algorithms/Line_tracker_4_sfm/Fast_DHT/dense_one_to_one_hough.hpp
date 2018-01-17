@@ -1,11 +1,20 @@
-#ifndef DENSE_ONE_TO_ONE_HOUGH_HPP
-#define DENSE_ONE_TO_ONE_HOUGH_HPP
+
 
 
 #include "dense_one_to_one_hough.hh"
 
 namespace vpp{
 
+/**
+ * @brief Hough_Lines_Parallel_Kmeans
+ * @param img
+ * @param t_accumulator
+ * @param Theta_max
+ * @param rhomax
+ * @param max_of_the_accu
+ * @param grad_img
+ * @return
+ */
 std::list<vint2> Hough_Lines_Parallel_Kmeans(image2d<uchar> img,
                                              std::vector<float>& t_accumulator,
                                              int Theta_max,int rhomax, float& max_of_the_accu
@@ -242,8 +251,10 @@ std::list<vint2> Hough_Lines_Parallel_Kmeans(image2d<uchar> img,
  * @param img
  * @param t_accumulator
  * @param Theta_max
+ * @param rhomax
  * @param max_of_the_accu
  * @param grad_img
+ * @param acc_threshold
  * @return
  */
 std::list<vint2> Hough_Lines_Parallel(image2d<uchar> img,
@@ -457,6 +468,18 @@ std::list<vint2> Hough_Lines_Parallel(image2d<uchar> img,
 }
 
 
+/**
+ * @brief Hough_Lines_Parallel_Update_Threshold
+ * @param img
+ * @param t_accumulator
+ * @param Theta_max
+ * @param rhomax
+ * @param max_of_the_accu
+ * @param grad_img
+ * @param grad_threshold
+ * @param N
+ * @return
+ */
 std::list<vint2> Hough_Lines_Parallel_Update_Threshold(image2d<uchar> img,
                                       std::vector<float>& t_accumulator,
                                       int Theta_max,int rhomax, float& max_of_the_accu
@@ -675,6 +698,18 @@ std::list<vint2> Hough_Lines_Parallel_Update_Threshold(image2d<uchar> img,
     return interestedPoints;
 }
 
+/**
+ * @brief Hough_Lines_Parallel_Sparse
+ * @param img
+ * @param t_accumulator
+ * @param Theta_max
+ * @param rhomax
+ * @param max_of_the_accu
+ * @param grad_img
+ * @param grad_threshold
+ * @param N
+ * @return
+ */
 std::list<vint2> Hough_Lines_Parallel_Sparse(image2d<uchar> img,
                                       std::vector<float>& t_accumulator,
                                       int Theta_max,int rhomax, float& max_of_the_accu
@@ -883,7 +918,7 @@ std::list<vint2> Hough_Lines_Parallel_Sparse(image2d<uchar> img,
 
 
 /**
- * @brief Hough_Lines_Parallel with a cloud of points
+ * @brief Hough_Lines_Parallel
  * @param img
  * @param t_accumulator
  * @param Theta_max
@@ -1569,7 +1604,15 @@ std::list<vint2> Hough_Lines_Parallel(image2d<uchar> img,
 }
 
 
-
+/**
+ * @brief Hough_Lines_Parallel_one
+ * @param bv
+ * @param t_accumulator
+ * @param Theta_max
+ * @param max_of_the_accu
+ * @param grad_img
+ * @return
+ */
 std::list<vint2> Hough_Lines_Parallel_one(Mat bv,
                                           std::vector<float>& t_accumulator,
                                           int Theta_max, float& max_of_the_accu
@@ -1797,6 +1840,17 @@ std::list<vint2> Hough_Lines_Parallel_one(Mat bv,
     return interestedPoints;
 }
 
+/**
+ * @brief Hough_Lines_Parallel_one
+ * @param img
+ * @param bv
+ * @param t_accumulator
+ * @param Theta_max
+ * @param max_of_the_accu
+ * @param grad_img
+ * @param list_interest
+ * @return
+ */
 std::list<vint2> Hough_Lines_Parallel_one(image2d<uchar> img, Mat bv,
                                           std::vector<float>& t_accumulator,
                                           int Theta_max, float& max_of_the_accu
@@ -2025,7 +2079,16 @@ std::list<vint2> Hough_Lines_Parallel_one(image2d<uchar> img, Mat bv,
 }
 
 
-float getVectorVal(std::vector<float> t_array, int vert,int hori,int i ,int j)
+/**
+ * @brief getVectorVal
+ * @param t_array
+ * @param vert
+ * @param hori
+ * @param i
+ * @param j
+ * @return
+ */
+float get_vector_val(std::vector<float> t_array, int vert,int hori,int i ,int j)
 {
     if(i<0 || i>=vert || j<0 || j>=hori )
         return 0;
@@ -2033,6 +2096,17 @@ float getVectorVal(std::vector<float> t_array, int vert,int hori,int i ,int j)
         return t_array[i*hori+j];
 }
 
+
+/**
+ * @brief adap_thresold
+ * @param list_temp
+ * @param threshold_hough
+ * @param calls
+ * @param nb_calls_limits_reached
+ * @param rhomax
+ * @param T_theta
+ * @param t_accumulator
+ */
 void adap_thresold(std::list<vfloat3> &list_temp , float &threshold_hough , int &calls ,
                    int &nb_calls_limits_reached , int rhomax, int T_theta , std::vector<float> t_accumulator)
 {
@@ -2059,6 +2133,14 @@ void adap_thresold(std::list<vfloat3> &list_temp , float &threshold_hough , int 
     }
 }
 
+/**
+ * @brief reduce_number_of_max_local
+ * @param list_temp
+ * @param threshold_hough
+ * @param rhomax
+ * @param T_theta
+ * @param t_accumulator
+ */
 void reduce_number_of_max_local(std::list<vfloat3> &list_temp , float threshold_hough , int rhomax, int T_theta , std::vector<float> t_accumulator)
 {
     list_temp.clear();
@@ -2075,6 +2157,11 @@ void reduce_number_of_max_local(std::list<vfloat3> &list_temp , float threshold_
 }
 
 
+/**
+ * @brief interpolate_acculator
+ * @param acc
+ * @param seuil
+ */
 void interpolate_acculator(image2d<float> &acc, float seuil)
 {
     image2d<float> out(acc.domain());
@@ -2089,6 +2176,10 @@ void interpolate_acculator(image2d<float> &acc, float seuil)
 }
 
 
+/**
+ * @brief Hough_Lines_Parallel_Map
+ * @param img
+ */
 void Hough_Lines_Parallel_Map(image2d<vuchar1> img)
 {
     std::map<int,float> accumulator_high;
@@ -2256,4 +2347,4 @@ void Hough_Lines_Parallel_Map(image2d<vuchar1> img)
 }
 
 }
-#endif // DENSE_ONE_TO_ONE_HOUGH_HPP
+
