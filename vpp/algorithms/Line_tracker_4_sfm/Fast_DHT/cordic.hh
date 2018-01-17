@@ -1,5 +1,4 @@
-#ifndef CORDIC_HH
-#define CORDIC_HH
+#pragma once
 
 #include <vpp/vpp.hh>
 #include <Eigen/Core>
@@ -18,4 +17,4 @@ int cordic_ctab [] = {0x3243F6A8, 0x1DAC6705, 0x0FADBAFC, 0x07F56EA6, 0x03FEAB76
 0x000003FF, 0x000001FF, 0x000000FF, 0x0000007F, 0x0000003F, 0x0000001F, 0x0000000F,
 0x00000008, 0x00000004, 0x00000002, 0x00000001, 0x00000000, };
 
-#endif // CORDIC_HH
+
