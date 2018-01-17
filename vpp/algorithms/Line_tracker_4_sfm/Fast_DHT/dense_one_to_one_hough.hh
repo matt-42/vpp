@@ -1,5 +1,4 @@
-#ifndef DENSE_ONE_TO_ONE_HOUGH_HH
-#define DENSE_ONE_TO_ONE_HOUGH_HH
+#pragma once
 
 
 #include "openacc.h"
@@ -89,4 +88,4 @@ void Hough_Lines_Parallel_Map(image2d<vuchar1> img);
 }
 #include "dense_one_to_one_hough.hpp"
 
-#endif // DENSE_ONE_TO_ONE_HOUGH_HH
+
