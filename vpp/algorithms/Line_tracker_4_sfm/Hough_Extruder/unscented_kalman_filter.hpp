@@ -1,5 +1,4 @@
-#ifndef UKF_HPP
-#define UKF_HPP
+
 
 
 #include "unscented_kalman_filter.hh"
@@ -14,7 +13,7 @@ using std::vector;
 /**
  * Initializes Unscented Kalman filter
  */
-Unscented_Kalman_Filter::Unscented_Kalman_Filter() {
+unscented_kalman_filter::unscented_kalman_filter() {
     // Set initialization to false initially
     is_initialized_  = false;
 
@@ -71,22 +70,22 @@ Unscented_Kalman_Filter::Unscented_Kalman_Filter() {
 
 }
 
-Unscented_Kalman_Filter::~Unscented_Kalman_Filter() {}
+unscented_kalman_filter::~unscented_kalman_filter() {}
 
 
 
-void Unscented_Kalman_Filter::AddNewDectection(const vint2 values, float dt) {
+void unscented_kalman_filter::add_new_dectection(const vint2 values, float dt) {
 
     cout << "ajouter un nouveau point " << endl;
     if (!is_initialized_) {
         //  Initialize the state x_,state covariance matrix P_
-        InitializeTheTrack(values,dt);
+        initialize_the_track(values,dt);
         //previous_timestamp_ = meas_package.timestamp_;
         is_initialized_ = true;
         return;
     }
     double delta_t =  dt;
-    Prediction(delta_t);
+    prediction(delta_t);
     //mean predicted measurement
     VectorXd z_pred = VectorXd::Zero(measurement_dimension);
     //measurement covariance matrix S
@@ -94,19 +93,19 @@ void Unscented_Kalman_Filter::AddNewDectection(const vint2 values, float dt) {
     // cross-correlation matrix Tc
     MatrixXd Tc = MatrixXd::Zero(state_dimension, measurement_dimension);
     // get predictions for x,S and Tc in Lidar space
-    PredictMeasurement(z_pred, S, Tc);
+    predict_measurement(z_pred, S, Tc);
     cout << "la prediction " << z_pred[0] << "  " << z_pred[1] << endl;
     // update the state using the LIDAR measurement
-    Update(values,dt, z_pred, Tc, S);
+    update(values,dt, z_pred, Tc, S);
     cout << "la vraie valeur " << values[0] << "  " << values[1] << endl;
     // update the time
     return;
 }
 
-void Unscented_Kalman_Filter::onlyUpdateTrack(float dt)
+void unscented_kalman_filter::only_update_track(float dt)
 {
     double delta_t =  dt;
-    Prediction(delta_t);
+    prediction(delta_t);
     //mean predicted measurement
     VectorXd z_pred = VectorXd::Zero(measurement_dimension);
     //measurement covariance matrix S
@@ -114,12 +113,12 @@ void Unscented_Kalman_Filter::onlyUpdateTrack(float dt)
     // cross-correlation matrix Tc
     MatrixXd Tc = MatrixXd::Zero(state_dimension, measurement_dimension);
     // get predictions for x,S and Tc in Lidar space
-    PredictMeasurement(z_pred, S, Tc);
+    predict_measurement(z_pred, S, Tc);
     cout << "la prediction " << z_pred[0] << "  " << z_pred[1] << endl;
     return;
 }
 
-void Unscented_Kalman_Filter::InitializeTheTrack(const vint2 values,float dt) {
+void unscented_kalman_filter::initialize_the_track(const vint2 values,float dt) {
     cout << "initialisation du filtre " << endl;
     // initialize state covariance matrix P
     covariance_matrix = MatrixXd(5, 5);
@@ -136,7 +135,7 @@ void Unscented_Kalman_Filter::InitializeTheTrack(const vint2 values,float dt) {
 /**
  * @param MatrixXd &Xsig_out. Computes augmented sigma points in state space
  */
-void Unscented_Kalman_Filter::AugmentedSigmaPoints(MatrixXd &Xsig_out){
+void unscented_kalman_filter::augmented_sigma_points(MatrixXd &Xsig_out){
     //create augmented mean vector
     static VectorXd x_aug = VectorXd(augmented_state_dimension);
     //create augmented state covariance
@@ -168,7 +167,7 @@ void Unscented_Kalman_Filter::AugmentedSigmaPoints(MatrixXd &Xsig_out){
 /**
  * @param MatrixXd &Xsig_out. predicts augmented sigma points
  */
-void Unscented_Kalman_Filter::SigmaPointPrediction(const MatrixXd &Xsig_aug, const double delta_t, MatrixXd  &Xsig_out){
+void unscented_kalman_filter::sigma_point_prediction(const MatrixXd &Xsig_aug, const double delta_t, MatrixXd  &Xsig_out){
     //create matrix with predicted sigma points as columns
     static MatrixXd Xsig_pred = MatrixXd(state_dimension, 2 * augmented_state_dimension + 1);
     //predict sigma points
@@ -219,7 +218,7 @@ void Unscented_Kalman_Filter::SigmaPointPrediction(const MatrixXd &Xsig_aug, con
 }
 
 
-void Unscented_Kalman_Filter::PredictMeanAndCovariance(const MatrixXd &Xsig_pred, VectorXd &x_out, MatrixXd &P_out) {
+void unscented_kalman_filter::predict_mean_and_covariance(const MatrixXd &Xsig_pred, VectorXd &x_out, MatrixXd &P_out) {
 
     //create vector for predicted state
     static VectorXd x = VectorXd(state_dimension);
@@ -266,7 +265,7 @@ void Unscented_Kalman_Filter::PredictMeanAndCovariance(const MatrixXd &Xsig_pred
 }
 
 
-void Unscented_Kalman_Filter::PredictMeasurement(VectorXd &z_out, MatrixXd &S_out, MatrixXd &Tc_out) {
+void unscented_kalman_filter::predict_measurement(VectorXd &z_out, MatrixXd &S_out, MatrixXd &Tc_out) {
 
     //create matrix for sigma points in measurement space
     static MatrixXd Zsig = MatrixXd(measurement_dimension, 2 * augmented_state_dimension + 1);
@@ -323,7 +322,7 @@ void Unscented_Kalman_Filter::PredictMeasurement(VectorXd &z_out, MatrixXd &S_ou
 }
 
 
-void Unscented_Kalman_Filter::Prediction(double delta_t) {
+void unscented_kalman_filter::prediction(double delta_t) {
 
     static MatrixXd Xsig_aug = MatrixXd(2*augmented_state_dimension + 1, augmented_state_dimension);
 
@@ -331,16 +330,16 @@ void Unscented_Kalman_Filter::Prediction(double delta_t) {
     static MatrixXd Xsig_pred = MatrixXd(state_dimension, 2 * augmented_state_dimension + 1);
 
     // compute augmented sigma points
-    AugmentedSigmaPoints(Xsig_aug);
+    augmented_sigma_points(Xsig_aug);
 
     // predict augmented sigma points
     //insert timer
-    SigmaPointPrediction(Xsig_aug, delta_t, Xsig_pred);
+    sigma_point_prediction(Xsig_aug, delta_t, Xsig_pred);
 
     static VectorXd x_pred = VectorXd(state_dimension);
     static MatrixXd P_pred = MatrixXd(state_dimension, state_dimension);
 
-    PredictMeanAndCovariance(Xsig_pred,x_pred, P_pred);
+    predict_mean_and_covariance(Xsig_pred,x_pred, P_pred);
 
     state_vector = x_pred;
     covariance_matrix = P_pred;
@@ -352,7 +351,7 @@ void Unscented_Kalman_Filter::Prediction(double delta_t) {
 
 
 
-void Unscented_Kalman_Filter::Update(vint2 values, float dt, VectorXd &z_pred, MatrixXd &Tc, MatrixXd &S) {
+void unscented_kalman_filter::update(vint2 values, float dt, VectorXd &z_pred, MatrixXd &Tc, MatrixXd &S) {
 
     //mean predicted measurement
     static VectorXd z = VectorXd::Zero(measurement_dimension);
@@ -374,4 +373,3 @@ void Unscented_Kalman_Filter::Update(vint2 values, float dt, VectorXd &z_pred, M
 }
 
 
-#endif // UKF_HPP

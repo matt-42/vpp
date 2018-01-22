@@ -96,9 +96,9 @@
     iod_define_symbol(type_original_video)
 #endif
 
-#ifndef IOD_SYMBOL_link_of_video
-#define IOD_SYMBOL_link_of_video
-    iod_define_symbol(link_of_video)
+#ifndef IOD_SYMBOL_link_of_video_image
+#define IOD_SYMBOL_link_of_video_image
+    iod_define_symbol(link_of_video_image)
 #endif
 
 #ifndef IOD_SYMBOL_gaussian_noise

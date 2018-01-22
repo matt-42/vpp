@@ -1,5 +1,4 @@
-#ifndef FEATURE_MATCHING_HOUGH_HH
-#define FEATURE_MATCHING_HOUGH_HH
+#pragma once
 
 #include <vpp/core/keypoint_trajectory.hh>
 #include <vpp/core/keypoint_container.hh>
@@ -68,9 +67,9 @@ void feature_matching_hough_update_N_first(feature_matching_hough_ctx& ftx,
 
 
 
-float Distance_between_curve_L1(std::vector<float> frame1, std::vector<float>  frame2, int taille);
+float distance_between_curve_l1(std::vector<float> frame1, std::vector<float>  frame2, int taille);
 
-float Distance_between_curve_L2(std::vector<float> frame1, std::vector<float>  frame2,  int taille_theta, int taille_rho);
+float distance_between_curve_l2(std::vector<float> frame1, std::vector<float>  frame2,  int taille_theta, int taille_rho);
 
 float sum_vector(std::vector<float> a);
 
@@ -86,12 +85,12 @@ std::vector<float> operator*(std::vector<float> a, std::vector<float> b);
 
 float pearsoncoeff(std::vector<float> X, std::vector<float> Y);
 
-float Correlation_Matrix_Pearson(Eigen::MatrixXd M1,Eigen::MatrixXd M2,int taille);
+float correlation_matrix_pearson(Eigen::MatrixXd M1,Eigen::MatrixXd M2,int taille);
 
-std::vector<int> getDuplicata(feature_matching_hough_ctx ftx);
+std::vector<int> get_duplicata(feature_matching_hough_ctx ftx);
 
 inline
-float computeDistanceHoughSpace(float rhomax,float rho_p,float theta_p,float rho_q,float theta_q);
+float compute_distance_hough_space(float rhomax,float rho_p,float theta_p,float rho_q,float theta_q);
 
 
 void brute_force_matching(std::vector<vint2> descriptor1, std::vector<vint2> descriptor2,std::vector<int>& matches,int type);
@@ -99,4 +98,3 @@ void brute_force_matching(std::vector<vint2> descriptor1, std::vector<vint2> des
 
 #include "feature_matching_hough.hpp"
 
-#endif // FEATURE_MATCHING_HOUGH_HH

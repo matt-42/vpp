@@ -1,6 +1,4 @@
-#ifndef TRACK_HH
-#define TRACK_HH
-
+#pragma once
 #include <vpp/vpp.hh>
 #include <opencv2/highgui.hpp>
 #include <opencv2/videoio.hpp>
@@ -30,7 +28,7 @@ struct track {
     std::vector<std::list<vint2>> list_points;
     std::list<vint2> last_list_points;
     int use_kf;
-    std::unique_ptr<Unscented_Kalman_Filter> ukf;
+    std::unique_ptr<unscented_kalman_filter> ukf;
     vuchar3 color;
     float drho;
     float dtheta;
@@ -48,15 +46,15 @@ struct track {
     bool isRecentlyUpdated() { return recently_updated; }
     void die() { alive = false; }
     void resurrect() { alive = true; }
-    void addNewPoint(vint2 pt);
-    void addNewPoint(vint2 pt, image2d<uchar> grad_img);
-    void addNewPoint(vint2 pt, vint4 pimg);
-    void addNewPoint(vint2 pt,std::list<vint2> list_p);
-    void addNewPoint(vint2 pt,float grd,int id_of_frame);
-    void addNewPoint(vint2 pt,float grd,int id_of_frame, image2d<uchar> grad_img);
-    void addNewPoint(vint2 pt,vint4 pimg,float grd,int id_of_frame);
-    void addNewPoint(vint2 pt,std::list<vint2> list_p, float grd, int id_of_frame);
-    void onlyUpdateTrajectory();
+    void add_new_point(vint2 pt);
+    void add_new_point(vint2 pt, image2d<uchar> grad_img);
+    void add_new_point(vint2 pt, vint4 pimg);
+    void add_new_point(vint2 pt,std::list<vint2> list_p);
+    void add_new_point(vint2 pt,float grd,int id_of_frame);
+    void add_new_point(vint2 pt,float grd,int id_of_frame, image2d<uchar> grad_img);
+    void add_new_point(vint2 pt,vint4 pimg,float grd,int id_of_frame);
+    void add_new_point(vint2 pt,std::list<vint2> list_p, float grd, int id_of_frame);
+    void only_update_trajectory();
 
     template<typename T>
     void pop_front(std::vector<T>& vec)
@@ -156,4 +154,4 @@ enum class Type_Line : int16_t { vertical = 0 , r_horizontal = 1 , l_horizontal 
 
 #include "track.hpp"
 
-#endif // TRACK_HH
+

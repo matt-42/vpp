@@ -1,5 +1,4 @@
-#ifndef LOOKUP_TABLES_HH
-#define LOOKUP_TABLES_HH
+#pragma once
 
 #include <vpp/vpp.hh>
 #include <list>
@@ -96,4 +95,3 @@ const float sin_lut[1024] = {
 
 
 
-#endif // LOOKUP_TABLES_HH

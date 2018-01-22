@@ -1,6 +1,4 @@
-#ifndef DEFINE_HH
-#define DEFINE_HH
-
+#pragma once
 #include <vector>
 #include <opencv2/highgui.hpp>
 #include <vpp/vpp.hh>
@@ -46,4 +44,3 @@ Matrix<float,9,9> GySobel9x9;
 Matrix<float,9,9> GxSobel9x9;
 
 
-#endif // DEFINE_HH

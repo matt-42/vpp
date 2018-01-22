@@ -1,5 +1,3 @@
-#ifndef STRUCTURE_FROM_MOTION_HPP
-#define STRUCTURE_FROM_MOTION_HPP
 
 #include "structure_from_motion.hh"
 
@@ -8,7 +6,7 @@ namespace vpp
 
 //from http://www.mip.informatik.uni-kiel.de/tiki-index.php?page=Lilian+Zhang
 
-void Pose_Estimation_From_Line_Correspondence(Eigen::MatrixXf start_points,
+void pose_estimation_from_line_correspondence(Eigen::MatrixXf start_points,
                                               Eigen::MatrixXf end_points,
                                               Eigen::MatrixXf directions,
                                               Eigen::MatrixXf points,
@@ -130,21 +128,21 @@ void Pose_Estimation_From_Line_Correspondence(Eigen::MatrixXf start_points,
         // The rotation matrix R_wc is decomposed in way which is slightly different from the description in the paper,
         // but the framework is the same.
         // R_wc = (Rot') * R * Rot =  (Rot') * (Ry(theta) * Rz(phi) * Rx(psi)) * Rot
-        nc1 = xcross(start_points.col(1),end_points.col(1));
+        nc1 = x_cross(start_points.col(1),end_points.col(1));
         nc1 = nc1/nc1.norm();
 
         Vw1 = directions.col(1);
         Vw1 = Vw1/Vw1.norm();
 
         //the X axis of Model frame
-        Xm = xcross(nc1,Vw1);
+        Xm = x_cross(nc1,Vw1);
         Xm = Xm/Xm.norm();
 
         //the Y axis of Model frame
         Ym = nc1;
 
         //the Z axis of Model frame
-        Zm = xcross(Xm,Zm);
+        Zm = x_cross(Xm,Zm);
         Zm = Zm/Zm.norm();
 
         //Rot * [Xm, Ym, Zm] = I.
@@ -161,7 +159,7 @@ void Pose_Estimation_From_Line_Correspondence(Eigen::MatrixXf start_points,
 #pragma omp parallel for
         for(int i = 0 ; i < n ; i++)
         {
-            vfloat3 nc = xcross(start_points.col(1),end_points.col(1));
+            vfloat3 nc = x_cross(start_points.col(1),end_points.col(1));
             nc = nc/nc.norm();
             n_c[i] = nc;
             nc_bar[i] = Rot * nc;
@@ -472,7 +470,7 @@ void Pose_Estimation_From_Line_Correspondence(Eigen::MatrixXf start_points,
             MatrixXf XXw(points.rows(), points.cols()+Pw2.cols());
             XXw << points, Pw2;
             int nm = points.cols()+Pw2.cols();
-            calcampose(XXc,XXw,nm,rot_wc,pos_wc);
+            cal_campose(XXc,XXw,nm,rot_wc,pos_wc);
             pos_cw = -rot_wc.transpose() * pos_wc;
 
             //check the condition n_c^T * rot_wc * V_w = 0;
@@ -510,7 +508,7 @@ void Pose_Estimation_From_Line_Correspondence(Eigen::MatrixXf start_points,
                     for(int i =0; i < n ; i++)
                     {
                         //line projection function
-                        vfloat3 nc = rot_wc * xcross(points.col(i) - pos_cw , directions.col(i));
+                        vfloat3 nc = rot_wc * x_cross(points.col(i) - pos_cw , directions.col(i));
                         float h1 = nc.transpose() * start_points.col(i);
                         float h2 = nc.transpose() * end_points.col(i);
                         float lineLen = (start_points.col(i) - end_points.col(i)).norm()/3;
@@ -535,7 +533,7 @@ void Pose_Estimation_From_Line_Correspondence(Eigen::MatrixXf start_points,
 }
 
 inline
-void calcampose(Eigen::MatrixXf XXc,Eigen::MatrixXf XXw,
+void cal_campose(Eigen::MatrixXf XXc,Eigen::MatrixXf XXw,
                 int n,Eigen::MatrixXf &R2,Eigen::VectorXf &t2)
 {
     //A
@@ -607,14 +605,14 @@ void calcampose(Eigen::MatrixXf XXc,Eigen::MatrixXf XXw,
     vfloat3 Yy = R2.col(1);
     vfloat3 Zz = R2.col(2);
 
-    if((xcross(Xx,Yy)-Zz).norm()>2e-2)
+    if((x_cross(Xx,Yy)-Zz).norm()>2e-2)
     {
         R2.col(2) = -Zz;
     }
 }
 
 inline
-void R_and_T(MatrixXf &rot_cw, VectorXf &pos_cw,MatrixXf start_points, MatrixXf end_points,
+void r_and_t(MatrixXf &rot_cw, VectorXf &pos_cw,MatrixXf start_points, MatrixXf end_points,
              MatrixXf P1w,MatrixXf P2w,MatrixXf initRot_cw,VectorXf initPos_cw,
              int maxIterNum,float TerminateTh,int nargin)
 {
@@ -732,7 +730,7 @@ void R_and_T(MatrixXf &rot_cw, VectorXf &pos_cw,MatrixXf start_points, MatrixXf 
 }
 
 inline
-vfloat3 xcross(vfloat3 a,vfloat3 b)
+vfloat3 x_cross(vfloat3 a,vfloat3 b)
 {
     vfloat3 c;
     c[0] = a[1]*b[2]-a[2]*b[1];
@@ -746,4 +744,3 @@ vfloat3 xcross(vfloat3 a,vfloat3 b)
 }
 
 
-#endif // STRUCTURE_FROM_MOTION_HPP

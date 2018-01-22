@@ -1,5 +1,4 @@
-#ifndef FEATURE_MATCHING_HOUGH_HPP
-#define FEATURE_MATCHING_HOUGH_HPP
+
 
 #include "feature_matching_hough.hh"
 #include <iod/array_view.hh>
@@ -107,12 +106,12 @@ void feature_matching_hough_update_three_first(feature_matching_hough_ctx& ftx,
         {
             if(type_video==2)
             {
-                auto frame3 = from_opencv<uchar>(accumulatorToFrame(t_accumulator,max_of_accu,rhomax,T_theta));
+                auto frame3 = from_opencv<uchar>(accumulator_to_frame(t_accumulator,max_of_accu,rhomax,T_theta));
                 vpp::copy(frame3,frame_point);
             }
             else if(type_video==1)
             {
-                auto frame3 = from_opencv<uchar>(accumulatorToFrame(kps,rhomax,T_theta));
+                auto frame3 = from_opencv<uchar>(accumulator_to_frame(kps,rhomax,T_theta));
                 vpp::copy(frame3,frame_point);
             }
         }
@@ -403,17 +402,17 @@ void feature_matching_hough_update_three_first(feature_matching_hough_ctx& ftx,
 
                 if(Type_Lines::ALL_POINTS==type_line)
                 {
-                    ftx.list_track[(val[ind_min])[1]].addNewPoint(p2,line_all_points[ind],
+                    ftx.list_track[(val[ind_min])[1]].add_new_point(p2,line_all_points[ind],
                                                                   t_accumulator[p2[0]*T_theta+p2[1]],ftx.frame_id);
                 }
                 else if(Type_Lines::EXTREMITE == type_line)
                 {
-                    ftx.list_track[(val[ind_min])[1]].addNewPoint(p2,line_extremities[ind],
+                    ftx.list_track[(val[ind_min])[1]].add_new_point(p2,line_extremities[ind],
                                                                   t_accumulator[p2[0]*T_theta+p2[1]],ftx.frame_id);
                 }
                 else if(Type_Lines::ONLY_POLAR==type_line)
                 {
-                    ftx.list_track[(val[ind_min])[1]].addNewPoint(p2,
+                    ftx.list_track[(val[ind_min])[1]].add_new_point(p2,
                                                                   t_accumulator[p2[0]*T_theta+p2[1]],ftx.frame_id);
                 }
             }
@@ -438,7 +437,7 @@ void feature_matching_hough_update_three_first(feature_matching_hough_ctx& ftx,
                 else
                 {
                     ftx.list_track[i].resurrect();
-                    ftx.list_track[i].onlyUpdateTrajectory();
+                    ftx.list_track[i].only_update_trajectory();
                 }
             }
         }
@@ -573,12 +572,12 @@ void feature_matching_hough_update_N_first(feature_matching_hough_ctx& ftx,
         {
             if(type_video==2)
             {
-                auto frame3 = from_opencv<uchar>(accumulatorToFrame(t_accumulator,max_of_accu,rhomax,T_theta));
+                auto frame3 = from_opencv<uchar>(accumulator_to_frame(t_accumulator,max_of_accu,rhomax,T_theta));
                 vpp::copy(frame3,frame_point);
             }
             else if(type_video==1)
             {
-                auto frame3 = from_opencv<uchar>(accumulatorToFrame(kps,rhomax,T_theta));
+                auto frame3 = from_opencv<uchar>(accumulator_to_frame(kps,rhomax,T_theta));
                 vpp::copy(frame3,frame_point);
             }
         }
@@ -691,7 +690,7 @@ void feature_matching_hough_update_N_first(feature_matching_hough_ctx& ftx,
 
 
 inline
-float computeDistanceHoughSpace(float rhomax,float rho_p,float theta_p,float rho_q,float theta_q)
+float compute_distance_hough_space(float rhomax,float rho_p,float theta_p,float rho_q,float theta_q)
 {
     return sqrt(rhomax*rhomax*pow(sin(theta_p-theta_q),2) + pow(rho_p-rho_q,2));
 }
@@ -715,7 +714,7 @@ void copy_vector(std::vector<float> src,std::vector<float> &dest)
 }
 
 
-std::vector<int> getDuplicata(feature_matching_hough_ctx ftx)
+std::vector<int> get_duplicata(feature_matching_hough_ctx ftx)
 {
     std::vector<int> duplics;
     for(int i = 0 ; i < ftx.list_track.size()-1  ; i++ )
@@ -736,7 +735,7 @@ std::vector<int> getDuplicata(feature_matching_hough_ctx ftx)
 }
 
 
-float Distance_between_curve_L1(std::vector<float>  frame1,std::vector<float>  frame2, int taille)
+float distance_between_curve_l1(std::vector<float>  frame1,std::vector<float>  frame2, int taille)
 {
     float diff = 0;
     for(int i = 0 ; i < taille ; i++)
@@ -749,7 +748,7 @@ float Distance_between_curve_L1(std::vector<float>  frame1,std::vector<float>  f
     return diff;
 }
 
-float Distance_between_curve_L2(std::vector<float>  frame1, std::vector<float>  frame2, int taille_theta, int taille_rho)
+float distance_between_curve_l2(std::vector<float>  frame1, std::vector<float>  frame2, int taille_theta, int taille_rho)
 {
     float diff = 0;
     for(int rho = 0 ; rho < taille_rho ; rho++)
@@ -764,7 +763,7 @@ float Distance_between_curve_L2(std::vector<float>  frame1, std::vector<float>  
     return diff;
 }
 
-float Correlation_Matrix_Pearson(Eigen::MatrixXd M1,Eigen::MatrixXd M2,int taille)
+float correlation_matrix_pearson(Eigen::MatrixXd M1,Eigen::MatrixXd M2,int taille)
 {
 
 }
@@ -880,4 +879,3 @@ void brute_force_matching_basic(std::vector<vint2> descriptor1, std::vector<vint
 
 }
 
-#endif // FEATURE_MATCHING_HPP

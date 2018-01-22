@@ -1,5 +1,4 @@
-#ifndef OPERATIONS_HH
-#define OPERATIONS_HH
+#pragma once
 
 #include <vpp/vpp.hh>
 #include <list>
@@ -476,4 +475,3 @@ float cosinus_lut(float angle)
 
 
 
-#endif // OPERATIONS_HH

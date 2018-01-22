@@ -1,6 +1,4 @@
-#ifndef STRUCTURE_FROM_MOTION_HH
-#define STRUCTURE_FROM_MOTION_HH
-
+#pragma once
 
 #include <ctime>
 #include <cstdlib>
@@ -40,18 +38,18 @@ structure_from_motion_ctx structure_from_motion_init(box2d domain);
 
 void initialize_rotation_matrix();
 void initialize_translation_matrix();
-void Pose_Estimation_From_Line_Correspondence(MatrixXf start_points, MatrixXf end_points,
+void pose_estimation_from_line_correspondence(MatrixXf start_points, MatrixXf end_points,
                                               MatrixXf directions, MatrixXf points,
                                               MatrixXf &rot_cw, VectorXf &pos_cw);
 inline
-void calcampose(MatrixXf XXc, MatrixXf XXw, int n, MatrixXf &R2, VectorXf &t2);
+void cal_campose(MatrixXf XXc, MatrixXf XXw, int n, MatrixXf &R2, VectorXf &t2);
 inline
-void R_and_T(MatrixXf &rot_cw, VectorXf &pos_cw,MatrixXf start_points, MatrixXf end_points,
+void r_and_t(MatrixXf &rot_cw, VectorXf &pos_cw,MatrixXf start_points, MatrixXf end_points,
              MatrixXf P1w,MatrixXf P2w,MatrixXf initRot_cw,VectorXf initPos_cw,
              int maxIterNum,float TerminateTh,int nargin);
 
 inline
-vfloat3 xcross(vfloat3 a,vfloat3 b);
+vfloat3 x_cross(vfloat3 a,vfloat3 b);
 
 
 void triangulation();
@@ -62,4 +60,3 @@ void bundle_adjustement();
 
 #include "structure_from_motion.hpp"
 
-#endif // STRUCTURE_FROM_MOTION_HH

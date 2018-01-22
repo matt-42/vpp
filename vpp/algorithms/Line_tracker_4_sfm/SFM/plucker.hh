@@ -1,5 +1,4 @@
-#ifndef PLUCKER_HH
-#define PLUCKER_HH
+#pragma once
 
 #include <vpp/vpp.hh>
 #include <list>
@@ -19,17 +18,17 @@ using namespace cv;
 using namespace Eigen;
 
 // Inhomogeneous coordinates
-class Point3D
+class point_3d
 {
 public: double x,y,z;
 
-    Point3D()
+    point_3d()
     {x=y=z=0.0;}
 
-    Point3D(double xx, double yy, double zz)
+    point_3d(double xx, double yy, double zz)
     {x=xx;y=yy;z=zz;}
 
-    friend ostream & operator << (ostream & os, const Point3D p)
+    friend ostream & operator << (ostream & os, const point_3d p)
     {
         os<<"["<<p.x<<","<<p.y<<","<<p.z<<"]";
         return os;
@@ -40,7 +39,7 @@ class Plucker{
 public: double c[6];
 
 
-    Plucker(Point3D p1, Point3D p2)
+    Plucker(point_3d p1, point_3d p2)
     {
         c[0]=p2.x-p1.x;
         c[1]=p2.y-p1.y;
@@ -62,7 +61,7 @@ public: double c[6];
 
 }; // Homogeneous coordinates
 
-double PluckerDotProduct(Plucker l1, Plucker l2)
+double plucker_dot_product(Plucker l1, Plucker l2)
 {
     double s=0;
 
@@ -74,7 +73,7 @@ double PluckerDotProduct(Plucker l1, Plucker l2)
 
 
 // The same primitive rewritten differently
-double PluckerLineIntersect(Plucker l1, Plucker l2)
+double plucker_line_intersect(Plucker l1, Plucker l2)
 {
     double s;
 
@@ -86,7 +85,7 @@ double PluckerLineIntersect(Plucker l1, Plucker l2)
 }
 
 
-double PluckerPointOnLine(Plucker l, Point3D p)
+double plucker_point_on_line(Plucker l, point_3d p)
 {
     double rx, ry, rz, rw;
 
@@ -99,4 +98,3 @@ double PluckerPointOnLine(Plucker l, Point3D p)
     return fabs(rx)+fabs(ry)+fabs(rz)+fabs(rw);
 }
 
-#endif // PLUCKER_HH

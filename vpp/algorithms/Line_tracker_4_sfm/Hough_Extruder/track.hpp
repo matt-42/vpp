@@ -1,5 +1,4 @@
-#ifndef TRACK_HPP
-#define TRACK_HPP
+
 #include "track.hh"
 #include "vpp/algorithms/Line_tracker_4_sfm/miscellanous/operations.hh"
 
@@ -21,9 +20,9 @@ track::track(vint2 pt, int id, int max_tr, float grd, int id_of_frame, float mot
     this->color = generate_color();
     if(this->use_kf)
     {
-        this->ukf = std::make_unique<Unscented_Kalman_Filter>();
+        this->ukf = std::make_unique<unscented_kalman_filter>();
     }
-    addNewPoint(pt);
+    add_new_point(pt);
 }
 
 track::track(vint2 pt, int id, int max_tr, float grd, int id_of_frame, float motion_threshold,
@@ -42,9 +41,9 @@ track::track(vint2 pt, int id, int max_tr, float grd, int id_of_frame, float mot
     this->color = generate_color();
     if(this->use_kf)
     {
-        this->ukf = std::make_unique<Unscented_Kalman_Filter>();
+        this->ukf = std::make_unique<unscented_kalman_filter>();
     }
-    addNewPoint(pt,grad_img);
+    add_new_point(pt,grad_img);
 }
 
 
@@ -60,7 +59,7 @@ track::track(vint2 pt, vint4 pimg, int id, int max_tr, float grd, int id_of_fram
     this->frame_without_update = 0;
     this->motion_threshold_track = motion_threshold;
     this->color = generate_color();
-    addNewPoint(pt,pimg);
+    add_new_point(pt,pimg);
 }
 
 track::track(vint2 pt, std::list<vint2> list_p, int id, int max_tr, float grd, int id_of_frame, float motion_threshold)
@@ -75,10 +74,10 @@ track::track(vint2 pt, std::list<vint2> list_p, int id, int max_tr, float grd, i
     this->frame_without_update = 0;
     this->motion_threshold_track = motion_threshold;
     this->color = generate_color();
-    addNewPoint(pt,list_p);
+    add_new_point(pt,list_p);
 }
 
-void track::addNewPoint(vint2 pt)
+void track::add_new_point(vint2 pt)
 {
     this->age++;
     this->positions.push_back(pt);
@@ -103,11 +102,11 @@ void track::addNewPoint(vint2 pt)
     }
     if(this->use_kf)
     {
-        ukf->AddNewDectection(pt,0.33);
+        ukf->add_new_dectection(pt,0.33);
     }
 }
 
-void track::addNewPoint(vint2 pt,image2d<uchar> grad_img)
+void track::add_new_point(vint2 pt,image2d<uchar> grad_img)
 {
     this->age++;
     image2d<uchar> p_grad(grad_img.domain());
@@ -136,17 +135,17 @@ void track::addNewPoint(vint2 pt,image2d<uchar> grad_img)
     }
     if(this->use_kf)
     {
-        ukf->AddNewDectection(pt,0.33);
+        ukf->add_new_dectection(pt,0.33);
     }
 }
 
-void track::onlyUpdateTrajectory()
+void track::only_update_trajectory()
 {
     if(this->use_kf)
     {
         this->fil_ariane.push_back(-1);
         this->age++;
-        this->ukf->onlyUpdateTrack(0.33);
+        this->ukf->only_update_track(0.33);
         vint2 pt = vint2(int(this->ukf->state_vector[0]),int(this->ukf->state_vector[1]));
         this->positions.push_back(pt);
         this->last_point = pt;
@@ -168,7 +167,7 @@ void track::onlyUpdateTrajectory()
     }
 }
 
-void track::addNewPoint(vint2 pt,vint4 pimg)
+void track::add_new_point(vint2 pt,vint4 pimg)
 {
     this->age++;
     this->positions.push_back(pt);
@@ -191,7 +190,7 @@ void track::addNewPoint(vint2 pt,vint4 pimg)
 }
 
 
-void track::addNewPoint(vint2 pt,std::list<vint2> list_p)
+void track::add_new_point(vint2 pt,std::list<vint2> list_p)
 {
     this->age++;
     this->positions.push_back(pt);
@@ -213,33 +212,33 @@ void track::addNewPoint(vint2 pt,std::list<vint2> list_p)
     }
 }
 
-void track::addNewPoint(vint2 pt, float grd, int id_of_frame)
+void track::add_new_point(vint2 pt, float grd, int id_of_frame)
 {
-    this->addNewPoint(pt);
+    this->add_new_point(pt);
     this->gradients = grd;
     this->frame_id = id_of_frame;
     this->frame_without_update = 0;
 }
 
-void track::addNewPoint(vint2 pt, float grd, int id_of_frame,image2d<uchar> grad_img)
+void track::add_new_point(vint2 pt, float grd, int id_of_frame,image2d<uchar> grad_img)
 {
-    this->addNewPoint(pt,grad_img);
+    this->add_new_point(pt,grad_img);
     this->gradients = grd;
     this->frame_id = id_of_frame;
     this->frame_without_update = 0;
 }
 
-void track::addNewPoint(vint2 pt, vint4 pimg, float grd, int id_of_frame)
+void track::add_new_point(vint2 pt, vint4 pimg, float grd, int id_of_frame)
 {
-    this->addNewPoint(pt,pimg);
+    this->add_new_point(pt,pimg);
     this->gradients = grd;
     this->frame_id = id_of_frame;
     this->frame_without_update = 0;
 }
 
-void track::addNewPoint(vint2 pt,std::list<vint2> list_p, float grd, int id_of_frame)
+void track::add_new_point(vint2 pt,std::list<vint2> list_p, float grd, int id_of_frame)
 {
-    this->addNewPoint(pt,list_p);
+    this->add_new_point(pt,list_p);
     this->gradients = grd;
     this->frame_id = id_of_frame;
     this->frame_without_update = 0;
@@ -250,4 +249,3 @@ void track::addNewPoint(vint2 pt,std::list<vint2> list_p, float grd, int id_of_f
 }
 
 
-#endif // TRACK_HPP

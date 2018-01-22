@@ -1,5 +1,4 @@
-#ifndef HOUGH_IMAGE_HPP
-#define HOUGH_IMAGE_HPP
+
 
 #include "fast_hough.hh"
 #include "vpp/algorithms/Line_tracker_4_sfm/Hough_Extruder/feature_matching_hough.hh"
@@ -41,7 +40,7 @@ public:
 
 
 
-void Hough_Accumulator(image2d<uchar> img, int T_theta,Mat &bv,float acc_threshold)
+void hough_accumulator(image2d<uchar> img, int T_theta,Mat &bv,float acc_threshold)
 {
     int ncols,nrows;
     ncols = img.ncols();
@@ -54,28 +53,28 @@ void Hough_Accumulator(image2d<uchar> img, int T_theta,Mat &bv,float acc_thresho
         Hough_Lines_Parallel(img,t_accumulator,thetamax,rhomax,max_of_accu,out,acc_threshold);
 }
 
-Mat Hough_Accumulator_Video_Map_and_Clusters(image2d<vuchar1> img, int mode, int T_theta,
+Mat hough_accumulator_video_map_and_clusters(image2d<vuchar1> img, int mode, int T_theta,
                                              std::vector<float>& t_accumulator, std::list<vint2> &interestedPoints, float rhomax)
 {
     float max_of_accu = 0;
         cout << "Parallel" << endl;
         //interestedPoints = Hough_Lines_Parallel(img,t_accumulator,T_theta,max_of_accu,5);
-        return accumulatorToFrame(t_accumulator,
+        return accumulator_to_frame(t_accumulator,
                                   max_of_accu
                                   ,rhomax,T_theta);
 }
 
-cv::Mat Hough_Accumulator_Video_Clusters(image2d<vuchar1> img, int mode , int T_theta,
+cv::Mat hough_accumulator_video_clusters(image2d<vuchar1> img, int mode , int T_theta,
                                          std::vector<float>& t_accumulator, std::list<vint2>& interestedPoints, float rhomax)
 {
     float max_of_accu = 0;
         cout << "Parallel" << endl;
         //interestedPoints = Hough_Lines_Parallel(img,t_accumulator,T_theta,max_of_accu,5);
-        return accumulatorToFrame(interestedPoints,rhomax,T_theta);
+        return accumulator_to_frame(interestedPoints,rhomax,T_theta);
 }
 
 
-int getThetaMax(Theta_max discr)
+int get_theta_max(Theta_max discr)
 {
     if(Theta_max::XLARGE == discr)
         return 1500;
@@ -89,7 +88,7 @@ int getThetaMax(Theta_max discr)
         return 0;
 }
 
-int getWKF(With_Kalman_Filter wkf)
+int get_WKF(With_Kalman_Filter wkf)
 {
     if(With_Kalman_Filter::YES == wkf)
     {
@@ -100,7 +99,7 @@ int getWKF(With_Kalman_Filter wkf)
     }
 }
 
-float getScaleRho(Sclare_rho discr)
+float get_scale_rho(Sclare_rho discr)
 {
     if(Sclare_rho::SAME == discr)
         return 1;
@@ -114,7 +113,7 @@ float getScaleRho(Sclare_rho discr)
         return 0;
 }
 
-cv::Mat accumulatorToFrame(std::vector<float> t_accumulator, float big_max, int rhomax, int T_theta)
+cv::Mat accumulator_to_frame(std::vector<float> t_accumulator, float big_max, int rhomax, int T_theta)
 {
     Mat T(int(rhomax),int(T_theta),CV_8UC1);
     for(int rho = 0 ; rho < rhomax ; rho ++ )
@@ -130,7 +129,7 @@ cv::Mat accumulatorToFrame(std::vector<float> t_accumulator, float big_max, int 
     return T;
 }
 
-cv::Mat accumulatorToFrame(std::list<vint2> interestedPoints, int rhomax, int T_theta)
+cv::Mat accumulator_to_frame(std::list<vint2> interestedPoints, int rhomax, int T_theta)
 {
     Mat T = Mat(int(rhomax),int(T_theta),CV_8UC1,cvScalar(0));
     int r = 0;
@@ -153,7 +152,7 @@ void hough_image(int T_theta,float acc_threshold)
     //t.start();
     //for(int i=0 ; i < 1000 ; i++)
     {
-        Hough_Accumulator(img,T_theta,bv,acc_threshold);
+        hough_accumulator(img,T_theta,bv,acc_threshold);
     }
     //t.end();
     //cout << " temps d'execution " << t.us()/1000.0 << endl;
@@ -166,4 +165,3 @@ void hough_image(int T_theta,float acc_threshold)
 
 
 
-#endif // HOUGH_IMAGE_HPP

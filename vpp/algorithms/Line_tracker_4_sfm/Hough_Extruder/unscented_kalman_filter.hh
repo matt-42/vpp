@@ -1,5 +1,4 @@
-#ifndef UKF_HH
-#define UKF_HH
+#pragma once
 
 #include "Eigen/Dense"
 #include <vpp/vpp.hh>
@@ -11,7 +10,7 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using namespace vpp;
 
-class Unscented_Kalman_Filter {
+class unscented_kalman_filter {
 public:
   bool is_initialized_;
 
@@ -45,33 +44,33 @@ public:
   /**
    * Constructor
    */
-  Unscented_Kalman_Filter();
+  unscented_kalman_filter();
 
   /**
    * Destructor
    */
-  virtual ~Unscented_Kalman_Filter();
+  virtual ~unscented_kalman_filter();
 
-  void AddNewDectection(const vint2 values, float dt);
+  void add_new_dectection(const vint2 values, float dt);
 
-  void InitializeTheTrack(const vint2 values, float dt);
+  void initialize_the_track(const vint2 values, float dt);
 
-  void onlyUpdateTrack(float dt);
+  void only_update_track(float dt);
 
-  void AugmentedSigmaPoints(MatrixXd &Xsig_out);
+  void augmented_sigma_points(MatrixXd &Xsig_out);
 
-  void SigmaPointPrediction(const MatrixXd  &Xsig_aug, const double delta_t, MatrixXd  &Xsig_out);
+  void sigma_point_prediction(const MatrixXd  &Xsig_aug, const double delta_t, MatrixXd  &Xsig_out);
 
-  void PredictMeanAndCovariance(const MatrixXd &Xsig_pred, VectorXd &x_out, MatrixXd &P_out);
+  void predict_mean_and_covariance(const MatrixXd &Xsig_pred, VectorXd &x_out, MatrixXd &P_out);
 
-  void PredictMeasurement(VectorXd &z_out, MatrixXd &S_out, MatrixXd &Tc_out);
+  void predict_measurement(VectorXd &z_out, MatrixXd &S_out, MatrixXd &Tc_out);
 
-  void Prediction(double delta_t);
+  void prediction(double delta_t);
 
-  void Update(vint2 values,float dt, VectorXd &z_pred, MatrixXd &Tc, MatrixXd &S);
+  void update(vint2 values,float dt, VectorXd &z_pred, MatrixXd &Tc, MatrixXd &S);
 
 };
 
 #include "unscented_kalman_filter.hpp"
 
-#endif // UKF_HH
+

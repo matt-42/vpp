@@ -1,6 +1,4 @@
-#ifndef VANISHING_POINT_HH
-#define VANISHING_POINT_HH
-
+#pragma once
 #include <ctime>
 #include <cstdlib>
 
@@ -21,7 +19,7 @@ using namespace cv;
 namespace vpp
 {
 
-void getVanishingPoints(int N, std::list<vint2> dominant_lines, int T_theta, int rhomax)
+void get_vanishing_points(int N, std::list<vint2> dominant_lines, int T_theta, int rhomax)
 {
     int discr_phi = 1400;
     int discr_the = 1400;
@@ -89,7 +87,7 @@ void getVanishingPoints(int N, std::list<vint2> dominant_lines, int T_theta, int
 }
 
 
-void getVanishingPoints1(int N, std::vector<vfloat3> dominant_lines, int T_theta, int rhomax, int nrows,int ncols)
+void get_vanishing_points1(int N, std::vector<vfloat3> dominant_lines, int T_theta, int rhomax, int nrows,int ncols)
 {
     //int discr_phi = 1400;
     //int discr_the = 1400;
@@ -292,7 +290,7 @@ void getVanishingPoints1(int N, std::vector<vfloat3> dominant_lines, int T_theta
 
 }
 
-void getVanishingPoints2(int N, std::vector<vfloat3> dominant_lines, int T_theta, int rhomax)
+void get_vanishing_points2(int N, std::vector<vfloat3> dominant_lines, int T_theta, int rhomax)
 {
     int discr_phi = 1400;
     int discr_the = 1400;
@@ -350,20 +348,20 @@ void getVanishingPoints2(int N, std::vector<vfloat3> dominant_lines, int T_theta
 
 
 inline
-float computeA(float thetaj)
+float compute_a(float thetaj)
 {
     return 2*M_PI*(1-cos(thetaj));
 }
 
 
 inline
-float computeTheta(float nz,float nx,float ny, float phi)
+float compute_theta(float nz,float nx,float ny, float phi)
 {
     return asin(nz/(sqrt(nz*nz+ pow(nx*cos(phi)+ny*sin(phi),2))));
 }
 
 inline
-float computePsi(float nz,float nx,float ny, float phi)
+float compute_psi(float nz,float nx,float ny, float phi)
 {
     float alpha = nx*cos(phi) + ny*sin(phi);
     return M_PI/2 * alpha /(sqrt(nz*nz + alpha*alpha));
@@ -371,4 +369,3 @@ float computePsi(float nz,float nx,float ny, float phi)
 
 }
 
-#endif // VANISHING_POINT_HH
