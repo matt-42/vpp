@@ -1,8 +1,8 @@
 
 
 #include "fast_hough.hh"
-#include "vpp/algorithms/Line_tracker_4_sfm/Hough_Extruder/feature_matching_hough.hh"
-#include "vpp/algorithms/Line_tracker_4_sfm/miscellanous/operations.hh"
+#include "vpp/algorithms/line_tracker_4_sfm/hough_extruder.hh"
+#include "vpp/algorithms/line_tracker_4_sfm/miscellanous.hh"
 
 namespace vpp{
 
@@ -143,10 +143,10 @@ cv::Mat accumulator_to_frame(std::list<vint2> interestedPoints, int rhomax, int 
     return T;
 }
 
-void hough_image(int T_theta,float acc_threshold)
+void hough_image(int T_theta,float acc_threshold,const char * lien_image = "m.png")
 {
     typedef image2d<uchar> Image;
-    Mat bv = cv::imread("m.png",0);
+    Mat bv = cv::imread(lien_image,0);
     Image img = (from_opencv<uchar>(bv));
     //timer t;
     //t.start();

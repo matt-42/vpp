@@ -2,7 +2,7 @@
 
 
 #include "openacc.h"
-#include "vpp/algorithms/Line_tracker_4_sfm/miscellanous/operations.hh"
+#include "vpp/algorithms/line_tracker_4_sfm/miscellanous.hh"
 #include <opencv2/highgui.hpp>
 #include <opencv2/videoio.hpp>
 #include <vpp/vpp.hh>

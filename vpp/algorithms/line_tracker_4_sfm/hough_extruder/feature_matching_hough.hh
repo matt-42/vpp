@@ -5,7 +5,7 @@
 #include <vpp/core/symbols.hh>
 #include <vpp/algorithms/descriptor_matcher.hh>
 #include "track.hh"
-#include "vpp/algorithms/line_tracker_4_sfm/miscellanous/define.hh"
+#include "vpp/algorithms/line_tracker_4_sfm/miscellanous.hh"
 //#include "vpp/algorithms/Line_tracker_4_sfm/miscellanous/kdtree.hh"
 
 

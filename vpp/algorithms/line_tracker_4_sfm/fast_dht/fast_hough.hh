@@ -10,8 +10,8 @@
 #include <vpp/utils/opencv_bridge.hh>
 #include <vpp/utils/opencv_utils.hh>
 #include "dense_one_to_one_hough.hh"
-#include "vpp/algorithms/Line_tracker_4_sfm/symbols.hh"
-#include "vpp/algorithms/Line_tracker_4_sfm/miscellanous/define.hh"
+#include "vpp/algorithms/line_tracker_4_sfm.hh"
+#include "vpp/algorithms/line_tracker_4_sfm/miscellanous/define.hh"
 
 
 

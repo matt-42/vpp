@@ -1,6 +1,6 @@
 
 #include "track.hh"
-#include "vpp/algorithms/line_tracker_4_sfm/miscellanous/operations.hh"
+#include "vpp/algorithms/line_tracker_4_sfm/miscellanous.hh"
 
 
 namespace vpp

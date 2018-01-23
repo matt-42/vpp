@@ -4,7 +4,7 @@
 #include <vpp/draw/draw.hh>
 #include <vpp/core/keypoint_trajectory.hh>
 #include <iod/sio_utils.hh>
-#include <vpp/algorithms/line_tracker_4_sfm/miscellanous/operations.hh>
+#include <vpp/algorithms/line_tracker_4_sfm/miscellanous.hh>
 #include <opencv2/highgui.hpp>
 #include "draw_line_hough.hh"
 #include "track.hh"
