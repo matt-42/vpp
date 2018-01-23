@@ -14,8 +14,5 @@
 #include <vpp/algorithms/video_extruder.hh>
 #include <vpp/utils/opencv_utils.hh>
 #include <vpp/draw/draw_trajectories.hh>
-#include <vpp/algorithms/Line_tracker_4_sfm/Hough_Extruder/draw_trajectories_hough.hh>
-#include "vpp/algorithms/Line_tracker_4_sfm/symbols.hh"
-#include "vpp/algorithms/Line_tracker_4_sfm/Hough_Extruder/paint.hh"
-#include "vpp/algorithms/Line_tracker_4_sfm/Hough_Extruder/feature_matching_hough.hh"
+#include "line_tracker_4_sfm/hough_extruder.hh"
 

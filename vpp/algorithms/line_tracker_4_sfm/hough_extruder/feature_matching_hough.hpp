@@ -10,7 +10,7 @@
 #include <vpp/algorithms/fast_detector/fast.hh>
 #include <vpp/algorithms/descriptor_matcher.hh>
 #include <chrono>
-#include "vpp/algorithms/Line_tracker_4_sfm/Fast_DHT/fast_hough.hh"
+#include "vpp/algorithms/line_tracker_4_sfm/fast_dht/fast_hough.hh"
 
 /*****************/
 

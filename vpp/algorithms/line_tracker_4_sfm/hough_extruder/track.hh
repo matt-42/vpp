@@ -3,7 +3,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/videoio.hpp>
 #include <list>
-#include "vpp/algorithms/Line_tracker_4_sfm/Hough_Extruder/unscented_kalman_filter.hh"
+#include "vpp/algorithms/line_tracker_4_sfm/hough_extruder/unscented_kalman_filter.hh"
 
 using namespace vpp;
 using namespace std;
