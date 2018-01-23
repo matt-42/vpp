@@ -15,4 +15,7 @@
 #include <vpp/utils/opencv_utils.hh>
 #include <vpp/draw/draw_trajectories.hh>
 #include "line_tracker_4_sfm/hough_extruder.hh"
+#include "line_tracker_4_sfm/fast_dht.hh"
+#include "line_tracker_4_sfm/sfm.hh"
+#include "line_tracker_4_sfm/miscellanous.hh"
 
