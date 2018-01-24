@@ -15,6 +15,16 @@ using namespace vpp;
 using namespace cv;
 
 template <typename... OPTS>
+/**
+ * @brief draw_trajectories_hough : draw point trajectories in the hough space
+ * @param out
+ * @param trs
+ * @param max_trajectory_len
+ * @param T_theta
+ * @param nrows
+ * @param ncols
+ * @param opts
+ */
 void draw_trajectories_hough(image2d<vuchar3>& out, std::vector<keypoint_trajectory>& trs,
                              int max_trajectory_len,int T_theta,int nrows,int ncols,
                              OPTS... opts)
@@ -79,6 +89,13 @@ void draw_trajectories_hough(image2d<vuchar3>& out, std::vector<keypoint_traject
 }
 
 template <typename... OPTS>
+/**
+ * @brief draw_trajectories_hough_V1
+ * @param out
+ * @param trs
+ * @param max_trajectory_len
+ * @param opts
+ */
 void draw_trajectories_hough_V1(image2d<vuchar3>& out, std::vector<track>& trs,
                                 int max_trajectory_len,
                                 OPTS... opts)
@@ -126,6 +143,16 @@ void draw_trajectories_hough_V1(image2d<vuchar3>& out, std::vector<track>& trs,
     }
 }
 
+
+/**
+ * @brief draw_dotted_line
+ * @param img
+ * @param interval
+ * @param p1
+ * @param p2
+ * @param alpha
+ * @param color
+ */
 void draw_dotted_line(cv::Mat& img,int interval,
                       cv::Point p1,cv::Point p2,float alpha,vuchar3 color)
 {
@@ -153,6 +180,16 @@ void draw_dotted_line(cv::Mat& img,int interval,
 
 
 template <typename... OPTS>
+/**
+ * @brief draw_trajectories_hough_img_ori_tracks
+ * @param out
+ * @param trs
+ * @param max_trajectory_len
+ * @param T_theta
+ * @param nrows
+ * @param ncols
+ * @param opts
+ */
 void draw_trajectories_hough_img_ori_tracks(cv::Mat & out, std::vector<track>& trs,
                                             int max_trajectory_len,int T_theta,int nrows,int ncols,
                                             OPTS... opts)
@@ -216,6 +253,12 @@ void draw_trajectories_hough_img_ori_tracks(cv::Mat & out, std::vector<track>& t
     }
 }
 
+/**
+ * @brief draw_current_line
+ * @param img
+ * @param p1
+ * @param p2
+ */
 void draw_current_line(cv::Mat& img,cv::Point p1,cv::Point p2)
 {
     cv::LineIterator it(img,p1,p2,8);
@@ -234,6 +277,12 @@ void draw_current_line(cv::Mat& img,cv::Point p1,cv::Point p2)
     }
 }
 
+
+/**
+ * @brief make_line
+ * @param points
+ * @return
+ */
 inline
 int make_line(std::list<vint2> &points)
 {
@@ -264,6 +313,16 @@ int make_line(std::list<vint2> &points)
 }
 
 template <typename... OPTS>
+/**
+ * @brief draw_trajectories_hough_img_ori_tracks_all
+ * @param out
+ * @param trs
+ * @param max_trajectory_len
+ * @param T_theta
+ * @param nrows
+ * @param ncols
+ * @param opts
+ */
 void draw_trajectories_hough_img_ori_tracks_all(cv::Mat & out, std::vector<track>& trs,
                                                 int max_trajectory_len,int T_theta,int nrows,int ncols,
                                                 OPTS... opts)
@@ -367,6 +426,16 @@ void draw_trajectories_hough_img_ori_tracks_all(cv::Mat & out, std::vector<track
 }
 
 template <typename... OPTS>
+/**
+ * @brief draw_trajectories_hough_img_ori_tracks_all1
+ * @param out
+ * @param trs
+ * @param max_trajectory_len
+ * @param T_theta
+ * @param nrows
+ * @param ncols
+ * @param opts
+ */
 void draw_trajectories_hough_img_ori_tracks_all1(cv::Mat & out, std::vector<track>& trs,
                                                  int max_trajectory_len,int T_theta,int nrows,int ncols,
                                                  OPTS... opts)
@@ -421,6 +490,16 @@ void draw_trajectories_hough_img_ori_tracks_all1(cv::Mat & out, std::vector<trac
 }
 
 template <typename... OPTS>
+/**
+ * @brief draw_trajectories_hough_img_ori_traj
+ * @param out
+ * @param trs
+ * @param max_trajectory_len
+ * @param T_theta
+ * @param nrows
+ * @param ncols
+ * @param opts
+ */
 void draw_trajectories_hough_img_ori_traj(cv::Mat & out, std::vector<keypoint_trajectory>& trs,
                                           int max_trajectory_len,int T_theta,int nrows,int ncols,
                                           OPTS... opts)

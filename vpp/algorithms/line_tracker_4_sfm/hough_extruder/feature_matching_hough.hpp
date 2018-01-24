@@ -25,6 +25,11 @@ using namespace std::chrono;
 namespace vpp {
 
 // Init the video extruder.
+/**
+ * @brief feature_matching_hough_init
+ * @param domain
+ * @return
+ */
 feature_matching_hough_ctx feature_matching_hough_init(box2d domain)
 {
     feature_matching_hough_ctx res(domain);
@@ -33,6 +38,29 @@ feature_matching_hough_ctx feature_matching_hough_init(box2d domain)
 }
 
 
+
+/**
+ * @brief feature_matching_hough_update_three_first
+ * @param ftx
+ * @param frame1
+ * @param frame2
+ * @param frame_grad
+ * @param frame_point
+ * @param scale
+ * @param type_video
+ * @param img
+ * @param T_theta
+ * @param rhomax
+ * @param first
+ * @param type_sortie
+ * @param id_trackers
+ * @param type_line
+ * @param freq
+ * @param old_clusters
+ * @param wkf
+ * @param we
+ * @param options
+ */
 template <typename... OPTS>
 void feature_matching_hough_update_three_first(feature_matching_hough_ctx& ftx,
                                                std::vector<float>& frame1,
@@ -498,6 +526,32 @@ void feature_matching_hough_update_three_first(feature_matching_hough_ctx& ftx,
 }
 
 
+
+/**
+ * @brief feature_matching_hough_update_N_first
+ * @param ftx
+ * @param frame1
+ * @param frame2
+ * @param list_clusters1
+ * @param list_clusters2
+ * @param frame_grad
+ * @param frame_point
+ * @param scale
+ * @param type_video
+ * @param img
+ * @param T_theta
+ * @param rhomax
+ * @param first
+ * @param type_sortie
+ * @param id_trackers
+ * @param type_line
+ * @param freq
+ * @param old_clusters
+ * @param wkf
+ * @param N
+ * @param modulo_cp
+ * @param options
+ */
 template <typename... OPTS>
 void feature_matching_hough_update_N_first(feature_matching_hough_ctx& ftx,
                                            std::vector<float>& frame1,
@@ -689,6 +743,15 @@ void feature_matching_hough_update_N_first(feature_matching_hough_ctx& ftx,
 }
 
 
+/**
+ * @brief compute_distance_hough_space
+ * @param rhomax
+ * @param rho_p
+ * @param theta_p
+ * @param rho_q
+ * @param theta_q
+ * @return
+ */
 inline
 float compute_distance_hough_space(float rhomax,float rho_p,float theta_p,float rho_q,float theta_q)
 {
@@ -696,6 +759,11 @@ float compute_distance_hough_space(float rhomax,float rho_p,float theta_p,float 
 }
 
 
+/**
+ * @brief copy_vector
+ * @param src
+ * @param dest
+ */
 inline
 void copy_vector(std::vector<float> src,std::vector<float> &dest)
 {
@@ -714,6 +782,11 @@ void copy_vector(std::vector<float> src,std::vector<float> &dest)
 }
 
 
+/**
+ * @brief get_duplicata
+ * @param ftx
+ * @return
+ */
 std::vector<int> get_duplicata(feature_matching_hough_ctx ftx)
 {
     std::vector<int> duplics;
@@ -735,6 +808,13 @@ std::vector<int> get_duplicata(feature_matching_hough_ctx ftx)
 }
 
 
+/**
+ * @brief distance_between_curve_l1
+ * @param frame1
+ * @param frame2
+ * @param taille
+ * @return
+ */
 float distance_between_curve_l1(std::vector<float>  frame1,std::vector<float>  frame2, int taille)
 {
     float diff = 0;
@@ -748,6 +828,15 @@ float distance_between_curve_l1(std::vector<float>  frame1,std::vector<float>  f
     return diff;
 }
 
+
+/**
+ * @brief distance_between_curve_l2
+ * @param frame1
+ * @param frame2
+ * @param taille_theta
+ * @param taille_rho
+ * @return
+ */
 float distance_between_curve_l2(std::vector<float>  frame1, std::vector<float>  frame2, int taille_theta, int taille_rho)
 {
     float diff = 0;
@@ -763,12 +852,24 @@ float distance_between_curve_l2(std::vector<float>  frame1, std::vector<float>  
     return diff;
 }
 
+/**
+ * @brief correlation_matrix_pearson
+ * @param M1
+ * @param M2
+ * @param taille
+ * @return
+ */
 float correlation_matrix_pearson(Eigen::MatrixXd M1,Eigen::MatrixXd M2,int taille)
 {
 
 }
 
 
+/**
+ * @brief sum_vector
+ * @param a
+ * @return
+ */
 float sum_vector(std::vector<float> a)
 {
     float s = 0;
@@ -779,11 +880,23 @@ float sum_vector(std::vector<float> a)
     return s;
 }
 
+
+/**
+ * @brief mean_vector
+ * @param a
+ * @return
+ */
 float mean_vector(std::vector<float> a)
 {
     return sum_vector(a) / a.size();
 }
 
+
+/**
+ * @brief sqsum
+ * @param a
+ * @return
+ */
 float sqsum(std::vector<float> a)
 {
     float s = 0;
@@ -794,12 +907,25 @@ float sqsum(std::vector<float> a)
     return s;
 }
 
+
+/**
+ * @brief stdev
+ * @param nums
+ * @return
+ */
 float stdev(std::vector<float> nums)
 {
     float N = nums.size();
     return pow(sqsum(nums) / N - pow(sum_vector(nums) / N, 2), 0.5);
 }
 
+
+/**
+ * @brief operator -
+ * @param a
+ * @param b
+ * @return
+ */
 std::vector<float> operator-(std::vector<float> a, float b)
 {
     std::vector<float> retvect;
@@ -810,6 +936,13 @@ std::vector<float> operator-(std::vector<float> a, float b)
     return retvect;
 }
 
+
+/**
+ * @brief operator *
+ * @param a
+ * @param b
+ * @return
+ */
 std::vector<float> operator*(std::vector<float> a, std::vector<float> b)
 {
     std::vector<float> retvect;
@@ -820,13 +953,26 @@ std::vector<float> operator*(std::vector<float> a, std::vector<float> b)
     return retvect;
 }
 
+
+/**
+ * @brief pearsoncoeff
+ * @param X
+ * @param Y
+ * @return
+ */
 float pearsoncoeff(std::vector<float> X, std::vector<float> Y)
 {
     return sum_vector((X - mean_vector(X))*(Y - mean_vector(Y))) / (X.size()*stdev(X)* stdev(Y));
 }
 
 
-
+/**
+ * @brief brute_force_matching_basic_parallel
+ * @param descriptor1
+ * @param descriptor2
+ * @param matches
+ * @param type
+ */
 void brute_force_matching_basic_parallel(std::vector<vint2> descriptor1, std::vector<vint2> descriptor2,std::vector<int>& matches, int type)
 {
     int size1 = descriptor1.size();
@@ -852,6 +998,14 @@ void brute_force_matching_basic_parallel(std::vector<vint2> descriptor1, std::ve
 
 }
 
+
+/**
+ * @brief brute_force_matching_basic
+ * @param descriptor1
+ * @param descriptor2
+ * @param matches
+ * @param type
+ */
 void brute_force_matching_basic(std::vector<vint2> descriptor1, std::vector<vint2> descriptor2,std::vector<int>& matches, int type)
 {
     int size1 = descriptor1.size();

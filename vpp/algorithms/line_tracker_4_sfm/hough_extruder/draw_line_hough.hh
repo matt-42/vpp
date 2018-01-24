@@ -9,7 +9,18 @@ namespace vpp
 {
 using namespace vpp;
 using namespace draw;
+
+
 template <typename V, typename U>
+/**
+ * @brief line2d_hough : draw a line in a grascale gradient image
+ * @param a
+ * @param b
+ * @param paint
+ * @param paint_border
+ * @param grad
+ * @param line_width
+ */
 void line2d_hough(vint2 a, vint2 b, V paint, U paint_border,image2d<unsigned char> grad , int line_width = 5)
 {
     int x0 = a[1]; int y0 = a[0];

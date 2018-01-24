@@ -22,7 +22,7 @@ https://www.dropbox.com/s/bh980ucuxcmci40/original_video.avi?dl=0
 You can launch the program by calling :
 
 ```c++
-    Fast_DHT_Matching(feature_matching,Theta_max::SMALL, Sclare_rho::SAME,
+    fast_dht_matching(feature_matching,Theta_max::SMALL, Sclare_rho::SAME,
                   Type_video_hough::ALL_POINTS,
                   Type_output::ORIGINAL_VIDEO,
                   Type_Lines::ONLY_POLAR,
