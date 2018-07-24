@@ -29,7 +29,6 @@ cmake_build_install_current_dir()
 }
 
 [ ! $# -eq 1 ] && echo "Usage: install.sh prefix" && exit 1
-[ ! -d $1 ] && echo "The given prefix is not a directory" && exit 1
 
 check_for_executable cmake;
 check_for_executable git;
@@ -38,6 +37,8 @@ ROOT=$PWD
 PREFIX=$(readlink_f $1)
 
 mkdir -p $PREFIX
+
+[ ! -d $1 ] && echo "The given prefix is not a directory" && exit 1
 
 mkdir externals;
 cd externals;
