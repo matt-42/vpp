@@ -9,13 +9,9 @@ find_package(OpenCV REQUIRED)
 
 find_package(OpenGL REQUIRED)
 
-#include(${QT_USE_FILE})
-
-SET(THIRDPARTY ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/install)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..
-                    ${THIRDPARTY}/include
-                    $ENV{HOME}/local/include
+                    ${IOD_INCLUDE_DIR}
                     ${GLEW_INCLUDE_DIR}
          	    ${DIGE_INCLUDE_DIR})
 

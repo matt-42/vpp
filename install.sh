@@ -37,6 +37,8 @@ check_for_executable git;
 ROOT=$PWD
 PREFIX=$(readlink_f $1)
 
+mkdir -p $PREFIX
+
 mkdir externals;
 cd externals;
 
