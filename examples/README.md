@@ -8,7 +8,7 @@ cd vpp
 cd examples
 mkdir build
 cd build
-cmake .. -DIOD_INCLUDE_DIR=../../vpp_install
+cmake .. -DIOD_INCLUDE_DIR=$PWD/../../vpp_install/include
 make -j4
 ```
 
