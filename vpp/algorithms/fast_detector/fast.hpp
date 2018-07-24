@@ -129,7 +129,7 @@ namespace vpp
       static V u_adds(V a, V b) { return ::_mm256_adds_epu8(a, b); }
       static bool all_equal_zero(V a) {return ::_mm256_testz_si256(a, ::_mm256_set1_epi8(255)) == 1;}
       static V repeat(int v) { return ::_mm256_set1_epi8(v); }
-      static V load(const void* ptr) { return ::_mm256_load_si256((const _::_m256i*) (ptr)); }
+      static V load(const void* ptr) { return ::_mm256_load_si256((const __m256i*) (ptr)); }
       static V loadu(const void* ptr) { return ::_mm256_loadu_si256((const __m256i*) (ptr)); }
       static void storeu(void* ptr, V x) { ::_mm256_storeu_si256((__m256i*) (ptr), x); }
     };
