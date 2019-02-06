@@ -4,7 +4,7 @@
 
 void check_cv_refcount(const cv::Mat& m, int i)
 {
-#if (((defined(CV_VERSION_MAJOR) && CV_VERSION_MAJOR == 3)))
+#if (((defined(CV_VERSION_MAJOR) && CV_VERSION_MAJOR >= 3)))
       assert((m.u->refcount) == i);
 #else
       assert(*(m.refcount) == i);      

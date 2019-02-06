@@ -55,7 +55,7 @@ namespace vpp
 
     image2d<V> res(make_box2d(m.rows, m.cols), _data = m.data, _pitch = m.step);
 
-#if (((defined(CV_VERSION_MAJOR) && CV_VERSION_MAJOR == 3)))
+#if (((defined(CV_VERSION_MAJOR) && CV_VERSION_MAJOR >= 3)))
     res.set_external_data_holder(new opencv_data_holder{&m.u->refcount, m.data}, opencv_data_deleter);
     #else
     res.set_external_data_holder(new opencv_data_holder{m.refcount, m.data}, opencv_data_deleter);
