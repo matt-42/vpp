@@ -3,7 +3,7 @@
 
 # include <iostream>
 # include <regex>
-# include <opencv2/highgui/highgui.hpp>
+# include <opencv2/highgui.hpp>
 # include <vpp/core/boxNd.hh>
 # include <vpp/core/image2d.hh>
 # include <vpp/utils/opencv_bridge.hh>
@@ -25,16 +25,26 @@ inline bool open_videocapture(const char* str, cv::VideoCapture& cap)
 
 inline vpp::box2d videocapture_domain(cv::VideoCapture& cap)
 {
+#if (((defined(CV_VERSION_MAJOR) && CV_VERSION_MAJOR >= 4)))
+  return vpp::make_box2d(cap.get(cv::CAP_PROP_FRAME_HEIGHT),
+                    cap.get(cv::CAP_PROP_FRAME_WIDTH));
+#else
   return vpp::make_box2d(cap.get(CV_CAP_PROP_FRAME_HEIGHT),
                     cap.get(CV_CAP_PROP_FRAME_WIDTH));
+#endif  
 }
 
 inline vpp::box2d videocapture_domain(const char* f)
 {
   cv::VideoCapture cap;
   open_videocapture(f, cap);
+#if (((defined(CV_VERSION_MAJOR) && CV_VERSION_MAJOR >= 4)))
+  return vpp::make_box2d(cap.get(cv::CAP_PROP_FRAME_HEIGHT),
+                    cap.get(cv::CAP_PROP_FRAME_WIDTH));
+#else
   return vpp::make_box2d(cap.get(CV_CAP_PROP_FRAME_HEIGHT),
                     cap.get(CV_CAP_PROP_FRAME_WIDTH));
+#endif  
 }
 
 struct foreach_videoframe
